@@ -34,7 +34,7 @@ public class SecurityConfig {
             )
             .userDetailsService(userDetailsService)
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/register", "/dev/hash", "/css/**", "/js/**", "/images/**", "/fonts/**").permitAll()
+                .requestMatchers("/login", "/register", "/dev/hash", "/css/**", "/js/**", "/images/**", "/fonts/**", "/kamus-sampah").permitAll()
                 .requestMatchers("/transaksi/**", "/staff/**", "/warga/**").hasRole("ADMIN")
                 .requestMatchers("/profil/**").hasRole("WARGA")
                 .anyRequest().authenticated()

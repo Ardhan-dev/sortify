@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sortify — Kamus Sampah</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0f0c;
+      --surface: #141710;
+      --surface-raised: #1a1e16;
+      --border: rgba(134, 187, 76, 0.12);
+      --border-hover: rgba(134, 187, 76, 0.35);
+      --accent: #86bb4c;
+      --accent-dim: rgba(134, 187, 76, 0.08);
+      --text-primary: #e8ede2;
+      --text-secondary: #8a9480;
+      --text-muted: #4e5749;
+      --mono: 'Space Mono', monospace;
+      --sans: 'DM Sans', sans-serif;
+      --amber: #c8891a;
+      --teal: #2a9c7a;
+      --danger: #c84a4a;
+      --blue: #3a82c4;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-primary);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(134,187,76,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(134,187,76,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed; top: -200px; left: 50%;
+      transform: translateX(-50%);
+      width: 800px; height: 400px;
+      background: radial-gradient(ellipse, rgba(134,187,76,0.07) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrapper {
+      position: relative; z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    /* ── HEADER ── */
+    header { padding: 2rem 0 0; }
+
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .brand-icon {
+      width: 36px; height: 36px;
+      background: var(--accent); border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .brand-icon svg { width: 20px; height: 20px; fill: var(--bg); }
+    .brand-name { font-family: var(--mono); font-size: 18px; font-weight: 700; color: var(--accent); letter-spacing: -0.5px; }
+    .brand-version { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 1px; }
+
+    .topbar-right { display: flex; align-items: center; gap: 1.25rem; }
+    .sys-status { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11px; color: var(--text-muted); letter-spacing: 0.5px; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: pulse 2.5s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .topbar-sep { width: 1px; height: 20px; background: var(--border); }
+
+    .btn-logout {
+      display: inline-flex; align-items: center; gap: 7px;
+      font-family: var(--mono); font-size: 11px; letter-spacing: 0.8px; text-transform: uppercase;
+      color: var(--danger); background: rgba(200,74,74,0.08);
+      border: 1px solid rgba(200,74,74,0.2); border-radius: 6px;
+      padding: 6px 14px; cursor: pointer; text-decoration: none;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .btn-logout:hover { background: rgba(200,74,74,0.15); border-color: rgba(200,74,74,0.45); }
+    .btn-logout svg { width: 13px; height: 13px; stroke: currentColor; fill: none; }
+
+    /* ── BREADCRUMB ── */
+    .breadcrumb {
+      display: flex; align-items: center; gap: 8px;
+      font-family: var(--mono); font-size: 11px; color: var(--text-muted);
+      padding: 1.25rem 0 0;
+    }
+    .breadcrumb a { color: var(--text-muted); text-decoration: none; transition: color 0.15s; }
+    .breadcrumb a:hover { color: var(--accent); }
+    .breadcrumb-sep { opacity: 0.4; }
+    .breadcrumb-current { color: var(--accent); }
+
+    /* ── PAGE HEADER ── */
+    .page-hero {
+      padding: 3rem 0 2.5rem;
+      display: grid; grid-template-columns: 1fr auto;
+      align-items: end; gap: 2rem;
+    }
+    .page-label {
+      font-family: var(--mono); font-size: 11px; letter-spacing: 2.5px;
+      text-transform: uppercase; color: var(--accent);
+      margin-bottom: 1rem;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .page-label::before { content: ''; display: block; width: 24px; height: 1px; background: var(--accent); }
+    .page-title {
+      font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 300;
+      line-height: 1.2; letter-spacing: -1px; color: var(--text-primary);
+      margin-bottom: 0.75rem;
+    }
+    .page-title strong { font-weight: 500; color: var(--accent); }
+    .page-desc { font-size: 14px; color: var(--text-secondary); font-weight: 300; max-width: 460px; line-height: 1.75; }
+
+    .page-stat {
+      text-align: right; padding: 1rem 1.25rem;
+      border: 1px solid var(--border); border-radius: 10px;
+      background: var(--surface); min-width: 140px;
+    }
+    .page-stat-num { font-family: var(--mono); font-size: 1.75rem; font-weight: 700; color: var(--accent); line-height: 1; margin-bottom: 4px; }
+    .page-stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+
+    /* ── CONTROLS ── */
+    .controls-bar {
+      display: flex; gap: 12px; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: center;
+    }
+
+    .search-wrap {
+      flex: 1; min-width: 200px;
+      position: relative;
+    }
+    .search-wrap svg {
+      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+      width: 15px; height: 15px; stroke: var(--text-muted); fill: none; stroke-width: 2;
+      pointer-events: none;
+    }
+    .search-input {
+      width: 100%; padding: 0.65rem 1rem 0.65rem 2.5rem;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text-primary);
+      font-family: var(--sans); font-size: 13px;
+      outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-input::placeholder { color: var(--text-muted); }
+    .search-input:focus { border-color: var(--border-hover); box-shadow: 0 0 0 3px rgba(134,187,76,0.07); }
+
+    .filter-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+    .pill {
+      padding: 5px 12px; border-radius: 99px;
+      font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase;
+      border: 1px solid var(--border); background: var(--surface);
+      color: var(--text-muted); cursor: pointer;
+      transition: all 0.15s;
+    }
+    .pill:hover { border-color: var(--border-hover); color: var(--text-secondary); }
+    .pill.active { background: var(--accent-dim); border-color: rgba(134,187,76,0.4); color: var(--accent); }
+
+    /* Category-specific active pills */
+    .pill.active[data-kat="plastik"] { background: rgba(58,130,196,0.08); border-color: rgba(58,130,196,0.35); color: var(--blue); }
+    .pill.active[data-kat="kertas"]  { background: rgba(200,137,26,0.08); border-color: rgba(200,137,26,0.35); color: var(--amber); }
+    .pill.active[data-kat="organik"] { background: rgba(134,187,76,0.1); border-color: rgba(134,187,76,0.4); color: var(--accent); }
+    .pill.active[data-kat="logam"]   { background: rgba(138,148,128,0.12); border-color: rgba(138,148,128,0.35); color: var(--text-secondary); }
+    .pill.active[data-kat="kaca"]    { background: rgba(42,156,122,0.08); border-color: rgba(42,156,122,0.35); color: var(--teal); }
+    .pill.active[data-kat="elektronik"] { background: rgba(134,187,76,0.08); border-color: rgba(134,187,76,0.3); color: var(--accent); }
+    .pill.active[data-kat="b3"]      { background: rgba(200,74,74,0.08); border-color: rgba(200,74,74,0.3); color: var(--danger); }
+
+    /* ── RESULT COUNT ── */
+    .result-meta {
+      font-family: var(--mono); font-size: 10px; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+
+    /* ── CARDS GRID ── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 4rem;
+    }
+
+    .sampah-card {
+      background: var(--surface);
+      padding: 1.5rem;
+      display: flex; flex-direction: column; gap: 12px;
+      transition: background 0.2s;
+      position: relative; overflow: hidden;
+    }
+    .sampah-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: var(--card-color, var(--accent));
+      transform: scaleX(0); transform-origin: left;
+      transition: transform 0.3s;
+    }
+    .sampah-card:hover { background: var(--surface-raised); }
+    .sampah-card:hover::before { transform: scaleX(1); }
+
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .card-emoji { font-size: 2rem; line-height: 1; }
+
+    .cat-badge {
+      font-family: var(--mono); font-size: 9px; letter-spacing: 1px;
+      text-transform: uppercase; padding: 3px 8px; border-radius: 99px;
+      border: 1px solid;
+    }
+    .cat-plastik   { color: var(--blue); background: rgba(58,130,196,0.08); border-color: rgba(58,130,196,0.25); }
+    .cat-kertas    { color: var(--amber); background: rgba(200,137,26,0.08); border-color: rgba(200,137,26,0.25); }
+    .cat-organik   { color: var(--accent); background: var(--accent-dim); border-color: rgba(134,187,76,0.25); }
+    .cat-logam     { color: var(--text-secondary); background: rgba(138,148,128,0.08); border-color: rgba(138,148,128,0.2); }
+    .cat-kaca      { color: var(--teal); background: rgba(42,156,122,0.08); border-color: rgba(42,156,122,0.25); }
+    .cat-elektronik{ color: var(--accent); background: var(--accent-dim); border-color: rgba(134,187,76,0.25); }
+    .cat-b3        { color: var(--danger); background: rgba(200,74,74,0.08); border-color: rgba(200,74,74,0.25); }
+
+    .card-name { font-size: 15px; font-weight: 500; color: var(--text-primary); letter-spacing: -0.2px; line-height: 1.3; }
+    .card-alias { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+    .card-divider { border: none; border-top: 1px solid var(--border); }
+
+    .card-meta { display: flex; flex-direction: column; gap: 6px; }
+    .card-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+    .card-row-label { color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
+    .card-row-val { color: var(--text-secondary); font-weight: 500; text-align: right; max-width: 60%; }
+
+    .card-poin { display: flex; align-items: baseline; gap: 3px; }
+    .poin-num { font-family: var(--mono); font-size: 18px; font-weight: 700; color: var(--accent); }
+    .poin-unit { font-size: 10px; color: var(--text-muted); }
+
+    .card-tip {
+      font-size: 11px; color: var(--text-secondary);
+      background: var(--accent-dim); border: 1px solid rgba(134,187,76,0.1);
+      border-radius: 6px; padding: 7px 10px; line-height: 1.55;
+      margin-top: auto;
+    }
+    .tip-b3 {
+      background: rgba(200,74,74,0.07); border-color: rgba(200,74,74,0.12);
+      color: rgba(200,74,74,0.85);
+    }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center; padding: 4rem 2rem;
+      background: var(--surface);
+      color: var(--text-muted);
+    }
+    .empty-state-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.4; }
+    .empty-state-text { font-family: var(--mono); font-size: 12px; letter-spacing: 1px; text-transform: uppercase; }
+
+    /* ── SECTION DIVIDER ── */
+    .section-divider { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+    .section-divider-label { font-family: var(--mono); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); white-space: nowrap; }
+    .section-divider-line { flex: 1; height: 1px; background: var(--border); }
+
+    /* ── LEGEND ── */
+    .legend {
+      display: flex; gap: 1px;
+      background: var(--border); border: 1px solid var(--border);
+      border-radius: 10px; overflow: hidden;
+      margin-bottom: 4rem;
+    }
+    .legend-item {
+      flex: 1; background: var(--surface);
+      padding: 1rem; text-align: center;
+    }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; margin: 0 auto 6px; }
+    .legend-cat { font-family: var(--mono); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
+    .legend-range { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--text-primary); }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border); padding: 1.5rem 0;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .footer-left { font-family: var(--mono); font-size: 11px; color: var(--text-muted); letter-spacing: 0.5px; }
+    .footer-right { display: flex; gap: 1.5rem; }
+    .footer-tag { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+    .animate { animation: fadeUp 0.5s ease both; }
+    .delay-1 { animation-delay: 0.08s; }
+    .delay-2 { animation-delay: 0.16s; }
+    .delay-3 { animation-delay: 0.24s; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .page-hero { grid-template-columns: 1fr; }
+      .page-stat { text-align: left; }
+      .legend { flex-wrap: wrap; }
+      .legend-item { min-width: 33%; }
+      .topbar-sep, .sys-status { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <header class="animate">
+    <div class="topbar">
+      <a href="/" class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.35C16.5 22.15 20 17.25 20 12V6L12 2zm-1 13l-3-3 1.4-1.4 1.6 1.6 4.6-4.6 1.4 1.4L11 15z"/></svg>
+        </div>
+        <div>
+          <div class="brand-name">Sortify</div>
+          <div class="brand-version">v1.0 · OOP Waste System</div>
+        </div>
+      </a>
+      <div class="topbar-right">
+        <div class="sys-status">
+          <div class="status-dot"></div>
+          SISTEM AKTIF
+        </div>
+        <div class="topbar-sep"></div>
+        <form action="/logout" method="post" style="margin:0;">
+          <button type="submit" class="btn-logout">
+            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+            Logout
+          </button>
+        </form>
+      </div>
+    </div>
+  </header>
+
+  <!-- BREADCRUMB -->
+  <div class="breadcrumb animate delay-1">
+    <a href="/">Beranda</a>
+    <span class="breadcrumb-sep">›</span>
+    <span class="breadcrumb-current">Kamus Sampah</span>
+  </div>
+
+  <!-- PAGE HERO -->
+  <section class="page-hero">
+    <div class="animate delay-1">
+      <div class="page-label">Referensi Klasifikasi</div>
+      <h1 class="page-title">
+        Kamus <strong>Sampah</strong><br>& Poin Reward
+      </h1>
+      <p class="page-desc">
+        Panduan lengkap jenis sampah, tempat pengumpulan yang tepat, dan besaran poin reward yang kamu dapatkan.
+      </p>
+    </div>
+    <div class="page-stat animate delay-2">
+      <div class="page-stat-num" id="total-count">24</div>
+      <div class="page-stat-label">Jenis Sampah</div>
+    </div>
+  </section>
+
+  <!-- LEGEND -->
+  <div class="section-divider animate delay-2">
+    <span class="section-divider-label">Kategori</span>
+    <div class="section-divider-line"></div>
+  </div>
+
+  <div class="legend animate delay-2">
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--blue)"></div>
+      <div class="legend-cat">Plastik</div>
+      <div class="legend-range">1–15 poin</div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--amber)"></div>
+      <div class="legend-cat">Kertas</div>
+      <div class="legend-range">5–8 poin</div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--accent)"></div>
+      <div class="legend-cat">Organik</div>
+      <div class="legend-range">2–3 poin</div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--text-secondary)"></div>
+      <div class="legend-cat">Logam</div>
+      <div class="legend-range">8–50 poin</div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--teal)"></div>
+      <div class="legend-cat">Kaca</div>
+      <div class="legend-range">2–4 poin</div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--accent)"></div>
+      <div class="legend-cat">Elektronik</div>
+      <div class="legend-range">5–80 poin</div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--danger)"></div>
+      <div class="legend-cat">B3</div>
+      <div class="legend-range">3–5 poin</div>
+    </div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="section-divider animate delay-2">
+    <span class="section-divider-label">Direktori Sampah</span>
+    <div class="section-divider-line"></div>
+  </div>
+
+  <div class="controls-bar animate delay-3">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input class="search-input" type="search" id="ks-search"
+             placeholder="Cari nama sampah, contoh: botol, kardus..."
+             oninput="ksRender()">
+    </div>
+    <div class="filter-pills">
+      <button class="pill active" data-kat="semua" onclick="ksSetKat('semua')">Semua</button>
+      <button class="pill" data-kat="plastik" onclick="ksSetKat('plastik')">Plastik</button>
+      <button class="pill" data-kat="kertas" onclick="ksSetKat('kertas')">Kertas</button>
+      <button class="pill" data-kat="organik" onclick="ksSetKat('organik')">Organik</button>
+      <button class="pill" data-kat="logam" onclick="ksSetKat('logam')">Logam</button>
+      <button class="pill" data-kat="kaca" onclick="ksSetKat('kaca')">Kaca</button>
+      <button class="pill" data-kat="elektronik" onclick="ksSetKat('elektronik')">Elektronik</button>
+      <button class="pill" data-kat="b3" onclick="ksSetKat('b3')">B3 / Berbahaya</button>
+    </div>
+  </div>
+
+  <div class="result-meta" id="ks-meta">24 jenis sampah ditemukan</div>
+
+  <!-- CARDS -->
+  <div class="cards-grid" id="ks-grid"></div>
+
+  <!-- FOOTER -->
+  <footer class="animate">
+    <div class="footer-left">&copy; 2025 Sortify System · Object-Oriented Programming</div>
+    <div class="footer-right">
+      <span class="footer-tag">OOP Based</span>
+      <span class="footer-tag">Waste Classification</span>
+      <span class="footer-tag">Bank Sampah</span>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+const DATA = [
+  { nama:"Botol plastik", alias:"Botol air mineral, botol soda", ikon:"🍶", kat:"plastik", poin:5, satuan:"per botol", tempat:"Bank Sampah", tips:"Cuci dahulu sebelum disetor. Penyok tidak masalah.", warna:"var(--blue)" },
+  { nama:"Kantong kresek", alias:"Tas belanja plastik, kantong kresek", ikon:"🛍️", kat:"plastik", poin:2, satuan:"per 10 lembar", tempat:"Bank Sampah", tips:"Kumpulkan 10 lembar, ikat jadi satu.", warna:"var(--blue)" },
+  { nama:"Bungkus makanan plastik", alias:"Plastik snack, wrapper permen, bungkus mie", ikon:"🍜", kat:"plastik", poin:1, satuan:"per 50 gram", tempat:"Bank Sampah", tips:"Bersihkan dari sisa makanan dan keringkan dahulu.", warna:"var(--blue)" },
+  { nama:"Sedotan plastik", alias:"Sedotan minuman, straw", ikon:"🥤", kat:"plastik", poin:1, satuan:"per 20 buah", tempat:"Bank Sampah", tips:"Kumpulkan dalam kantong terpisah.", warna:"var(--blue)" },
+  { nama:"Ember & barang plastik keras", alias:"Ember, gayung, kursi plastik, baskom", ikon:"🪣", kat:"plastik", poin:10, satuan:"per kg", tempat:"Bank Sampah", tips:"Plastik keras bernilai lebih tinggi dari plastik tipis.", warna:"var(--blue)" },
+  { nama:"Galon air minum", alias:"Galon 19 liter, galon bekas", ikon:"🫙", kat:"plastik", poin:15, satuan:"per unit", tempat:"Bank Sampah", tips:"Galon utuh (tidak retak) lebih bernilai.", warna:"var(--blue)" },
+
+  { nama:"Kardus bekas", alias:"Dus mie, dus elektronik, karton bergelombang", ikon:"📦", kat:"kertas", poin:8, satuan:"per kg", tempat:"Bank Sampah", tips:"Lepaskan selotip dan staples. Lipat rata agar hemat tempat.", warna:"var(--amber)" },
+  { nama:"Koran & majalah", alias:"Koran, tabloid, majalah, brosur", ikon:"📰", kat:"kertas", poin:6, satuan:"per kg", tempat:"Bank Sampah", tips:"Simpan di tempat kering. Kertas basah tidak diterima.", warna:"var(--amber)" },
+  { nama:"Buku bekas", alias:"Buku tulis, buku pelajaran, novel", ikon:"📚", kat:"kertas", poin:5, satuan:"per kg", tempat:"Bank Sampah", tips:"Lepaskan sampul plastik atau laminasi jika ada.", warna:"var(--amber)" },
+  { nama:"Kertas HVS & print", alias:"Kertas print, fotokopi, kertas kantor", ikon:"📄", kat:"kertas", poin:7, satuan:"per kg", tempat:"Bank Sampah", tips:"Kertas putih polos tanpa laminasi bernilai lebih tinggi.", warna:"var(--amber)" },
+
+  { nama:"Sisa makanan", alias:"Nasi sisa, sayur, buah busuk, tulang", ikon:"🥬", kat:"organik", poin:3, satuan:"per kg", tempat:"Komposter RT", tips:"Pisahkan dari plastik dan kemasan. Ideal untuk kompos.", warna:"var(--accent)" },
+  { nama:"Daun & ranting", alias:"Daun kering, ranting pohon, rumput", ikon:"🍂", kat:"organik", poin:2, satuan:"per kg", tempat:"Komposter RT", tips:"Cacah dahulu agar proses kompos lebih cepat.", warna:"var(--accent)" },
+  { nama:"Ampas kopi & teh", alias:"Ampas kopi, kantong teh bekas", ikon:"☕", kat:"organik", poin:3, satuan:"per kg", tempat:"Komposter RT", tips:"Bagus untuk pupuk. Lepaskan kantong teh dari benangnya.", warna:"var(--accent)" },
+
+  { nama:"Kaleng aluminium", alias:"Kaleng minuman, kaleng susu, kaleng biskuit", ikon:"🥫", kat:"logam", poin:15, satuan:"per kg", tempat:"Bank Sampah", tips:"Penyok dan diinjak boleh. Cuci sisa cairan dahulu.", warna:"var(--text-secondary)" },
+  { nama:"Besi & baja", alias:"Pipa, baut, kawat, alat berkarat", ikon:"🔩", kat:"logam", poin:8, satuan:"per kg", tempat:"Bank Sampah", tips:"Logam campuran diterima. Pisahkan dari non-logam.", warna:"var(--text-secondary)" },
+  { nama:"Tembaga & kuningan", alias:"Kabel tembaga, keran bekas, engsel", ikon:"🔌", kat:"logam", poin:50, satuan:"per kg", tempat:"Bank Sampah", tips:"Bernilai sangat tinggi! Lepaskan lapisan plastik kabel.", warna:"var(--text-secondary)" },
+
+  { nama:"Botol kaca", alias:"Botol kecap, botol sirup, toples jar", ikon:"🫙", kat:"kaca", poin:4, satuan:"per kg", tempat:"Bank Sampah", tips:"Cuci bersih. Bawa dalam wadah aman agar tidak pecah.", warna:"var(--teal)" },
+  { nama:"Kaca jendela & cermin", alias:"Kaca pecah, cermin bekas, kaca meja", ikon:"🪟", kat:"kaca", poin:2, satuan:"per kg", tempat:"Bank Sampah", tips:"Bungkus dengan koran tebal sebelum dibawa. Hati-hati tajam!", warna:"var(--teal)" },
+
+  { nama:"Handphone & tablet bekas", alias:"HP rusak, tablet, smartwatch, kamera", ikon:"📱", kat:"elektronik", poin:30, satuan:"per unit", tempat:"Drop Box e-Waste", tips:"Hapus data pribadi dahulu. Lepaskan baterai jika bisa.", warna:"var(--accent)" },
+  { nama:"Laptop & komputer", alias:"Laptop rusak, CPU, monitor, printer", ikon:"💻", kat:"elektronik", poin:80, satuan:"per unit", tempat:"Drop Box e-Waste", tips:"Format hardisk sebelum diserahkan untuk keamanan data.", warna:"var(--accent)" },
+  { nama:"Kabel & charger", alias:"Kabel listrik, charger HP, earphone", ikon:"🔋", kat:"elektronik", poin:10, satuan:"per kg", tempat:"Drop Box e-Waste", tips:"Gulung rapi dan ikat. Campuran berbagai kabel ok.", warna:"var(--accent)" },
+  { nama:"Lampu bekas", alias:"Lampu LED, lampu neon, bohlam pijar", ikon:"💡", kat:"elektronik", poin:5, satuan:"per unit", tempat:"Drop Box e-Waste", tips:"Jangan pecahkan. Lampu neon mengandung merkuri berbahaya.", warna:"var(--accent)" },
+
+  { nama:"Baterai bekas", alias:"Baterai AA/AAA/9V, baterai HP, powerbank", ikon:"🪫", kat:"b3", poin:5, satuan:"per 10 buah", tempat:"Drop Box B3", tips:"⚠️ JANGAN dibuang ke sampah biasa! Mengandung logam berat berbahaya.", warna:"var(--danger)", isB3:true },
+  { nama:"Cat & thinner sisa", alias:"Kaleng cat sisa, thinner, pelarut", ikon:"🎨", kat:"b3", poin:3, satuan:"per unit", tempat:"Drop Box B3", tips:"⚠️ Simpan dalam kaleng aslinya. Jangan campur bahan kimia.", warna:"var(--danger)", isB3:true },
+  { nama:"Obat kadaluarsa", alias:"Obat-obatan habis masa pakai, sirup basi", ikon:"💊", kat:"b3", poin:5, satuan:"per 100 gram", tempat:"Apotek / Puskesmas", tips:"⚠️ Kembalikan ke apotek terdekat. JANGAN dibuang ke toilet atau sungai!", warna:"var(--danger)", isB3:true },
+];
+
+let aktifKat = "semua";
+
+function ksSetKat(kat) {
+  aktifKat = kat;
+  document.querySelectorAll(".pill").forEach(p => {
+    p.classList.toggle("active", p.dataset.kat === kat);
+  });
+  ksRender();
+}
+
+function ksRender() {
+  const q = document.getElementById("ks-search").value.toLowerCase().trim();
+  const grid = document.getElementById("ks-grid");
+  const meta = document.getElementById("ks-meta");
+
+  const filtered = DATA.filter(d => {
+    const matchKat = aktifKat === "semua" || d.kat === aktifKat;
+    const matchQ = !q || d.nama.toLowerCase().includes(q) || d.alias.toLowerCase().includes(q);
+    return matchKat && matchQ;
+  });
+
+  document.getElementById("total-count").textContent = filtered.length;
+  meta.textContent = filtered.length + " jenis sampah ditemukan";
+
+  if (!filtered.length) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">🔍</div>
+        <div class="empty-state-text">Tidak ditemukan · Coba kata lain</div>
+      </div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(d => `
+    <div class="sampah-card" style="--card-color:${d.warna}">
+      <div class="card-top">
+        <span style="font-size:2rem;line-height:1">${d.ikon}</span>
+        <span class="cat-badge cat-${d.kat}">${d.kat}</span>
+      </div>
+      <div>
+        <div class="card-name">${d.nama}</div>
+        <div class="card-alias">${d.alias}</div>
+      </div>
+      <hr class="card-divider">
+      <div class="card-meta">
+        <div class="card-row">
+          <span class="card-row-label">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Tempat
+          </span>
+          <span class="card-row-val">${d.tempat}</span>
+        </div>
+        <div class="card-row">
+          <span class="card-row-label">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+            Satuan
+          </span>
+          <span class="card-row-val">${d.satuan}</span>
+        </div>
+        <div class="card-row">
+          <span class="card-row-label">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            Poin
+          </span>
+          <div class="card-poin">
+            <span class="poin-num">+${d.poin}</span>
+            <span class="poin-unit">poin</span>
+          </div>
+        </div>
+      </div>
+      <div class="card-tip ${d.isB3 ? 'tip-b3' : ''}">${d.tips}</div>
+    </div>
+  `).join("");
+}
+
+ksRender();
+</script>
+</body>
+</html>
