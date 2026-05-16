@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sortify — Data Warga</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0f0c;
+      --surface: #141710;
+      --surface-raised: #1a1e16;
+      --surface-hover: #1e2318;
+      --border: rgba(134, 187, 76, 0.12);
+      --border-hover: rgba(134, 187, 76, 0.28);
+      --accent: #86bb4c;
+      --accent-dim: rgba(134, 187, 76, 0.08);
+      --text-primary: #e8ede2;
+      --text-secondary: #8a9480;
+      --text-muted: #4e5749;
+      --amber: #c8891a;
+      --teal: #2a9c7a;
+      --danger: #b85454;
+      --mono: 'Space Mono', monospace;
+      --sans: 'DM Sans', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-primary);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(134,187,76,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(134,187,76,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      top: -200px; left: 50%;
+      transform: translateX(-50%);
+      width: 700px; height: 400px;
+      background: radial-gradient(ellipse, rgba(134,187,76,0.06) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 2rem 4rem;
+    }
+
+    /* ── HEADER ── */
+    header { padding: 2rem 0 0; }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .brand-icon {
+      width: 36px; height: 36px;
+      background: var(--accent);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .brand-icon svg { width: 20px; height: 20px; fill: var(--bg); }
+
+    .brand-name {
+      font-family: var(--mono);
+      font-size: 18px; font-weight: 700;
+      color: var(--accent); letter-spacing: -0.5px;
+    }
+
+    .brand-version {
+      font-family: var(--mono);
+      font-size: 10px; color: var(--text-muted);
+      letter-spacing: 1px; text-transform: uppercase; margin-top: 1px;
+    }
+
+    .sys-status {
+      display: flex; align-items: center; gap: 8px;
+      font-family: var(--mono); font-size: 11px;
+      color: var(--text-muted); letter-spacing: 0.5px;
+    }
+
+    .status-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    /* ── PAGE TITLE ── */
+    .page-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 1.5rem;
+      padding: 3.5rem 0 2rem;
+    }
+
+    .page-label {
+      font-family: var(--mono);
+      font-size: 11px; letter-spacing: 2.5px;
+      text-transform: uppercase; color: var(--accent);
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 0.8rem;
+    }
+
+    .page-label::before {
+      content: '';
+      display: block; width: 24px; height: 1px;
+      background: var(--accent);
+    }
+
+    .page-title {
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 300; letter-spacing: -1px;
+      color: var(--text-primary); line-height: 1.2;
+    }
+
+    .page-title strong { font-weight: 500; color: var(--accent); }
+
+    .page-actions {
+      display: flex; gap: 10px; align-items: center; flex-shrink: 0;
+    }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 0.55rem 1.1rem;
+      font-family: var(--mono); font-size: 11px;
+      letter-spacing: 0.5px; text-transform: uppercase;
+      text-decoration: none; border-radius: 7px;
+      border: 1px solid; cursor: pointer;
+      transition: background 0.18s, border-color 0.18s;
+    }
+
+    .btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+    .btn-primary {
+      background: var(--accent); color: var(--bg);
+      border-color: var(--accent);
+    }
+    .btn-primary:hover { background: #97cc5a; border-color: #97cc5a; }
+
+    .btn-ghost {
+      background: transparent; color: var(--text-secondary);
+      border-color: var(--border);
+    }
+    .btn-ghost:hover { border-color: var(--border-hover); color: var(--text-primary); background: var(--accent-dim); }
+
+    /* ── SEARCH + FILTER BAR ── */
+    .toolbar {
+      display: flex; gap: 10px; margin-bottom: 1.25rem;
+      align-items: center;
+    }
+
+    .search-wrap {
+      position: relative; flex: 1; max-width: 340px;
+    }
+
+    .search-wrap svg {
+      position: absolute; left: 12px; top: 50%;
+      transform: translateY(-50%);
+      width: 15px; height: 15px;
+      stroke: var(--text-muted); fill: none; stroke-width: 2;
+      pointer-events: none;
+    }
+
+    .search-input {
+      width: 100%; padding: 0.55rem 1rem 0.55rem 2.4rem;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text-primary);
+      font-family: var(--sans); font-size: 13px;
+      outline: none; transition: border-color 0.18s;
+    }
+
+    .search-input::placeholder { color: var(--text-muted); }
+    .search-input:focus { border-color: var(--border-hover); }
+
+    .count-badge {
+      font-family: var(--mono); font-size: 11px;
+      color: var(--text-muted); letter-spacing: 0.5px;
+      margin-left: auto;
+    }
+
+    .count-badge span {
+      color: var(--accent); font-weight: 700;
+    }
+
+    /* ── TABLE ── */
+    .table-wrap {
+      border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+      background: var(--surface);
+    }
+
+    table {
+      width: 100%; border-collapse: collapse;
+    }
+
+    thead {
+      background: var(--surface-raised);
+      border-bottom: 1px solid var(--border);
+    }
+
+    thead th {
+      padding: 0.85rem 1.25rem;
+      font-family: var(--mono); font-size: 10px;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--text-muted); font-weight: 400;
+      text-align: left; white-space: nowrap;
+    }
+
+    thead th:first-child { width: 60px; }
+    thead th.col-actions { width: 100px; text-align: center; }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--surface-hover); }
+
+    tbody td {
+      padding: 1rem 1.25rem;
+      font-size: 14px; color: var(--text-primary);
+      vertical-align: middle;
+    }
+
+    /* ID cell */
+    .cell-id {
+      font-family: var(--mono); font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Nama cell — avatar + nama */
+    .cell-nama {
+      display: flex; align-items: center; gap: 10px;
+    }
+
+    .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--accent-dim);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono); font-size: 11px; font-weight: 700;
+      color: var(--accent); flex-shrink: 0; text-transform: uppercase;
+    }
+
+    .nama-text { font-weight: 500; font-size: 14px; }
+
+    /* Alamat */
+    .cell-alamat {
+      color: var(--text-secondary); font-size: 13px; max-width: 240px;
+    }
+
+    /* HP */
+    .cell-hp {
+      font-family: var(--mono); font-size: 12px; color: var(--text-secondary);
+    }
+
+    /* ── USERNAME (baru) ── */
+    .username-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(134,187,76,0.18);
+      border-radius: 5px;
+      padding: 2px 8px;
+      font-family: var(--mono); font-size: 11px;
+      color: var(--accent); letter-spacing: 0.3px;
+    }
+    .username-badge svg { width: 11px; height: 11px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+    /* Actions */
+    .cell-actions {
+      display: flex; justify-content: center; gap: 6px;
+    }
+
+    .icon-btn {
+      width: 30px; height: 30px; border-radius: 6px;
+      border: 1px solid var(--border);
+      background: transparent;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--text-muted);
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+      text-decoration: none;
+    }
+
+    .icon-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+    .icon-btn:hover { background: var(--accent-dim); border-color: var(--border-hover); color: var(--accent); }
+    .icon-btn.danger:hover { background: rgba(184,84,84,0.1); border-color: rgba(184,84,84,0.35); color: var(--danger); }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      padding: 5rem 2rem;
+      text-align: center;
+    }
+
+    .empty-icon {
+      width: 52px; height: 52px;
+      border-radius: 12px; background: var(--accent-dim);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.25rem;
+    }
+
+    .empty-icon svg { width: 24px; height: 24px; stroke: var(--accent); fill: none; stroke-width: 1.5; }
+
+    .empty-title { font-size: 15px; font-weight: 500; margin-bottom: 6px; }
+    .empty-desc { font-size: 13px; color: var(--text-muted); }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem 0; margin-top: 3rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    .back-link {
+      display: inline-flex; align-items: center; gap: 7px;
+      font-family: var(--mono); font-size: 11px;
+      color: var(--text-muted); text-decoration: none;
+      letter-spacing: 0.5px;
+      transition: color 0.15s;
+    }
+
+    .back-link svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .back-link:hover { color: var(--accent); }
+
+    .footer-id {
+      font-family: var(--mono); font-size: 10px;
+      color: var(--text-muted); letter-spacing: 1px;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate { animation: fadeUp 0.45s ease both; }
+    .delay-1 { animation-delay: 0.05s; }
+    .delay-2 { animation-delay: 0.12s; }
+    .delay-3 { animation-delay: 0.2s; }
+    .delay-4 { animation-delay: 0.28s; }
+
+    @media (max-width: 768px) {
+      .page-head { flex-direction: column; align-items: flex-start; }
+      .cell-alamat { max-width: 140px; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <header class="animate">
+    <div class="topbar">
+      <a href="/" class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.35C16.5 22.15 20 17.25 20 12V6L12 2zm-1 13l-3-3 1.4-1.4 1.6 1.6 4.6-4.6 1.4 1.4L11 15z"/></svg>
+        </div>
+        <div>
+          <div class="brand-name">Sortify</div>
+          <div class="brand-version">v1.0 · OOP Waste System</div>
+        </div>
+      </a>
+      <div class="sys-status">
+        <div class="status-dot"></div>
+        SISTEM AKTIF
+      </div>
+    </div>
+  </header>
+
+  <!-- PAGE TITLE -->
+  <div class="page-head animate delay-1">
+    <div>
+      <div class="page-label">Modul 01</div>
+      <h1 class="page-title">Data <strong>Warga</strong></h1>
+    </div>
+    <div class="page-actions">
+      <a href="/warga/tambah" class="btn btn-primary">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Tambah Warga
+      </a>
+    </div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar animate delay-2">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" class="search-input" placeholder="Cari nama, username, alamat, atau nomor HP..." id="searchInput" oninput="filterTable()">
+    </div>
+    <div class="count-badge">
+      <span id="rowCount" th:text="${#lists.size(daftarWarga)}">0</span> warga terdaftar
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-wrap animate delay-3">
+    <table id="wargaTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nama Warga</th>
+          <th>Username</th>  <!-- ← TAMBAHAN -->
+          <th>Alamat</th>
+          <th>No. HP</th>
+          <th class="col-actions">Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="wargaBody">
+
+        <tr th:each="w : ${daftarWarga}" th:classappend="'data-row'">
+          <td class="cell-id" th:text="${w.idWarga}">001</td>
+          <td>
+            <div class="cell-nama">
+              <div class="avatar" th:text="${#strings.length(w.nama) > 0 ? #strings.substring(w.nama, 0, 1) : '?'}">A</div>
+              <span class="nama-text" th:text="${w.nama}">Nama Warga</span>
+            </div>
+          </td>
+          <!-- ← TAMBAHAN -->
+          <td>
+            <span class="username-badge">
+              <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <span th:text="${w.username}">username</span>
+            </span>
+          </td>
+          <td class="cell-alamat" th:text="${w.alamat}">Alamat Warga</td>
+          <td class="cell-hp" th:text="${w.noHp}">08123456789</td>
+          <td>
+            <div class="cell-actions">
+              <a th:href="@{/warga/edit/{id}(id=${w.idWarga})}" class="icon-btn" title="Edit">
+                <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </a>
+              <a th:href="@{/warga/hapus/{id}(id=${w.idWarga})}" class="icon-btn danger" title="Hapus" onclick="return confirm('Hapus warga ini?')">
+                <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              </a>
+            </div>
+          </td>
+        </tr>
+
+        <!-- Empty state -->
+        <tr th:if="${#lists.isEmpty(daftarWarga)}" id="emptyDefault">
+          <td colspan="6"> <!-- ← diubah dari 5 ke 6 -->
+            <div class="empty-state">
+              <div class="empty-icon">
+                <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </div>
+              <div class="empty-title">Belum ada data warga</div>
+              <div class="empty-desc">Tambah warga baru untuk memulai pencatatan.</div>
+            </div>
+          </td>
+        </tr>
+
+      </tbody>
+    </table>
+
+    <!-- JS empty state -->
+    <div id="noResult" style="display:none;">
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" stroke="var(--accent)" fill="none" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+        <div class="empty-title">Tidak ada hasil</div>
+        <div class="empty-desc">Coba kata kunci lain.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="animate delay-4">
+    <a href="/" class="back-link">
+      <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Kembali ke Dashboard
+    </a>
+    <div class="footer-id">MODULE · 01 / WARGA</div>
+  </footer>
+
+</div>
+
+<script>
+  function filterTable() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const rows = document.querySelectorAll('#wargaBody tr.data-row');
+    let visible = 0;
+
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      const match = text.includes(q);
+      row.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+
+    document.getElementById('rowCount').textContent = visible;
+    document.getElementById('noResult').style.display = visible === 0 && rows.length > 0 ? 'block' : 'none';
+  }
+</script>
+</body>
+</html>

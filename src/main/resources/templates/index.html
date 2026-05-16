@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sortify — Waste Classification System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0f0c;
+      --surface: #141710;
+      --surface-raised: #1a1e16;
+      --border: rgba(134, 187, 76, 0.12);
+      --border-hover: rgba(134, 187, 76, 0.35);
+      --accent: #86bb4c;
+      --accent-dim: rgba(134, 187, 76, 0.08);
+      --accent-glow: rgba(134, 187, 76, 0.15);
+      --text-primary: #e8ede2;
+      --text-secondary: #8a9480;
+      --text-muted: #4e5749;
+      --mono: 'Space Mono', monospace;
+      --sans: 'DM Sans', sans-serif;
+      --amber: #c8891a;
+      --teal: #2a9c7a;
+      --slate: #5a7a8c;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-primary);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Background grid texture */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(134,187,76,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(134,187,76,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Ambient glow top */
+    body::after {
+      content: '';
+      position: fixed;
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 400px;
+      background: radial-gradient(ellipse, rgba(134,187,76,0.07) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    /* ── HEADER ── */
+    header {
+      padding: 2rem 0 0;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--accent);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .brand-icon svg {
+      width: 20px;
+      height: 20px;
+      fill: var(--bg);
+    }
+
+    .brand-name {
+      font-family: var(--mono);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.5px;
+    }
+
+    .brand-version {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-top: 1px;
+    }
+
+    .sys-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* ── HERO ── */
+    .hero {
+      padding: 5rem 0 4rem;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: end;
+      gap: 2rem;
+    }
+
+    .hero-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hero-label::before {
+      content: '';
+      display: block;
+      width: 24px;
+      height: 1px;
+      background: var(--accent);
+    }
+
+    .hero-title {
+      font-family: var(--sans);
+      font-size: clamp(2.4rem, 5vw, 3.8rem);
+      font-weight: 300;
+      line-height: 1.15;
+      letter-spacing: -1.5px;
+      color: var(--text-primary);
+      margin-bottom: 1.2rem;
+    }
+
+    .hero-title strong {
+      font-weight: 500;
+      color: var(--accent);
+    }
+
+    .hero-desc {
+      font-size: 15px;
+      color: var(--text-secondary);
+      font-weight: 300;
+      max-width: 480px;
+      line-height: 1.75;
+    }
+
+    .hero-stat {
+      text-align: right;
+      padding: 1.2rem 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+      min-width: 160px;
+      flex-shrink: 0;
+    }
+
+    .hero-stat-num {
+      font-family: var(--mono);
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .hero-stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* ── DIVIDER ── */
+    .section-divider {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .section-divider-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .section-divider-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── MENU CARDS ── */
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 4rem;
+    }
+
+    .menu-card {
+      background: var(--surface);
+      padding: 2.5rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      text-decoration: none;
+      color: inherit;
+      transition: background 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .menu-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--card-accent, var(--accent));
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s ease;
+    }
+
+    .menu-card:hover {
+      background: var(--surface-raised);
+    }
+
+    .menu-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .menu-card:hover .card-arrow {
+      transform: translate(4px, -4px);
+      opacity: 1;
+    }
+
+    .card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+
+    .card-icon-wrap {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: var(--accent-dim);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .card-icon-wrap svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .card-arrow {
+      opacity: 0;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+      color: var(--text-muted);
+    }
+
+    .card-arrow svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      fill: none;
+    }
+
+    .card-index {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+    }
+
+    .card-title {
+      font-size: 17px;
+      font-weight: 500;
+      color: var(--text-primary);
+      letter-spacing: -0.3px;
+      line-height: 1.3;
+    }
+
+    .card-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.65;
+      font-weight: 300;
+      flex: 1;
+    }
+
+    .card-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      color: var(--card-accent, var(--accent));
+      text-transform: uppercase;
+      margin-top: auto;
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .card-cta svg {
+      width: 12px;
+      height: 12px;
+      stroke: currentColor;
+      fill: none;
+      transition: transform 0.2s;
+    }
+
+    .menu-card:hover .card-cta svg {
+      transform: translateX(3px);
+    }
+
+    /* Card color variants */
+    .card--warga { --card-accent: var(--accent); }
+    .card--staff { --card-accent: var(--amber); }
+    .card--staff .card-icon-wrap { background: rgba(200,137,26,0.08); }
+    .card--transaksi { --card-accent: var(--teal); }
+    .card--transaksi .card-icon-wrap { background: rgba(42,156,122,0.08); }
+
+    /* ── QUICK STATS ROW ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 5rem;
+    }
+
+    .stat-item {
+      background: var(--surface);
+      padding: 1.25rem 1.5rem;
+    }
+
+    .stat-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .stat-val {
+      font-family: var(--mono);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1;
+    }
+
+    .stat-sub {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-left {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+    }
+
+    .footer-right {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .footer-tag {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate { animation: fadeUp 0.55s ease both; }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+    .delay-5 { animation-delay: 0.5s; }
+    .delay-6 { animation-delay: 0.6s; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .hero { grid-template-columns: 1fr; }
+      .hero-stat { text-align: left; }
+      .menu-grid { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <header class="animate">
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.35C16.5 22.15 20 17.25 20 12V6L12 2zm-1 13l-3-3 1.4-1.4 1.6 1.6 4.6-4.6 1.4 1.4L11 15z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-name">Sortify</div>
+          <div class="brand-version">v1.0 · OOP Waste System</div>
+        </div>
+      </div>
+      <div class="sys-status">
+        <div class="status-dot"></div>
+        SISTEM AKTIF
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="animate delay-1">
+      <div class="hero-label">Waste Classification Engine</div>
+      <h1 class="hero-title">
+        Klasifikasi sampah<br>
+        <strong>cerdas &amp; terstruktur</strong>
+      </h1>
+      <p class="hero-desc">
+        Sistem berbasis OOP untuk identifikasi, validasi, dan pengelolaan sampah secara otomatis — dari setoran hingga penempatan lokasi penyimpanan yang optimal.
+      </p>
+    </div>
+    <div class="hero-stat animate delay-2">
+      <div class="hero-stat-num">3</div>
+      <div class="hero-stat-label">Modul Aktif</div>
+    </div>
+  </section>
+
+  <!-- MENU CARDS -->
+  <div class="section-divider animate delay-2">
+    <span class="section-divider-label">Navigasi Sistem</span>
+    <div class="section-divider-line"></div>
+  </div>
+
+  <div class="menu-grid">
+
+    <!-- Data Warga -->
+    <a href="/warga" class="menu-card card--warga animate delay-3">
+      <div class="card-head">
+        <div class="card-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <div class="card-arrow">
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/>
+          </svg>
+        </div>
+      </div>
+      <div>
+        <div class="card-index">01</div>
+        <div class="card-title">Data Warga</div>
+      </div>
+      <div class="card-desc">
+        Kelola data nasabah bank sampah, registrasi warga baru, dan pantau akumulasi poin hasil setoran.
+      </div>
+      <div class="card-cta">
+        Buka Manajemen
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+        </svg>
+      </div>
+    </a>
+
+    <!-- Sektor Staff -->
+    <a href="/staff" class="menu-card card--staff animate delay-4">
+      <div class="card-head">
+        <div class="card-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="var(--amber)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M9 12l2 2 4-4"/>
+          </svg>
+        </div>
+        <div class="card-arrow">
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/>
+          </svg>
+        </div>
+      </div>
+      <div>
+        <div class="card-index">02</div>
+        <div class="card-title">Sektor Staff</div>
+      </div>
+      <div class="card-desc">
+        Validasi identitas petugas lapangan via NIP untuk autentikasi dan otorisasi akses operasional sistem.
+      </div>
+      <div class="card-cta">
+        Buka Sektor
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+        </svg>
+      </div>
+    </a>
+
+    <!-- Transaksi Setoran -->
+    <a href="/transaksi" class="menu-card card--transaksi animate delay-5">
+      <div class="card-head">
+        <div class="card-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="var(--teal)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+            <polyline points="17 6 23 6 23 12"/>
+          </svg>
+        </div>
+        <div class="card-arrow">
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/>
+          </svg>
+        </div>
+      </div>
+      <div>
+        <div class="card-index">03</div>
+        <div class="card-title">Transaksi Setoran</div>
+      </div>
+      <div class="card-desc">
+        Input setoran sampah baru, kalkulasi bobot &amp; klasifikasi jenis, dan konversi otomatis ke poin reward.
+      </div>
+      <div class="card-cta">
+        Mulai Transaksi
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+        </svg>
+      </div>
+    </a>
+
+  </div>
+
+  <!-- QUICK STATS -->
+  <div class="section-divider animate delay-3">
+    <span class="section-divider-label">Status Operasional</span>
+    <div class="section-divider-line"></div>
+  </div>
+
+  <div class="stats-row animate delay-4">
+    <div class="stat-item">
+      <div class="stat-label">Total Warga</div>
+      <div class="stat-val" th:text="${totalWarga ?: '—'}">—</div>
+      <div class="stat-sub">Nasabah terdaftar</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-label">Staff Aktif</div>
+      <div class="stat-val" th:text="${totalStaff ?: '—'}">—</div>
+      <div class="stat-sub">Petugas tervalidasi</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-label">Transaksi Hari Ini</div>
+      <div class="stat-val" th:text="${transaksiHariIni ?: '—'}">—</div>
+      <div class="stat-sub">Setoran diproses</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-label">Total Bobot (kg)</div>
+      <div class="stat-val" th:text="${totalBobot ?: '—'}">—</div>
+      <div class="stat-sub">Sampah diklasifikasi</div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="animate delay-6">
+    <div class="footer-left">
+      &copy; 2025 Sortify System · Object-Oriented Programming
+    </div>
+    <div class="footer-right">
+      <span class="footer-tag">OOP Based</span>
+      <span class="footer-tag">Waste Classification</span>
+      <span class="footer-tag">Bank Sampah</span>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>

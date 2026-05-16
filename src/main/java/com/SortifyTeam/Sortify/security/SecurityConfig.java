@@ -1,0 +1,63 @@
+package com.SortifyTeam.Sortify.security;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    private final CustomUserDetailsService userDetailsService;
+    private final CustomAuthSuccessHandler successHandler;
+
+    public SecurityConfig(CustomUserDetailsService userDetailsService,
+                          CustomAuthSuccessHandler successHandler) {
+        this.userDetailsService = userDetailsService;
+        this.successHandler = successHandler;
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .userDetailsService(userDetailsService)
+            .authorizeHttpRequests(auth -> auth
+                // Halaman publik
+                .requestMatchers("/login", "/register", "/dev/hash", "/css/**", "/js/**", "/images/**", "/fonts/**").permitAll()
+
+                // Khusus ADMIN
+                .requestMatchers("/transaksi/**", "/staff/**", "/warga/**").hasRole("ADMIN")
+
+                // Khusus WARGA
+                .requestMatchers("/profil/**").hasRole("WARGA")
+
+                // Semua lainnya harus login
+                .anyRequest().authenticated()
+            )
+            .formLogin(form -> form
+                .loginPage("/login")
+                .loginProcessingUrl("/login")
+                .successHandler(successHandler)
+                .failureUrl("/login?error=true")
+                .permitAll()
+            )
+            .logout(logout -> logout
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/login?logout=true")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
+                .permitAll()
+            );
+
+        return http.build();
+    }
+}

@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title th:text="${transaksi.idTransaksi != null} ? 'Sortify — Edit Transaksi' : 'Sortify — Catat Transaksi'">Sortify — Form Transaksi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0f0c;
+      --surface: #141710;
+      --surface-raised: #1a1e16;
+      --surface-hover: #1e2318;
+      --border: rgba(134, 187, 76, 0.12);
+      --border-hover: rgba(134, 187, 76, 0.28);
+      --border-focus: rgba(134, 187, 76, 0.55);
+      --accent: #86bb4c;
+      --accent-dim: rgba(134, 187, 76, 0.08);
+      --text-primary: #e8ede2;
+      --text-secondary: #8a9480;
+      --text-muted: #4e5749;
+      --amber: #c8891a;
+      --amber-dim: rgba(200, 137, 26, 0.1);
+      --danger: #b85454;
+      --mono: 'Space Mono', monospace;
+      --sans: 'DM Sans', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-primary);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(134,187,76,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(134,187,76,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none; z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed; top: -200px; left: 50%;
+      transform: translateX(-50%);
+      width: 700px; height: 400px;
+      background: radial-gradient(ellipse, rgba(134,187,76,0.06) 0%, transparent 70%);
+      pointer-events: none; z-index: 0;
+    }
+
+    .wrapper {
+      position: relative; z-index: 1;
+      max-width: 1100px; margin: 0 auto;
+      padding: 0 2rem 4rem;
+    }
+
+    /* ── HEADER ── */
+    header { padding: 2rem 0 0; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+    .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .brand-icon { width: 36px; height: 36px; background: var(--accent); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+    .brand-icon svg { width: 20px; height: 20px; fill: var(--bg); }
+    .brand-name { font-family: var(--mono); font-size: 18px; font-weight: 700; color: var(--accent); letter-spacing: -0.5px; }
+    .brand-version { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 1px; }
+    .sys-status { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11px; color: var(--text-muted); letter-spacing: 0.5px; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: pulse 2.5s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    /* ── PAGE TITLE ── */
+    .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 1.5rem; padding: 3.5rem 0 2rem; }
+    .page-label { font-family: var(--mono); font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--accent); display: flex; align-items: center; gap: 8px; margin-bottom: 0.8rem; }
+    .page-label::before { content: ''; display: block; width: 24px; height: 1px; background: var(--accent); }
+    .page-title { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 300; letter-spacing: -1px; color: var(--text-primary); line-height: 1.2; }
+    .page-title strong { font-weight: 500; color: var(--accent); }
+
+    /* ── FORM CARD ── */
+    .form-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+
+    .form-card-header { padding: 1.25rem 1.75rem; background: var(--surface-raised); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+    .form-card-header-icon { width: 28px; height: 28px; border-radius: 6px; background: var(--accent-dim); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .form-card-header-icon svg { width: 14px; height: 14px; stroke: var(--accent); fill: none; stroke-width: 2; }
+    .form-card-header-title { font-family: var(--mono); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); }
+
+    .form-body { padding: 2rem 1.75rem; }
+
+    /* ── SECTION LABEL ── */
+    .section-label {
+      font-family: var(--mono); font-size: 10px; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--text-muted);
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 1.1rem;
+    }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* ── FIELD GRID ── */
+    .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem 1.5rem; }
+    .field-group { display: flex; flex-direction: column; gap: 6px; }
+    .field-group.full { grid-column: 1 / -1; }
+
+    .field-label { font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+    .field-label .required { color: var(--accent); font-size: 12px; line-height: 1; }
+    .field-hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+    /* ── INPUTS ── */
+    .field-input,
+    .field-select {
+      width: 100%; padding: 0.7rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-family: var(--sans); font-size: 14px;
+      outline: none;
+      transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+    }
+
+    .field-input::placeholder { color: var(--text-muted); }
+    .field-input:hover, .field-select:hover { border-color: var(--border-hover); }
+    .field-input:focus, .field-select:focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px rgba(134,187,76,0.08); background: var(--surface); }
+
+    .field-input[readonly] { color: var(--text-muted); cursor: not-allowed; font-family: var(--mono); font-size: 13px; }
+    .field-input[readonly]:focus { border-color: var(--border); box-shadow: none; background: var(--bg); }
+
+    /* SELECT */
+    .field-select {
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234e5749' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 2.2rem;
+      cursor: pointer;
+    }
+
+    .field-select option { background: var(--surface-raised); color: var(--text-primary); }
+
+    /* Input with suffix unit */
+    .field-input-wrap { position: relative; }
+    .field-suffix { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-family: var(--mono); font-size: 11px; color: var(--text-muted); pointer-events: none; }
+    .field-input-wrap .field-input { padding-right: 3rem; }
+
+    /* ── WARGA / STAFF PREVIEW ── */
+    .preview-card {
+      display: none;
+      margin-top: 8px;
+      padding: 10px 12px;
+      background: var(--accent-dim);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      gap: 8px;
+      align-items: center;
+    }
+    .preview-card.visible { display: flex; }
+    .preview-card svg { width: 13px; height: 13px; stroke: var(--accent); fill: none; stroke-width: 2; flex-shrink: 0; }
+    .preview-card strong { color: var(--text-primary); }
+
+    /* ── TANGGAL INFO ── */
+    .tanggal-info {
+      display: flex; align-items: center; gap: 8px;
+      padding: 0.7rem 1rem;
+      background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+      font-family: var(--mono); font-size: 12px; color: var(--text-muted);
+    }
+    .tanggal-info svg { width: 13px; height: 13px; stroke: var(--accent); fill: none; stroke-width: 2; flex-shrink: 0; }
+
+    /* ── KATEGORI ROW ── */
+    .kategori-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      align-items: end;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+      padding: 1rem 1.1rem;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      transition: border-color 0.15s;
+    }
+    .kategori-row:hover { border-color: var(--border-hover); }
+
+    /* ── ICON BUTTON ── */
+    .icon-btn {
+      width: 34px; height: 34px; border-radius: 7px;
+      border: 1px solid var(--border);
+      background: transparent;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--text-muted);
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+      flex-shrink: 0;
+    }
+    .icon-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .icon-btn.danger:hover { background: rgba(184,84,84,0.1); border-color: rgba(184,84,84,0.35); color: var(--danger); }
+
+    /* ── SUMMARY BOX ── */
+    .summary-box {
+      display: flex; gap: 1rem;
+      padding: 0.9rem 1.1rem;
+      background: var(--accent-dim);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-top: 1rem;
+    }
+    .summary-item { display: flex; flex-direction: column; gap: 2px; }
+    .summary-val { font-family: var(--mono); font-size: 16px; font-weight: 700; color: var(--accent); }
+    .summary-lbl { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; }
+    .summary-divider { width: 1px; background: var(--border); margin: 0 0.25rem; }
+
+    /* ── DIVIDER ── */
+    .form-divider { height: 1px; background: var(--border); margin: 1.75rem 0; }
+    .section-gap { margin-top: 1.5rem; }
+
+    /* ── ACTIONS ── */
+    .form-actions { display: flex; justify-content: flex-end; align-items: center; gap: 10px; padding-top: 1rem; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 0.6rem 1.25rem;
+      font-family: var(--mono); font-size: 12px; letter-spacing: 0.5px; text-transform: uppercase;
+      text-decoration: none; border-radius: 7px; border: 1px solid; cursor: pointer;
+      transition: background 0.18s, border-color 0.18s, color 0.18s;
+    }
+    .btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .btn-primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+    .btn-primary:hover { background: #97cc5a; border-color: #97cc5a; }
+    .btn-ghost { background: transparent; color: var(--text-secondary); border-color: var(--border); }
+    .btn-ghost:hover { border-color: var(--border-hover); color: var(--text-primary); background: var(--accent-dim); }
+
+    /* ── FOOTER ── */
+    footer { border-top: 1px solid var(--border); padding: 1.5rem 0; margin-top: 3rem; display: flex; align-items: center; justify-content: space-between; }
+    .back-link { display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 11px; color: var(--text-muted); text-decoration: none; letter-spacing: 0.5px; transition: color 0.15s; }
+    .back-link svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .back-link:hover { color: var(--accent); }
+    .footer-id { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 1px; }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    .animate { animation: fadeUp 0.45s ease both; }
+    .delay-1 { animation-delay: 0.05s; }
+    .delay-2 { animation-delay: 0.12s; }
+    .delay-3 { animation-delay: 0.2s; }
+    .delay-4 { animation-delay: 0.28s; }
+
+    @media (max-width: 640px) {
+      .field-grid { grid-template-columns: 1fr; }
+      .kategori-row { grid-template-columns: 1fr auto; }
+      .kategori-row .field-group:first-child { grid-column: 1 / -1; }
+      .page-head { flex-direction: column; align-items: flex-start; }
+      .form-body { padding: 1.5rem 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <header class="animate">
+    <div class="topbar">
+      <a href="/" class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.35C16.5 22.15 20 17.25 20 12V6L12 2zm-1 13l-3-3 1.4-1.4 1.6 1.6 4.6-4.6 1.4 1.4L11 15z"/></svg>
+        </div>
+        <div>
+          <div class="brand-name">Sortify</div>
+          <div class="brand-version">v1.0 · OOP Waste System</div>
+        </div>
+      </a>
+      <div class="sys-status">
+        <div class="status-dot"></div>
+        SISTEM AKTIF
+      </div>
+    </div>
+  </header>
+
+  <!-- PAGE TITLE -->
+  <div class="page-head animate delay-1">
+    <div>
+      <div class="page-label" th:text="${transaksi.idTransaksi != null} ? 'Modul 02 · Edit' : 'Modul 02 · Catat'">Modul 02</div>
+      <h1 class="page-title" th:if="${transaksi.idTransaksi != null}">Edit <strong>Transaksi</strong></h1>
+      <h1 class="page-title" th:if="${transaksi.idTransaksi == null}">Catat <strong>Transaksi</strong></h1>
+    </div>
+  </div>
+
+  <!-- FORM CARD -->
+  <div class="form-card animate delay-2">
+    <div class="form-card-header">
+      <div class="form-card-header-icon">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </div>
+      <span class="form-card-header-title" th:text="${transaksi.idTransaksi != null} ? 'Ubah data transaksi yang sudah tercatat' : 'Catat setoran sampah warga baru'">Form Transaksi</span>
+    </div>
+
+    <div class="form-body">
+      <form th:action="${transaksi.idTransaksi != null} ? @{/transaksi/edit/{id}(id=${transaksi.idTransaksi})} : @{/transaksi/tambah}" method="post">
+
+        <!-- ── SECTION: PELAKU ── -->
+        <div class="section-label">Pelaku Transaksi</div>
+        <div class="field-grid">
+
+          <!-- Warga -->
+          <div class="field-group">
+            <label class="field-label" for="idWarga">
+              Warga <span class="required">*</span>
+            </label>
+            <select id="idWarga" name="idWarga" class="field-select" required onchange="previewSelect(this, 'previewWarga')">
+              <option value="">— Pilih Warga —</option>
+              <option th:each="w : ${daftarWarga}"
+                      th:value="${w.idWarga}"
+                      th:text="${w.nama} + ' · ' + ${w.alamat}"
+                      th:selected="${transaksi.warga != null and transaksi.warga.idWarga == w.idWarga}">
+              </option>
+            </select>
+            <div class="preview-card" id="previewWarga">
+              <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <span id="previewWargaText">—</span>
+            </div>
+          </div>
+
+          <!-- Staff -->
+          <div class="field-group">
+            <label class="field-label" for="idStaff">
+              Staff Pencatat <span class="required">*</span>
+            </label>
+            <select id="idStaff" name="idStaff" class="field-select" required onchange="previewSelect(this, 'previewStaff')">
+              <option value="">— Pilih Staff —</option>
+              <option th:each="s : ${daftarStaff}"
+                      th:value="${s.idStaff}"
+                      th:text="${s.nama} + ' · ' + ${s.jabatan}"
+                      th:selected="${transaksi.staff != null and transaksi.staff.idStaff == s.idStaff}">
+              </option>
+            </select>
+            <div class="preview-card" id="previewStaff">
+              <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+              <span id="previewStaffText">—</span>
+            </div>
+          </div>
+
+        </div><!-- /field-grid pelaku -->
+
+        <!-- ── SECTION: DATA SETORAN KATEGORI ── -->
+        <div class="section-label section-gap">Data Setoran per Kategori</div>
+
+        <!-- Daftar kategori rows (mode EDIT: dari database) -->
+        <div id="kategoriList">
+          <div th:each="d : ${transaksi.details}" class="kategori-row">
+            <div class="field-group">
+              <label class="field-label">Kategori Sampah <span class="required">*</span></label>
+              <select name="idKategori" class="field-select kategori-select" required onchange="hitungTotal()">
+                <option value="">— Pilih Kategori —</option>
+                <option th:each="k : ${daftarKategori}"
+                        th:value="${k.idKategori}"
+                        th:text="${k.namaKategori} + ' (' + ${k.poinPerKg} + ' poin/kg)'"
+                        th:attr="data-poin=${k.poinPerKg}"
+                        th:selected="${d.kategori != null and d.kategori.idKategori == k.idKategori}">
+                </option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Berat <span class="required">*</span></label>
+              <div class="field-input-wrap">
+                <input type="number" name="beratKategori" th:value="${d.berat}"
+                       class="field-input berat-input" placeholder="0.00"
+                       step="0.01" min="0" required oninput="hitungTotal()">
+                <span class="field-suffix">kg</span>
+              </div>
+            </div>
+            <button type="button" class="icon-btn danger" onclick="hapusRow(this)" title="Hapus baris ini">
+              <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Row default untuk mode TAMBAH (hanya tampil jika belum ada details) -->
+        <div id="defaultRow" th:if="${transaksi.details == null or transaksi.details.isEmpty()}">
+          <div class="kategori-row">
+            <div class="field-group">
+              <label class="field-label">Kategori Sampah <span class="required">*</span></label>
+              <select name="idKategori" class="field-select kategori-select" required onchange="hitungTotal()">
+                <option value="">— Pilih Kategori —</option>
+                <option th:each="k : ${daftarKategori}"
+                        th:value="${k.idKategori}"
+                        th:text="${k.namaKategori} + ' (' + ${k.poinPerKg} + ' poin/kg)'"
+                        th:attr="data-poin=${k.poinPerKg}">
+                </option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Berat <span class="required">*</span></label>
+              <div class="field-input-wrap">
+                <input type="number" name="beratKategori"
+                       class="field-input berat-input" placeholder="0.00"
+                       step="0.01" min="0" required oninput="hitungTotal()">
+                <span class="field-suffix">kg</span>
+              </div>
+            </div>
+            <!-- Spacer agar align dengan baris lain yang punya tombol hapus -->
+            <div style="width:34px;"></div>
+          </div>
+        </div>
+
+        <!-- Tombol tambah sampah/ kategori -->
+        <button type="button" class="btn btn-ghost" onclick="tambahRow()" style="margin-top: 0.75rem;">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Tambah Sampah
+        </button>
+
+        <!-- Summary otomatis -->
+        <div class="summary-box">
+          <div class="summary-item">
+            <div class="summary-val" id="summaryBerat">0.00</div>
+            <div class="summary-lbl">Total Berat (kg)</div>
+          </div>
+          <div class="summary-divider"></div>
+          <div class="summary-item">
+            <div class="summary-val" id="summaryPoin">0</div>
+            <div class="summary-lbl">Estimasi Poin</div>
+          </div>
+        </div>
+
+        <!-- Tanggal -->
+        <div style="margin-top: 1.25rem;">
+          <label class="field-label">Tanggal Transaksi</label>
+          <div style="margin-top: 6px;">
+            <div class="tanggal-info" th:if="${transaksi.idTransaksi == null}">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+              Tanggal &amp; waktu akan diisi otomatis saat data disimpan.
+            </div>
+            <div class="tanggal-info" th:if="${transaksi.idTransaksi != null}">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+              <span th:text="${transaksi.tanggalTransaksi != null ? #temporals.format(transaksi.tanggalTransaksi, 'dd MMM yyyy, HH:mm') : '-'}">—</span>
+              &nbsp;·&nbsp; tanggal tidak dapat diubah.
+            </div>
+          </div>
+        </div>
+
+        <div class="form-divider"></div>
+
+        <!-- ACTIONS -->
+        <div class="form-actions">
+          <a href="/transaksi" class="btn btn-ghost">
+            <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Batal
+          </a>
+          <button type="submit" class="btn btn-primary">
+            <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            <span th:text="${transaksi.idTransaksi != null} ? 'Simpan Perubahan' : 'Catat Transaksi'">Simpan</span>
+          </button>
+        </div>
+
+      </form>
+    </div><!-- /form-body -->
+  </div><!-- /form-card -->
+
+  <!-- FOOTER -->
+  <footer class="animate delay-4">
+    <a href="/transaksi" class="back-link">
+      <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Kembali ke Data Transaksi
+    </a>
+    <div class="footer-id">MODULE · 02 / TRANSAKSI · FORM</div>
+  </footer>
+
+</div>
+
+<!-- Data kategori dari Thymeleaf → JS (untuk generate row baru) -->
+<script th:inline="javascript">
+  const daftarKategori = /*[[${daftarKategori}]]*/ [];
+</script>
+
+<script>
+  // ── PREVIEW WARGA / STAFF ──
+  function previewSelect(sel, previewId) {
+    const card = document.getElementById(previewId);
+    const textEl = document.getElementById(previewId + 'Text');
+    const opt = sel.options[sel.selectedIndex];
+    if (sel.value && opt) {
+      textEl.innerHTML = '<strong>' + opt.text + '</strong>';
+      card.classList.add('visible');
+    } else {
+      card.classList.remove('visible');
+    }
+  }
+
+  // Trigger preview on load (mode edit)
+  window.addEventListener('DOMContentLoaded', () => {
+    ['idWarga', 'idStaff'].forEach(id => {
+      const prefix = id === 'idWarga' ? 'previewWarga' : 'previewStaff';
+      const el = document.getElementById(id);
+      if (el && el.value) previewSelect(el, prefix);
+    });
+    hitungTotal();
+  });
+
+  // ── HITUNG TOTAL BERAT & POIN ──
+  function hitungTotal() {
+    const rows = document.querySelectorAll('.kategori-row');
+    let totalBerat = 0;
+    let totalPoin = 0;
+
+    rows.forEach(row => {
+      const sel = row.querySelector('.kategori-select');
+      const beratInput = row.querySelector('.berat-input');
+      if (!sel || !beratInput) return;
+
+      const berat = parseFloat(beratInput.value) || 0;
+      const selectedOpt = sel.options[sel.selectedIndex];
+      const poinPerKg = selectedOpt ? parseFloat(selectedOpt.getAttribute('data-poin')) || 0 : 0;
+
+      totalBerat += berat;
+      totalPoin += berat * poinPerKg;
+    });
+
+    document.getElementById('summaryBerat').textContent = totalBerat.toFixed(2);
+    document.getElementById('summaryPoin').textContent = Math.round(totalPoin);
+  }
+
+  // ── GENERATE OPTIONS HTML ──
+  function getOptionsHtml(selectedId) {
+    let html = '<option value="">— Pilih Kategori —</option>';
+    daftarKategori.forEach(k => {
+      const sel = selectedId && k.idKategori == selectedId ? 'selected' : '';
+      html += `<option value="${k.idKategori}" data-poin="${k.poinPerKg}" ${sel}>
+        ${k.namaKategori} (${k.poinPerKg} poin/kg)
+      </option>`;
+    });
+    return html;
+  }
+
+  function tambahRow() {
+    const def = document.getElementById('defaultRow');
+    const list = document.getElementById('kategoriList');
+
+    // Jika defaultRow masih tampil, pindahkan row-nya ke kategoriList dulu
+    if (def && def.style.display !== 'none') {
+      const existingRow = def.querySelector('.kategori-row');
+      if (existingRow) {
+        // Buat tombol hapus untuk row yang dipindah
+        const spacer = existingRow.querySelector('div[style*="width:34px"]');
+        if (spacer) {
+          spacer.outerHTML = `
+            <button type="button" class="icon-btn danger" onclick="hapusRow(this)" title="Hapus baris ini">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                <path d="M10 11v6"/><path d="M14 11v6"/>
+              </svg>
+            </button>`;
+        }
+        list.appendChild(existingRow);
+      }
+      def.style.display = 'none';
+    }
+
+    // Tambah row baru
+    const div = document.createElement('div');
+    div.className = 'kategori-row';
+    div.innerHTML = `
+      <div class="field-group">
+        <label class="field-label">Kategori Sampah <span class="required">*</span></label>
+        <select name="idKategori" class="field-select kategori-select" required onchange="hitungTotal()">
+          ${getOptionsHtml(null)}
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Berat <span class="required">*</span></label>
+        <div class="field-input-wrap">
+          <input type="number" name="beratKategori" class="field-input berat-input"
+                 placeholder="0.00" step="0.01" min="0" required oninput="hitungTotal()">
+          <span class="field-suffix">kg</span>
+        </div>
+      </div>
+      <button type="button" class="icon-btn danger" onclick="hapusRow(this)" title="Hapus baris ini">
+        <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+          <path d="M10 11v6"/><path d="M14 11v6"/>
+        </svg>
+      </button>`;
+    list.appendChild(div);
+  }
+
+  // ── HAPUS ROW KATEGORI ──
+  function hapusRow(btn) {
+    const allRows = document.querySelectorAll('#kategoriList .kategori-row, #defaultRow .kategori-row');
+    if (allRows.length <= 1) return; // jangan hapus kalau tinggal 1
+
+    const row = btn.closest('.kategori-row');
+    row.remove();
+    hitungTotal();
+  }
+</script>
+</body>
+</html>

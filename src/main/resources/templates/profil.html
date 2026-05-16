@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sortify — Profil Saya</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0f0c; --surface: #141710; --surface-raised: #1a1e16;
+      --border: rgba(134, 187, 76, 0.12); --border-hover: rgba(134, 187, 76, 0.28);
+      --accent: #86bb4c; --accent-dim: rgba(134, 187, 76, 0.08);
+      --text-primary: #e8ede2; --text-secondary: #8a9480; --text-muted: #4e5749;
+      --mono: 'Space Mono', monospace; --sans: 'DM Sans', sans-serif;
+    }
+    body { background: var(--bg); color: var(--text-primary); font-family: var(--sans); font-size: 15px; min-height: 100vh; }
+    body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(134,187,76,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(134,187,76,0.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; }
+    .wrapper { position: relative; z-index: 1; max-width: 700px; margin: 0 auto; padding: 0 2rem 4rem; }
+
+    header { padding: 2rem 0 0; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+    .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .brand-icon { width: 36px; height: 36px; background: var(--accent); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+    .brand-icon svg { width: 20px; height: 20px; fill: var(--bg); }
+    .brand-name { font-family: var(--mono); font-size: 18px; font-weight: 700; color: var(--accent); }
+    .brand-version { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; }
+
+    .logout-btn { display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 11px; color: var(--text-muted); text-decoration: none; border: 1px solid var(--border); border-radius: 7px; padding: 0.45rem 0.9rem; transition: all 0.15s; }
+    .logout-btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .logout-btn:hover { border-color: var(--border-hover); color: var(--text-primary); }
+
+    .page-head { padding: 3rem 0 2rem; }
+    .page-label { font-family: var(--mono); font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--accent); display: flex; align-items: center; gap: 8px; margin-bottom: 0.6rem; }
+    .page-label::before { content: ''; display: block; width: 24px; height: 1px; background: var(--accent); }
+    .page-title { font-size: 2rem; font-weight: 300; letter-spacing: -1px; }
+    .page-title strong { font-weight: 500; color: var(--accent); }
+
+    .profile-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; animation: fadeUp 0.45s ease both; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+    .profile-card-header { padding: 1.5rem 1.75rem; background: var(--surface-raised); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; }
+    .avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--accent-dim); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .avatar svg { width: 24px; height: 24px; stroke: var(--accent); fill: none; stroke-width: 2; }
+    .profile-name { font-size: 1.1rem; font-weight: 500; color: var(--text-primary); }
+    .profile-badge { display: inline-flex; align-items: center; gap: 5px; margin-top: 4px; padding: 2px 8px; background: var(--accent-dim); border: 1px solid rgba(134,187,76,0.2); border-radius: 20px; font-family: var(--mono); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); }
+
+    .profile-body { padding: 1.75rem; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .info-item { display: flex; flex-direction: column; gap: 4px; }
+    .info-label { font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); }
+    .info-value { font-size: 14px; color: var(--text-primary); }
+    .info-value.mono { font-family: var(--mono); font-size: 13px; }
+
+    footer { border-top: 1px solid var(--border); padding: 1.5rem 0; margin-top: 3rem; display: flex; justify-content: space-between; }
+    .footer-id { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 1px; }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header>
+    <div class="topbar">
+      <a href="/" class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.35C16.5 22.15 20 17.25 20 12V6L12 2zm-1 13l-3-3 1.4-1.4 1.6 1.6 4.6-4.6 1.4 1.4L11 15z"/></svg>
+        </div>
+        <div>
+          <div class="brand-name">Sortify</div>
+          <div class="brand-version">v1.0 · OOP Waste System</div>
+        </div>
+      </a>
+      <a href="/logout" class="logout-btn" onclick="return confirm('Yakin mau keluar?')">
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Keluar
+      </a>
+    </div>
+  </header>
+
+  <div class="page-head">
+    <div class="page-label">Modul 03 · Profil</div>
+    <h1 class="page-title">Profil <strong>Saya</strong></h1>
+  </div>
+
+  <div class="profile-card">
+    <div class="profile-card-header">
+      <div class="avatar">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <div>
+        <div class="profile-name" th:text="${warga.nama}">Nama Warga</div>
+        <div class="profile-badge">
+          <svg viewBox="0 0 24 24" width="9" height="9"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Warga
+        </div>
+      </div>
+    </div>
+
+    <div class="profile-body">
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="info-label">ID Warga</div>
+          <div class="info-value mono" th:text="'#' + ${warga.idWarga}">—</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Username</div>
+          <div class="info-value mono" th:text="${warga.username}">—</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Nama Lengkap</div>
+          <div class="info-value" th:text="${warga.nama}">—</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Alamat</div>
+          <div class="info-value" th:text="${warga.alamat}">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span class="footer-id">MODULE · 03 / PROFIL · WARGA</span>
+    <span class="footer-id">SORTIFY v1.0</span>
+  </footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title th:text="${staff.idStaff != null} ? 'Sortify — Edit Staff' : 'Sortify — Tambah Staff'">Sortify — Staff Form</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0f0c;
+      --surface: #141710;
+      --surface-raised: #191610;
+      --border: rgba(200, 137, 26, 0.12);
+      --border-hover: rgba(200, 137, 26, 0.30);
+      --border-focus: rgba(200, 137, 26, 0.55);
+      --accent: #c8891a;
+      --accent-dim: rgba(200, 137, 26, 0.08);
+      --green: #86bb4c;
+      --danger: #b85454;
+      --text-primary: #ede8e0;
+      --text-secondary: #948e80;
+      --text-muted: #574f42;
+      --mono: 'Space Mono', monospace;
+      --sans: 'DM Sans', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-primary);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(200,137,26,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(200,137,26,0.025) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none; z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed; top: -200px; left: 50%;
+      transform: translateX(-50%);
+      width: 600px; height: 350px;
+      background: radial-gradient(ellipse, rgba(200,137,26,0.05) 0%, transparent 70%);
+      pointer-events: none; z-index: 0;
+    }
+
+    .wrapper {
+      position: relative; z-index: 1;
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 0 2rem 4rem;
+    }
+
+    /* ── HEADER ── */
+    header { padding: 2rem 0 0; }
+
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand {
+      display: flex; align-items: center; gap: 12px;
+      text-decoration: none;
+    }
+
+    .brand-icon {
+      width: 36px; height: 36px;
+      background: var(--green); border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .brand-icon svg { width: 20px; height: 20px; fill: var(--bg); }
+
+    .brand-name {
+      font-family: var(--mono); font-size: 18px; font-weight: 700;
+      color: var(--green); letter-spacing: -0.5px;
+    }
+
+    .brand-version {
+      font-family: var(--mono); font-size: 10px;
+      color: var(--text-muted); letter-spacing: 1px;
+      text-transform: uppercase; margin-top: 1px;
+    }
+
+    .sys-status {
+      display: flex; align-items: center; gap: 8px;
+      font-family: var(--mono); font-size: 11px;
+      color: var(--text-muted); letter-spacing: 0.5px;
+    }
+
+    .status-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    /* ── PAGE HEAD ── */
+    .page-head { padding: 3.5rem 0 2.5rem; }
+
+    .page-label {
+      font-family: var(--mono); font-size: 11px;
+      letter-spacing: 2.5px; text-transform: uppercase;
+      color: var(--accent);
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 0.8rem;
+    }
+
+    .page-label::before {
+      content: ''; display: block;
+      width: 24px; height: 1px; background: var(--accent);
+    }
+
+    .page-title {
+      font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+      font-weight: 300; letter-spacing: -0.8px;
+      color: var(--text-primary); line-height: 1.2;
+    }
+
+    .page-title strong { font-weight: 500; color: var(--accent); }
+
+    /* ── FORM CARD ── */
+    .form-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    .form-card-header {
+      background: var(--surface-raised);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 1.5rem;
+      display: flex; align-items: center; gap: 10px;
+    }
+
+    .form-card-header-icon {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: var(--accent-dim);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .form-card-header-icon svg {
+      width: 16px; height: 16px;
+      stroke: var(--accent); fill: none;
+      stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    .form-card-title {
+      font-family: var(--mono); font-size: 12px;
+      letter-spacing: 0.5px; color: var(--text-secondary);
+    }
+
+    .form-body { padding: 2rem 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; }
+
+    /* ── FIELD ── */
+    .field { display: flex; flex-direction: column; gap: 6px; }
+
+    .field-label {
+      font-family: var(--mono); font-size: 10px;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .field-hint {
+      font-size: 12px; color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .field input[type="text"],
+    .field input[type="number"],
+    .field input[type="tel"],
+    .field select {
+      width: 100%;
+      padding: 0.7rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-family: var(--sans); font-size: 14px;
+      outline: none;
+      transition: border-color 0.18s, background 0.18s;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: var(--border-focus);
+      background: #0f1109;
+    }
+
+    .field input::placeholder { color: var(--text-muted); font-size: 13px; }
+
+    /* NIP field — monospace */
+    .field.field-nip input {
+      font-family: var(--mono); font-size: 13px; letter-spacing: 0.5px;
+    }
+
+    /* Jabatan field — readonly pill */
+    .jabatan-display {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 0.5rem 1rem;
+      background: var(--accent-dim);
+      border: 1px solid rgba(200,137,26,0.25);
+      border-radius: 8px;
+      font-family: var(--mono); font-size: 12px;
+      color: var(--accent); letter-spacing: 0.5px;
+      width: fit-content;
+    }
+
+    .jabatan-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent);
+    }
+
+    /* Hidden input for jabatan */
+    input[name="jabatan"] { display: none; }
+
+    /* ── DIVIDER ── */
+    .form-divider {
+      height: 1px; background: var(--border); margin: 0.25rem 0;
+    }
+
+    /* ── ACTIONS ── */
+    .form-actions {
+      padding: 1.25rem 1.5rem;
+      border-top: 1px solid var(--border);
+      background: var(--surface-raised);
+      display: flex; gap: 10px; justify-content: flex-end;
+    }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 0.6rem 1.25rem;
+      font-family: var(--mono); font-size: 11px;
+      letter-spacing: 0.5px; text-transform: uppercase;
+      text-decoration: none; border-radius: 8px;
+      border: 1px solid; cursor: pointer;
+      transition: background 0.18s, border-color 0.18s, color 0.18s;
+    }
+
+    .btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    .btn-primary {
+      background: var(--accent); color: var(--bg);
+      border-color: var(--accent);
+    }
+    .btn-primary:hover { background: #da9b2a; border-color: #da9b2a; }
+
+    .btn-ghost {
+      background: transparent; color: var(--text-secondary);
+      border-color: var(--border);
+    }
+    .btn-ghost:hover { border-color: var(--border-hover); color: var(--text-primary); background: var(--accent-dim); }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem 0; margin-top: 3rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    .back-link {
+      display: inline-flex; align-items: center; gap: 7px;
+      font-family: var(--mono); font-size: 11px;
+      color: var(--text-muted); text-decoration: none; letter-spacing: 0.5px;
+      transition: color 0.15s;
+    }
+
+    .back-link svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .back-link:hover { color: var(--accent); }
+
+    .footer-id {
+      font-family: var(--mono); font-size: 10px;
+      color: var(--text-muted); letter-spacing: 1px;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate { animation: fadeUp 0.45s ease both; }
+    .delay-1 { animation-delay: 0.05s; }
+    .delay-2 { animation-delay: 0.12s; }
+    .delay-3 { animation-delay: 0.2s; }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <header class="animate">
+    <div class="topbar">
+      <a href="/" class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.35C16.5 22.15 20 17.25 20 12V6L12 2zm-1 13l-3-3 1.4-1.4 1.6 1.6 4.6-4.6 1.4 1.4L11 15z"/></svg>
+        </div>
+        <div>
+          <div class="brand-name">Sortify</div>
+          <div class="brand-version">v1.0 · OOP Waste System</div>
+        </div>
+      </a>
+      <div class="sys-status">
+        <div class="status-dot"></div>
+        SISTEM AKTIF
+      </div>
+    </div>
+  </header>
+
+  <!-- PAGE HEAD -->
+  <div class="page-head animate delay-1">
+    <div class="page-label">Modul 02 · Staff</div>
+    <h1 class="page-title">
+      <span th:text="${staff.idStaff != null} ? 'Edit Data' : 'Tambah'">Tambah</span>
+      <strong th:text="${staff.idStaff != null} ? 'Staff #' + ${staff.idStaff} : 'Staff Baru'">Staff Baru</strong>
+    </h1>
+  </div>
+
+  <!-- FORM -->
+  <div class="form-card animate delay-2">
+
+    <div class="form-card-header">
+      <div class="form-card-header-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <span class="form-card-title"
+            th:text="${staff.idStaff != null} ? 'EDIT · ID ' + ${staff.idStaff} : 'DATA PETUGAS BARU'">
+        DATA PETUGAS BARU
+      </span>
+    </div>
+
+    <form th:action="${staff.idStaff != null} ? @{/staff/edit/{id}(id=${staff.idStaff})} : @{/staff/tambah}"
+          th:object="${staff}" method="post">
+
+      <div class="form-body">
+
+        <!-- Nama -->
+        <div class="field">
+          <label class="field-label" for="nama">Nama Petugas</label>
+          <input type="text" id="nama" name="nama"
+                 th:value="*{nama}"
+                 placeholder="Masukkan nama lengkap petugas"
+                 required>
+        </div>
+
+        <!-- NIP -->
+        <div class="field field-nip">
+          <label class="field-label" for="nip">NIP</label>
+          <input type="text" id="nip" name="nip"
+                 th:value="*{nip}"
+                 placeholder="Contoh: 199001012015041001"
+                 maxlength="18"
+                 required>
+          <span class="field-hint">Nomor Induk Pegawai — 18 digit</span>
+        </div>
+
+        <div class="form-divider"></div>
+
+        <!-- Jabatan — hardcode Admin -->
+        <div class="field">
+          <label class="field-label">Jabatan</label>
+          <div class="jabatan-display">
+            <span class="jabatan-dot"></span>
+            Admin
+          </div>
+          <input type="hidden" name="jabatan" value="Admin">
+          <span class="field-hint">Jabatan ditetapkan sebagai Admin</span>
+        </div>
+
+      </div>
+
+      <div class="form-actions">
+        <a href="/staff" class="btn btn-ghost">
+          <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          Batal
+        </a>
+        <button type="submit" class="btn btn-primary">
+          <svg viewBox="0 0 24 24" th:if="${staff.idStaff != null}"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          <svg viewBox="0 0 24 24" th:unless="${staff.idStaff != null}"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span th:text="${staff.idStaff != null} ? 'Simpan Perubahan' : 'Tambah Staff'">Tambah Staff</span>
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="animate delay-3">
+    <a href="/staff" class="back-link">
+      <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Kembali ke Sektor Staff
+    </a>
+    <div class="footer-id">MODULE · 02 / STAFF</div>
+  </footer>
+
+</div>
+</body>
+</html>
