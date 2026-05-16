@@ -26,6 +26,8 @@
       --amber: #c8891a;
       --teal: #2a9c7a;
       --slate: #5a7a8c;
+      --danger: #c84a4a;
+      --danger-dim: rgba(200, 74, 74, 0.08);
     }
 
     html { scroll-behavior: smooth; }
@@ -40,7 +42,6 @@
       overflow-x: hidden;
     }
 
-    /* Background grid texture */
     body::before {
       content: '';
       position: fixed;
@@ -53,7 +54,6 @@
       z-index: 0;
     }
 
-    /* Ambient glow top */
     body::after {
       content: '';
       position: fixed;
@@ -128,6 +128,13 @@
       margin-top: 1px;
     }
 
+    /* ── TOPBAR RIGHT ── */
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
     .sys-status {
       display: flex;
       align-items: center;
@@ -149,6 +156,46 @@
     @keyframes pulse {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.3; }
+    }
+
+    /* ── LOGOUT BUTTON ── */
+    .btn-logout {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--danger);
+      background: var(--danger-dim);
+      border: 1px solid rgba(200, 74, 74, 0.2);
+      border-radius: 6px;
+      padding: 6px 14px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    .btn-logout:hover {
+      background: rgba(200, 74, 74, 0.15);
+      border-color: rgba(200, 74, 74, 0.45);
+      color: #e05c5c;
+    }
+
+    .btn-logout svg {
+      width: 13px;
+      height: 13px;
+      stroke: currentColor;
+      fill: none;
+      flex-shrink: 0;
+    }
+
+    /* Separator between status and logout */
+    .topbar-sep {
+      width: 1px;
+      height: 20px;
+      background: var(--border);
     }
 
     /* ── HERO ── */
@@ -386,7 +433,6 @@
       transform: translateX(3px);
     }
 
-    /* Card color variants */
     .card--warga { --card-accent: var(--accent); }
     .card--staff { --card-accent: var(--amber); }
     .card--staff .card-icon-wrap { background: rgba(200,137,26,0.08); }
@@ -482,6 +528,8 @@
       .hero-stat { text-align: left; }
       .menu-grid { grid-template-columns: 1fr; }
       .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .topbar-sep { display: none; }
+      .sys-status { display: none; }
     }
   </style>
 </head>
@@ -502,9 +550,24 @@
           <div class="brand-version">v1.0 · OOP Waste System</div>
         </div>
       </div>
-      <div class="sys-status">
-        <div class="status-dot"></div>
-        SISTEM AKTIF
+
+      <div class="topbar-right">
+        <div class="sys-status">
+          <div class="status-dot"></div>
+          SISTEM AKTIF
+        </div>
+        <div class="topbar-sep"></div>
+        <!-- LOGOUT BUTTON -->
+        <form action="/logout" method="post" style="margin:0;">
+          <button type="submit" class="btn-logout">
+            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+            Logout
+          </button>
+        </form>
       </div>
     </div>
   </header>
@@ -535,7 +598,6 @@
 
   <div class="menu-grid">
 
-    <!-- Data Warga -->
     <a href="/warga" class="menu-card card--warga animate delay-3">
       <div class="card-head">
         <div class="card-icon-wrap">
@@ -567,7 +629,6 @@
       </div>
     </a>
 
-    <!-- Sektor Staff -->
     <a href="/staff" class="menu-card card--staff animate delay-4">
       <div class="card-head">
         <div class="card-icon-wrap">
@@ -597,7 +658,6 @@
       </div>
     </a>
 
-    <!-- Transaksi Setoran -->
     <a href="/transaksi" class="menu-card card--transaksi animate delay-5">
       <div class="card-head">
         <div class="card-icon-wrap">

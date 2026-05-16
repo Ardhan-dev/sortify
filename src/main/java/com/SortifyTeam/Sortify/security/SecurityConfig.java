@@ -29,18 +29,14 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+            .csrf(csrf -> csrf
+                .ignoringRequestMatchers("/logout", "/login")
+            )
             .userDetailsService(userDetailsService)
             .authorizeHttpRequests(auth -> auth
-                // Halaman publik
                 .requestMatchers("/login", "/register", "/dev/hash", "/css/**", "/js/**", "/images/**", "/fonts/**").permitAll()
-
-                // Khusus ADMIN
                 .requestMatchers("/transaksi/**", "/staff/**", "/warga/**").hasRole("ADMIN")
-
-                // Khusus WARGA
                 .requestMatchers("/profil/**").hasRole("WARGA")
-
-                // Semua lainnya harus login
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
@@ -52,7 +48,7 @@ public class SecurityConfig {
             )
             .logout(logout -> logout
                 .logoutUrl("/logout")
-                .logoutSuccessUrl("/login?logout=true")
+                .logoutSuccessUrl("/login")
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
                 .permitAll()
