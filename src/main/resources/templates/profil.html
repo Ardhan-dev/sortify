@@ -14,6 +14,8 @@
       --accent: #86bb4c; --accent-dim: rgba(134, 187, 76, 0.08);
       --text-primary: #e8ede2; --text-secondary: #8a9480; --text-muted: #4e5749;
       --mono: 'Space Mono', monospace; --sans: 'DM Sans', sans-serif;
+      --red: #e05454; --red-dim: rgba(224, 84, 84, 0.08);
+      --yellow: #d4a843; --yellow-dim: rgba(212, 168, 67, 0.08);
     }
     body { background: var(--bg); color: var(--text-primary); font-family: var(--sans); font-size: 15px; min-height: 100vh; }
     body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(134,187,76,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(134,187,76,0.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; }
@@ -37,6 +39,7 @@
     .page-title { font-size: 2rem; font-weight: 300; letter-spacing: -1px; }
     .page-title strong { font-weight: 500; color: var(--accent); }
 
+    /* Profile Card */
     .profile-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; animation: fadeUp 0.45s ease both; }
     @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -53,8 +56,76 @@
     .info-value { font-size: 14px; color: var(--text-primary); }
     .info-value.mono { font-family: var(--mono); font-size: 13px; }
 
+    /* Section header shared */
+    .section-head { display: flex; align-items: center; justify-content: space-between; margin: 2.5rem 0 1rem; }
+    .section-label { font-family: var(--mono); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+    .section-label::before { content: ''; display: block; width: 16px; height: 1px; background: var(--accent); }
+    .section-count { font-family: var(--mono); font-size: 10px; color: var(--text-muted); background: var(--surface-raised); border: 1px solid var(--border); border-radius: 20px; padding: 2px 10px; }
+
+    /* Transaction list */
+    .tx-list { display: flex; flex-direction: column; gap: 0.6rem; }
+
+    .tx-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 1rem;
+      animation: fadeUp 0.4s ease both;
+      transition: border-color 0.15s;
+      cursor: default;
+    }
+    .tx-item:hover { border-color: var(--border-hover); }
+
+    /* stagger */
+    .tx-item:nth-child(1) { animation-delay: 0.05s; }
+    .tx-item:nth-child(2) { animation-delay: 0.10s; }
+    .tx-item:nth-child(3) { animation-delay: 0.15s; }
+    .tx-item:nth-child(4) { animation-delay: 0.20s; }
+    .tx-item:nth-child(5) { animation-delay: 0.25s; }
+
+    .tx-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .tx-icon svg { width: 16px; height: 16px; fill: none; stroke-width: 2; }
+    .tx-icon.organik  { background: var(--accent-dim);  }  .tx-icon.organik  svg { stroke: var(--accent); }
+    .tx-icon.anorganik{ background: var(--yellow-dim);  }  .tx-icon.anorganik svg { stroke: var(--yellow); }
+    .tx-icon.b3       { background: var(--red-dim);     }  .tx-icon.b3       svg { stroke: var(--red); }
+
+    .tx-meta { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+    .tx-jenis { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tx-jenis.organik   { color: var(--accent); }
+    .tx-jenis.anorganik { color: var(--yellow); }
+    .tx-jenis.b3        { color: var(--red); }
+
+    .tx-sub { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .tx-id { font-family: var(--mono); font-size: 9px; color: var(--text-muted); }
+    .tx-dot { width: 2px; height: 2px; border-radius: 50%; background: var(--text-muted); }
+    .tx-date { font-family: var(--mono); font-size: 9px; color: var(--text-muted); }
+
+    .tx-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+    .tx-berat { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--text-primary); }
+    .tx-status { display: inline-flex; align-items: center; gap: 4px; font-family: var(--mono); font-size: 9px; letter-spacing: 0.5px; padding: 2px 7px; border-radius: 20px; }
+    .tx-status.selesai  { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(134,187,76,0.18); }
+    .tx-status.proses   { background: var(--yellow-dim); color: var(--yellow); border: 1px solid rgba(212,168,67,0.18); }
+    .tx-status.ditolak  { background: var(--red-dim);    color: var(--red);    border: 1px solid rgba(224,84,84,0.18); }
+    .tx-status::before  { content: ''; display: block; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+    /* Empty state */
+    .tx-empty { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 2.5rem 1.5rem; text-align: center; }
+    .tx-empty-icon { width: 44px; height: 44px; border-radius: 50%; background: var(--surface-raised); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; }
+    .tx-empty-icon svg { width: 20px; height: 20px; stroke: var(--text-muted); fill: none; stroke-width: 2; }
+    .tx-empty-text { font-family: var(--mono); font-size: 11px; color: var(--text-muted); letter-spacing: 1px; }
+
     footer { border-top: 1px solid var(--border); padding: 1.5rem 0; margin-top: 3rem; display: flex; justify-content: space-between; }
     .footer-id { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 1px; }
+
+    @media (max-width: 480px) {
+      .info-grid { grid-template-columns: 1fr; }
+      .tx-item { grid-template-columns: auto 1fr; }
+      .tx-right { display: none; }
+    }
   </style>
 </head>
 <body>
@@ -83,6 +154,7 @@
     <h1 class="page-title">Profil <strong>Saya</strong></h1>
   </div>
 
+  <!-- Profile Card -->
   <div class="profile-card">
     <div class="profile-card-header">
       <div class="avatar">
@@ -117,6 +189,65 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Transaction History -->
+  <div class="section-head">
+    <div class="section-label">History Transaksi</div>
+    <span class="section-count" th:text="${transaksiList != null ? transaksiList.size() + ' transaksi' : '0 transaksi'}">0 transaksi</span>
+  </div>
+
+  <!-- Jika ada transaksi -->
+  <div class="tx-list" th:if="${transaksiList != null and !transaksiList.isEmpty()}">
+    <div class="tx-item" th:each="tx : ${transaksiList}">
+
+      <!-- Icon berdasarkan jenis sampah -->
+      <div class="tx-icon"
+           th:classappend="${tx.jenisSampah == 'Organik'} ? 'organik' : (${tx.jenisSampah == 'Anorganik'} ? 'anorganik' : 'b3')">
+        <!-- Organik: daun -->
+        <svg th:if="${tx.jenisSampah == 'Organik'}" viewBox="0 0 24 24">
+          <path d="M17 8C8 10 5.9 16.17 3.82 19.34A1 1 0 0 0 4.8 21 12.07 12.07 0 0 0 21 9c0-4-2-6-4-6C16 3 17 5 17 8z"/>
+          <path d="M4 22a14 14 0 0 0 4-2 15 15 0 0 0 4-5"/>
+        </svg>
+        <!-- Anorganik: kotak recycle -->
+        <svg th:if="${tx.jenisSampah == 'Anorganik'}" viewBox="0 0 24 24">
+          <polyline points="1 4 1 10 7 10"/>
+          <path d="M3.51 15a9 9 0 1 0 .49-4.5"/>
+        </svg>
+        <!-- B3: warning -->
+        <svg th:if="${tx.jenisSampah != 'Organik' and tx.jenisSampah != 'Anorganik'}" viewBox="0 0 24 24">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+      </div>
+
+      <div class="tx-meta">
+        <div class="tx-jenis"
+             th:classappend="${tx.jenisSampah == 'Organik'} ? 'organik' : (${tx.jenisSampah == 'Anorganik'} ? 'anorganik' : 'b3')"
+             th:text="${tx.jenisSampah}">Jenis Sampah</div>
+        <div class="tx-sub">
+          <span class="tx-id" th:text="'#TRX-' + ${tx.idTransaksi}">—</span>
+          <span class="tx-dot"></span>
+          <span class="tx-date" th:text="${#temporals.format(tx.tanggal, 'dd MMM yyyy')}">—</span>
+        </div>
+      </div>
+
+      <div class="tx-right">
+        <div class="tx-berat" th:text="${tx.berat} + ' kg'">— kg</div>
+        <div class="tx-status"
+             th:classappend="${tx.status == 'Selesai'} ? 'selesai' : (${tx.status == 'Diproses'} ? 'proses' : 'ditolak')"
+             th:text="${tx.status}">Status</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Jika tidak ada transaksi -->
+  <div class="tx-empty" th:if="${transaksiList == null or transaksiList.isEmpty()}">
+    <div class="tx-empty-icon">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+    </div>
+    <div class="tx-empty-text">Belum ada transaksi tercatat</div>
   </div>
 
   <footer>
