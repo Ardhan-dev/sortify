@@ -1,59 +1,103 @@
 package com.SortifyTeam.Sortify.security;
 
 import org.springframework.context.annotation.Bean;
+
 import org.springframework.context.annotation.Configuration;
+
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
+
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
+
 @EnableWebSecurity
+
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
+
     private final CustomAuthSuccessHandler successHandler;
 
     public SecurityConfig(CustomUserDetailsService userDetailsService,
+
                           CustomAuthSuccessHandler successHandler) {
+
         this.userDetailsService = userDetailsService;
+
         this.successHandler = successHandler;
+
     }
 
     @Bean
+
     public PasswordEncoder passwordEncoder() {
+
         return new BCryptPasswordEncoder();
+
     }
 
     @Bean
+
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
         http
+
             .csrf(csrf -> csrf
+
                 .ignoringRequestMatchers("/logout", "/login")
+
             )
+
             .userDetailsService(userDetailsService)
+
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/register", "/dev/hash", "/css/**", "/js/**", "/images/**", "/fonts/**", "/kamus-sampah").permitAll()
+
+                .requestMatchers("/login", "/register", "/dev/hash", "/css/**", "/js/**", "/images/**", "/fonts/**").permitAll()
+
                 .requestMatchers("/transaksi/**", "/staff/**", "/warga/**").hasRole("ADMIN")
-                .requestMatchers("/profil/**").hasRole("WARGA")
+
+                .requestMatchers("/profil/**", "/kamus-sampah").hasAnyRole("WARGA", "ADMIN") // ← diubah
+
                 .anyRequest().authenticated()
+
             )
+
             .formLogin(form -> form
+
                 .loginPage("/login")
+
                 .loginProcessingUrl("/login")
+
                 .successHandler(successHandler)
+
                 .failureUrl("/login?error=true")
+
                 .permitAll()
+
             )
+
             .logout(logout -> logout
+
                 .logoutUrl("/logout")
+
                 .logoutSuccessUrl("/login")
+
                 .invalidateHttpSession(true)
+
                 .deleteCookies("JSESSIONID")
+
                 .permitAll()
+
             );
 
         return http.build();
+
     }
+
 }
