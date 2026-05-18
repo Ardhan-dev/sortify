@@ -34,6 +34,8 @@ public class LaporanSampah {
     @Column(columnDefinition = "TEXT")
     private String catatan;
 
+    private String fotoBukti;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private StatusLaporan status;

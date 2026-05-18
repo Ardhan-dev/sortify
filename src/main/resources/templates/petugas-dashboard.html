@@ -107,6 +107,41 @@
     .btn-selesai { background: var(--green-dim); color: var(--green); border-color: rgba(134,187,76,0.25); }
     .btn-selesai:hover { background: rgba(134,187,76,0.2); }
 
+    /* Modal overlay */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 999;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 2rem 2.5rem;
+      max-width: 480px;
+      width: 90%;
+      animation: fadeUp 0.25s ease both;
+    }
+    .modal-title { font-family: var(--mono); font-size: 13px; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
+    .modal-desc { font-size: 14px; color: var(--text-secondary); margin-bottom: 1.5rem; }
+    .form-group { margin-bottom: 1.25rem; }
+    .form-label { display: block; font-family: var(--mono); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.4rem; }
+    .form-input { width: 100%; padding: 0.65rem 0.9rem; background: var(--surface-raised); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: var(--sans); font-size: 14px; outline: none; transition: border-color 0.2s; }
+    .form-input:focus { border-color: var(--accent); }
+    .form-input[type=file] { padding: 0.5rem; }
+    .form-input::file-selector-button { font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase; padding: 0.3rem 0.8rem; border: 1px solid var(--border); border-radius: 6px; background: var(--surface-hover); color: var(--text-secondary); cursor: pointer; margin-right: 0.7rem; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 1.5rem; }
+    .btn-modal-batal { display: inline-flex; align-items: center; gap: 5px; padding: 0.5rem 1.2rem; font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); cursor: pointer; transition: all 0.15s; }
+    .btn-modal-batal:hover { background: var(--surface-hover); color: var(--text-secondary); }
+    .btn-modal-konfirm { display: inline-flex; align-items: center; gap: 5px; padding: 0.5rem 1.2rem; font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase; border-radius: 6px; border: 1px solid rgba(134,187,76,0.25); background: var(--green-dim); color: var(--green); cursor: pointer; transition: all 0.15s; }
+    .btn-modal-konfirm:hover { background: rgba(134,187,76,0.2); }
+    .laporan-info { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem 1.5rem; margin-bottom: 1.25rem; padding: 1rem; background: var(--surface-raised); border: 1px solid var(--border); border-radius: 8px; }
+    .laporan-info-item { display: flex; flex-direction: column; }
+    .laporan-info-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-muted); }
+    .laporan-info-value { font-size: 14px; color: var(--text-primary); font-weight: 500; }
+
     /* Empty state */
     .empty-state { padding: 3rem 2rem; text-align: center; }
     .empty-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--accent-dim); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; }
@@ -262,12 +297,11 @@
           <td class="cell-tanggal" th:text="${#temporals.format(l.createdAt, 'dd MMM HH:mm')}">—</td>
           <td>
             <div class="cell-actions">
-              <form th:action="@{/petugas/laporan/selesai/{id}(id=${l.id})}" method="post" style="display:inline;">
-                <button type="submit" class="btn-sm btn-selesai">
-                  <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                  Selesai
-                </button>
-              </form>
+              <button type="button" class="btn-sm btn-selesai btn-selesai-trigger"
+                      th:attr="data-id=${l.id}, data-warga=${l.warga.fullName}, data-jenis=${l.jenisSampah}, data-berat=${l.berat}">
+                <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                Selesai
+              </button>
             </div>
           </td>
         </tr>
@@ -293,5 +327,72 @@
   </footer>
 
 </div>
+
+<!-- MODAL UPLOAD FOTO -->
+<div id="modalSelesai" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title">Upload Bukti Foto</div>
+    <div class="modal-desc">Lengkapi laporan dengan mengunggah foto bukti.</div>
+
+    <div class="laporan-info">
+      <div class="laporan-info-item">
+        <span class="laporan-info-label">ID Laporan</span>
+        <span class="laporan-info-value" id="modalLaporanId">—</span>
+      </div>
+      <div class="laporan-info-item">
+        <span class="laporan-info-label">Warga</span>
+        <span class="laporan-info-value" id="modalNamaWarga">—</span>
+      </div>
+      <div class="laporan-info-item">
+        <span class="laporan-info-label">Jenis Sampah</span>
+        <span class="laporan-info-value" id="modalJenisSampah">—</span>
+      </div>
+      <div class="laporan-info-item">
+        <span class="laporan-info-label">Berat</span>
+        <span class="laporan-info-value" id="modalBerat">—</span>
+      </div>
+    </div>
+
+    <form id="formSelesai" method="post" enctype="multipart/form-data" style="margin:0;">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+      <div class="form-group">
+        <label class="form-label" for="foto">Foto Bukti</label>
+        <input type="file" id="foto" name="foto" class="form-input" accept="image/*" required>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-modal-batal" id="btnBatal">Batal</button>
+        <button type="submit" class="btn-modal-konfirm">Konfirmasi</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.btn-selesai-trigger').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var id = this.getAttribute('data-id');
+      var warga = this.getAttribute('data-warga');
+      var jenis = this.getAttribute('data-jenis');
+      var berat = this.getAttribute('data-berat');
+      document.getElementById('modalLaporanId').textContent = '#' + id;
+      document.getElementById('modalNamaWarga').textContent = warga;
+      document.getElementById('modalJenisSampah').textContent = jenis;
+      document.getElementById('modalBerat').textContent = berat + ' kg';
+      document.getElementById('formSelesai').action = '/petugas/laporan/selesai/' + id;
+      document.getElementById('modalSelesai').classList.add('active');
+    });
+  });
+
+  document.getElementById('btnBatal').addEventListener('click', function() {
+    document.getElementById('modalSelesai').classList.remove('active');
+  });
+
+  document.getElementById('modalSelesai').addEventListener('click', function(e) {
+    if (e.target === this) {
+      this.classList.remove('active');
+    }
+  });
+</script>
+
 </body>
 </html>

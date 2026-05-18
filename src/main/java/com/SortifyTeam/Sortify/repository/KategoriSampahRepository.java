@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface KategoriSampahRepository extends JpaRepository<KategoriSampah, Long> {
+    java.util.Optional<KategoriSampah> findByNamaKategoriIgnoreCase(String namaKategori);
 }

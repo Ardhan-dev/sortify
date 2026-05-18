@@ -3,16 +3,22 @@ package com.SortifyTeam.Sortify.controller;
 import com.SortifyTeam.Sortify.model.*;
 import com.SortifyTeam.Sortify.repository.UserRepository;
 import com.SortifyTeam.Sortify.service.LaporanService;
-import com.SortifyTeam.Sortify.service.PembayaranService;
-import com.SortifyTeam.Sortify.service.PointService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Controller
@@ -21,17 +27,14 @@ public class PetugasController {
 
     private final UserRepository userRepo;
     private final LaporanService laporanService;
-    private final PembayaranService pembayaranService;
-    private final PointService pointService;
+
+    @Value("${app.upload.dir:uploads}")
+    private String uploadDir;
 
     public PetugasController(UserRepository userRepo,
-                             LaporanService laporanService,
-                             PembayaranService pembayaranService,
-                             PointService pointService) {
+                             LaporanService laporanService) {
         this.userRepo = userRepo;
         this.laporanService = laporanService;
-        this.pembayaranService = pembayaranService;
-        this.pointService = pointService;
     }
 
     private User getCurrentUser(Authentication auth) {
@@ -53,9 +56,7 @@ public class PetugasController {
     @Transactional
     public String accLaporan(Authentication auth, @PathVariable Long id) {
         User petugas = getCurrentUser(auth);
-        LaporanSampah laporan = laporanService.getLaporanById(id);
         laporanService.accLaporan(id, petugas);
-        pembayaranService.buatPembayaran(laporan);
         return "redirect:/petugas/dashboard";
     }
 
@@ -67,16 +68,39 @@ public class PetugasController {
 
     @PostMapping("/laporan/selesai/{id}")
     @Transactional
-    public String selesaikanLaporan(@PathVariable Long id) {
-        LaporanSampah laporan = laporanService.getLaporanById(id);
-        User warga = laporan.getWarga();
+    public String selesaikanLaporan(@PathVariable Long id,
+                                    @RequestParam("foto") MultipartFile foto) {
+        if (foto.isEmpty()) {
+            throw new RuntimeException("Foto bukti harus diupload");
+        }
 
-        laporanService.selesaikanLaporan(id);
+        String filename = simpanFoto(foto);
 
-        pointService.tambahPoint(warga, 500,
-                "Reward laporan selesai #" + id);
+        laporanService.selesaikanDenganFoto(id, filename);
 
         return "redirect:/petugas/dashboard";
+    }
+
+    private String simpanFoto(MultipartFile file) {
+        try {
+            Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
+            Files.createDirectories(uploadPath);
+
+            String original = file.getOriginalFilename();
+            String ext = "";
+            if (original != null && original.contains(".")) {
+                ext = original.substring(original.lastIndexOf("."));
+            }
+            String filename = UUID.randomUUID().toString() + ext;
+
+            Path targetPath = uploadPath.resolve(filename);
+            Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+
+            log.info("[UPLOAD] File {} tersimpan sebagai {}", original, filename);
+            return filename;
+        } catch (IOException e) {
+            throw new RuntimeException("Gagal menyimpan foto: " + e.getMessage(), e);
+        }
     }
 }
 
