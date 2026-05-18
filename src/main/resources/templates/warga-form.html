@@ -434,7 +434,7 @@
 
     <div class="form-body">
       <!-- ACTION: tambah atau edit tergantung idWarga -->
-      <form th:action="${warga.idWarga != null} ? @{/warga/edit/{id}(id=${warga.idWarga})} : @{/warga/tambah}"
+      <form th:action="${warga.idWarga != null} ? @{/admin/warga/edit/{id}(id=${warga.idWarga})} : @{/admin/warga/tambah}"
             th:object="${warga}"
             method="post">
 
@@ -507,7 +507,7 @@
 
         <!-- ACTIONS -->
         <div class="form-actions">
-          <a href="/warga" class="btn btn-ghost">
+          <a href="/admin/warga" class="btn btn-ghost">
             <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
             Batal
           </a>
@@ -532,7 +532,7 @@
 
   <!-- FOOTER -->
   <footer class="animate delay-4">
-    <a href="/warga" class="back-link">
+    <a href="/admin/warga" class="back-link">
       <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
       Kembali ke Data Warga
     </a>

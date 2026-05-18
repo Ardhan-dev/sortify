@@ -345,7 +345,7 @@
       </span>
     </div>
 
-    <form th:action="${staff.idStaff != null} ? @{/staff/edit/{id}(id=${staff.idStaff})} : @{/staff/tambah}"
+    <form th:action="${staff.idStaff != null} ? @{/admin/staff/edit/{id}(id=${staff.idStaff})} : @{/admin/staff/tambah}"
           th:object="${staff}" method="post">
 
       <div class="form-body">
@@ -386,7 +386,7 @@
       </div>
 
       <div class="form-actions">
-        <a href="/staff" class="btn btn-ghost">
+        <a href="/admin/staff" class="btn btn-ghost">
           <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
           Batal
         </a>
@@ -402,7 +402,7 @@
 
   <!-- FOOTER -->
   <footer class="animate delay-3">
-    <a href="/staff" class="back-link">
+    <a href="/admin/staff" class="back-link">
       <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
       Kembali ke Sektor Staff
     </a>

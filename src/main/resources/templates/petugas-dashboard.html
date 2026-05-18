@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sortify — Petugas Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0f0c;
+      --surface: #141710;
+      --surface-raised: #191610;
+      --surface-hover: #1d1a10;
+      --border: rgba(200, 137, 26, 0.12);
+      --border-hover: rgba(200, 137, 26, 0.30);
+      --accent: #c8891a;
+      --accent-dim: rgba(200, 137, 26, 0.08);
+      --green: #86bb4c;
+      --green-dim: rgba(134, 187, 76, 0.1);
+      --teal: #2a9c7a;
+      --danger: #b85454;
+      --danger-dim: rgba(184, 84, 84, 0.1);
+      --text-primary: #ede8e0;
+      --text-secondary: #948e80;
+      --text-muted: #574f42;
+      --mono: 'Space Mono', monospace;
+      --sans: 'DM Sans', sans-serif;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background-color: var(--bg);
+      color: var(--text-primary);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: linear-gradient(rgba(200,137,26,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(200,137,26,0.025) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none; z-index: 0;
+    }
+    .wrapper { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 2rem 4rem; }
+    header { padding: 2rem 0 0; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+    .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .brand-icon { width: 36px; height: 36px; background: var(--green); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+    .brand-icon svg { width: 20px; height: 20px; fill: var(--bg); }
+    .brand-name { font-family: var(--mono); font-size: 18px; font-weight: 700; color: var(--green); letter-spacing: -0.5px; }
+    .brand-version { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 1px; }
+    .sys-status { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11px; color: var(--text-muted); letter-spacing: 0.5px; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: pulse 2.5s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+    .btn-logout { display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--danger); background: var(--danger-dim); border: 1px solid rgba(184,84,84,0.2); border-radius: 6px; padding: 6px 14px; cursor: pointer; text-decoration: none; transition: background 0.2s, border-color 0.2s; }
+    .btn-logout:hover { background: rgba(184,84,84,0.15); border-color: rgba(184,84,84,0.45); }
+    .btn-logout svg { width: 13px; height: 13px; stroke: currentColor; fill: none; }
+    .topbar-right { display: flex; align-items: center; gap: 1.25rem; }
+    .topbar-sep { width: 1px; height: 20px; background: var(--border); }
+    .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 1.5rem; padding: 3.5rem 0 2rem; }
+    .page-label { font-family: var(--mono); font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--accent); display: flex; align-items: center; gap: 8px; margin-bottom: 0.8rem; }
+    .page-label::before { content: ''; display: block; width: 24px; height: 1px; background: var(--accent); }
+    .page-title { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 300; letter-spacing: -1px; color: var(--text-primary); line-height: 1.2; }
+    .page-title strong { font-weight: 500; color: var(--accent); }
+
+    /* Section cards */
+    .section-head { display: flex; align-items: center; gap: 10px; margin: 2rem 0 1rem; font-family: var(--mono); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); }
+    .section-head::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .section-count { font-family: var(--mono); font-size: 10px; color: var(--text-muted); background: var(--surface-raised); border: 1px solid var(--border); border-radius: 20px; padding: 2px 10px; }
+
+    /* Table */
+    .table-wrap { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--surface); margin-bottom: 1.5rem; }
+    table { width: 100%; border-collapse: collapse; }
+    thead { background: var(--surface-raised); border-bottom: 1px solid var(--border); }
+    thead th { padding: 0.85rem 1.25rem; font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); font-weight: 400; text-align: left; white-space: nowrap; }
+    thead th.col-actions { width: 180px; text-align: center; }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--surface-hover); }
+    tbody td { padding: 1rem 1.25rem; font-size: 14px; color: var(--text-primary); vertical-align: middle; }
+    .cell-id { font-family: var(--mono); font-size: 12px; color: var(--text-muted); }
+    .cell-nama { font-weight: 500; }
+    .cell-alamat { color: var(--text-secondary); font-size: 13px; }
+    .cell-berat { font-family: var(--mono); font-size: 13px; }
+    .cell-tanggal { font-family: var(--mono); font-size: 12px; color: var(--text-secondary); }
+    .cell-catatan { color: var(--text-secondary); font-size: 13px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* Status badges */
+    .status-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px; border: 1px solid; }
+    .status-badge .dot { width: 5px; height: 5px; border-radius: 50%; }
+    .badge-menunggu { background: rgba(200,137,26,0.1); border-color: rgba(200,137,26,0.25); color: var(--accent); }
+    .badge-menunggu .dot { background: var(--accent); }
+    .badge-diproses { background: rgba(42,156,122,0.1); border-color: rgba(42,156,122,0.25); color: var(--teal); }
+    .badge-diproses .dot { background: var(--teal); }
+
+    /* Action buttons */
+    .cell-actions { display: flex; justify-content: center; gap: 6px; }
+    .btn-sm { display: inline-flex; align-items: center; gap: 5px; padding: 0.4rem 0.9rem; font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase; text-decoration: none; border-radius: 6px; border: 1px solid; cursor: pointer; transition: all 0.15s; }
+    .btn-sm svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .btn-acc { background: var(--green-dim); color: var(--green); border-color: rgba(134,187,76,0.25); }
+    .btn-acc:hover { background: rgba(134,187,76,0.2); }
+    .btn-tolak { background: var(--danger-dim); color: var(--danger); border-color: rgba(184,84,84,0.25); }
+    .btn-tolak:hover { background: rgba(184,84,84,0.2); }
+    .btn-selesai { background: var(--green-dim); color: var(--green); border-color: rgba(134,187,76,0.25); }
+    .btn-selesai:hover { background: rgba(134,187,76,0.2); }
+
+    /* Empty state */
+    .empty-state { padding: 3rem 2rem; text-align: center; }
+    .empty-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--accent-dim); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; }
+    .empty-icon svg { width: 20px; height: 20px; stroke: var(--accent); fill: none; stroke-width: 1.5; }
+    .empty-title { font-size: 14px; font-weight: 500; margin-bottom: 4px; color: var(--text-secondary); }
+    .empty-desc { font-size: 12px; color: var(--text-muted); }
+
+    /* Footer */
+    footer { border-top: 1px solid var(--border); padding: 1.5rem 0; margin-top: 3rem; display: flex; align-items: center; justify-content: space-between; }
+    .footer-id { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 1px; }
+
+    /* Animations */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    .animate { animation: fadeUp 0.45s ease both; }
+    .delay-1 { animation-delay: 0.05s; }
+    .delay-2 { animation-delay: 0.12s; }
+    .delay-3 { animation-delay: 0.2s; }
+
+    @media (max-width: 768px) {
+      .page-head { flex-direction: column; align-items: flex-start; }
+      thead th.col-actions { width: 140px; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <header class="animate">
+    <div class="topbar">
+      <a href="/petugas/dashboard" class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.35C16.5 22.15 20 17.25 20 12V6L12 2zm-1 13l-3-3 1.4-1.4 1.6 1.6 4.6-4.6 1.4 1.4L11 15z"/></svg>
+        </div>
+        <div>
+          <div class="brand-name">Sortify</div>
+          <div class="brand-version">v1.0 · Petugas Panel</div>
+        </div>
+      </a>
+      <div class="topbar-right">
+        <div class="sys-status">
+          <div class="status-dot"></div>
+          SISTEM AKTIF
+        </div>
+        <div class="topbar-sep"></div>
+        <form action="/logout" method="post" style="margin:0;">
+          <button type="submit" class="btn-logout">
+            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+            Logout
+          </button>
+        </form>
+      </div>
+    </div>
+  </header>
+
+  <!-- PAGE TITLE -->
+  <div class="page-head animate delay-1">
+    <div>
+      <div class="page-label">Petugas · Operasional</div>
+      <h1 class="page-title">Dashboard <strong>Petugas</strong></h1>
+    </div>
+  </div>
+
+  <!-- SECTION: LAPORAN MENUNGGU -->
+  <div class="section-head animate delay-2">
+    Laporan Menunggu
+    <span class="section-count" th:text="${#lists.size(menungguList)} + ' laporan'">0 laporan</span>
+  </div>
+
+  <div class="table-wrap animate delay-2">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Warga</th>
+          <th>Jenis</th>
+          <th>Berat</th>
+          <th>Alamat</th>
+          <th>Tanggal</th>
+          <th class="col-actions">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="l : ${menungguList}">
+          <td class="cell-id" th:text="'#' + ${l.id}">001</td>
+          <td class="cell-nama" th:text="${l.warga.fullName}">Nama Warga</td>
+          <td><span class="status-badge badge-menunggu"><span class="dot"></span><span th:text="${l.jenisSampah}">ORGANIK</span></span></td>
+          <td class="cell-berat"><span th:text="${l.berat}">0</span> kg</td>
+          <td class="cell-alamat" th:text="${l.alamatLengkap}">Alamat</td>
+          <td class="cell-tanggal" th:text="${#temporals.format(l.createdAt, 'dd MMM HH:mm')}">—</td>
+          <td>
+            <div class="cell-actions">
+              <form th:action="@{/petugas/laporan/acc/{id}(id=${l.id})}" method="post" style="display:inline;">
+                <button type="submit" class="btn-sm btn-acc">
+                  <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                  ACC
+                </button>
+              </form>
+              <form th:action="@{/petugas/laporan/tolak/{id}(id=${l.id})}" method="post" style="display:inline;">
+                <button type="submit" class="btn-sm btn-tolak">
+                  <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  Tolak
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(menungguList)}">
+          <td colspan="7">
+            <div class="empty-state">
+              <div class="empty-icon">
+                <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              </div>
+              <div class="empty-title">Tidak ada laporan menunggu</div>
+              <div class="empty-desc">Semua laporan sudah diproses.</div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SECTION: LAPORAN DIPROSES -->
+  <div class="section-head animate delay-3">
+    Laporan Diproses
+    <span class="section-count" th:text="${#lists.size(diprosesList)} + ' laporan'">0 laporan</span>
+  </div>
+
+  <div class="table-wrap animate delay-3">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Warga</th>
+          <th>Jenis</th>
+          <th>Berat</th>
+          <th>Alamat</th>
+          <th>Tanggal</th>
+          <th class="col-actions">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="l : ${diprosesList}">
+          <td class="cell-id" th:text="'#' + ${l.id}">001</td>
+          <td class="cell-nama" th:text="${l.warga.fullName}">Nama Warga</td>
+          <td><span class="status-badge badge-diproses"><span class="dot"></span><span th:text="${l.jenisSampah}">ORGANIK</span></span></td>
+          <td class="cell-berat"><span th:text="${l.berat}">0</span> kg</td>
+          <td class="cell-alamat" th:text="${l.alamatLengkap}">Alamat</td>
+          <td class="cell-tanggal" th:text="${#temporals.format(l.createdAt, 'dd MMM HH:mm')}">—</td>
+          <td>
+            <div class="cell-actions">
+              <form th:action="@{/petugas/laporan/selesai/{id}(id=${l.id})}" method="post" style="display:inline;">
+                <button type="submit" class="btn-sm btn-selesai">
+                  <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                  Selesai
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(diprosesList)}">
+          <td colspan="7">
+            <div class="empty-state">
+              <div class="empty-icon">
+                <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              </div>
+              <div class="empty-title">Tidak ada laporan diproses</div>
+              <div class="empty-desc">Belum ada laporan yang sedang diproses.</div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="animate delay-3">
+    <span class="footer-id">PETUGAS · OPERASIONAL</span>
+    <span class="footer-id">SORTIFY v1.0</span>
+  </footer>
+
+</div>
+</body>
+</html>

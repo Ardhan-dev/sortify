@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sortify — Pembayaran</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0f0c; --surface: #141710; --surface-raised: #1a1e16;
+      --border: rgba(134, 187, 76, 0.12); --border-hover: rgba(134, 187, 76, 0.28);
+      --border-focus: rgba(134, 187, 76, 0.55);
+      --accent: #86bb4c; --accent-dim: rgba(134, 187, 76, 0.08);
+      --text-primary: #e8ede2; --text-secondary: #8a9480; --text-muted: #4e5749;
+      --amber: #c8891a; --amber-dim: rgba(200,137,26,0.08);
+      --mono: 'Space Mono', monospace; --sans: 'DM Sans', sans-serif;
+    }
+    body { background: var(--bg); color: var(--text-primary); font-family: var(--sans); font-size: 15px; min-height: 100vh; }
+    body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(134,187,76,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(134,187,76,0.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; z-index: 0; }
+    .wrapper { position: relative; z-index: 1; max-width: 680px; margin: 0 auto; padding: 0 2rem 4rem; }
+    header { padding: 2rem 0 0; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+    .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .brand-icon { width: 36px; height: 36px; background: var(--accent); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+    .brand-icon svg { width: 20px; height: 20px; fill: var(--bg); }
+    .brand-name { font-family: var(--mono); font-size: 18px; font-weight: 700; color: var(--accent); }
+    .brand-version { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; }
+    .btn-logout { display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 11px; color: var(--text-muted); text-decoration: none; border: 1px solid var(--border); border-radius: 7px; padding: 0.45rem 0.9rem; transition: all 0.15s; }
+    .btn-logout:hover { border-color: var(--border-hover); color: var(--text-primary); }
+    .btn-logout svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .page-head { padding: 3rem 0 2rem; }
+    .page-label { font-family: var(--mono); font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--accent); display: flex; align-items: center; gap: 8px; margin-bottom: 0.6rem; }
+    .page-label::before { content: ''; display: block; width: 24px; height: 1px; background: var(--accent); }
+    .page-title { font-size: 2rem; font-weight: 300; letter-spacing: -1px; }
+    .page-title strong { font-weight: 500; color: var(--accent); }
+    .form-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; animation: fadeUp 0.45s ease both; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+    .form-card-header { padding: 1.25rem 1.75rem; background: var(--surface-raised); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+    .form-card-header-icon { width: 28px; height: 28px; border-radius: 6px; background: var(--amber-dim); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; }
+    .form-card-header-icon svg { width: 14px; height: 14px; stroke: var(--amber); fill: none; stroke-width: 2; }
+    .form-card-header-title { font-family: var(--mono); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); }
+    .form-body { padding: 2rem 1.75rem; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem; padding: 1.25rem; background: var(--surface-raised); border: 1px solid var(--border); border-radius: 10px; }
+    .info-item { display: flex; flex-direction: column; gap: 4px; }
+    .info-label { font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); }
+    .info-value { font-size: 15px; font-weight: 500; color: var(--text-primary); }
+    .info-value.mono { font-family: var(--mono); font-size: 14px; }
+    .info-value.amount { font-size: 22px; font-weight: 700; color: var(--amber); font-family: var(--mono); }
+    .field-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 1.25rem; }
+    .field-label { font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); }
+    .field-select { width: 100%; padding: 0.7rem 1rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: var(--sans); font-size: 14px; outline: none; cursor: pointer; }
+    .field-select:focus { border-color: var(--border-focus); }
+    .form-actions { display: flex; justify-content: flex-end; align-items: center; gap: 10px; padding: 1.25rem 1.75rem; border-top: 1px solid var(--border); background: var(--surface-raised); }
+    .btn { display: inline-flex; align-items: center; gap: 7px; padding: 0.6rem 1.25rem; font-family: var(--mono); font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; text-decoration: none; border-radius: 7px; border: 1px solid; cursor: pointer; transition: all 0.18s; }
+    .btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .btn-primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+    .btn-primary:hover { background: #97cc5a; }
+    .btn-ghost { background: transparent; color: var(--text-secondary); border-color: var(--border); }
+    .btn-ghost:hover { border-color: var(--border-hover); color: var(--text-primary); background: var(--accent-dim); }
+    footer { border-top: 1px solid var(--border); padding: 1.5rem 0; margin-top: 3rem; display: flex; justify-content: space-between; }
+    .footer-id { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 1px; }
+    @media (max-width: 480px) { .info-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+  <header>
+    <div class="topbar">
+      <a href="/warga/dashboard" class="brand">
+        <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.35C16.5 22.15 20 17.25 20 12V6L12 2z"/></svg></div>
+        <div><div class="brand-name">Sortify</div><div class="brand-version">v1.0 · Warga</div></div>
+      </a>
+      <a href="/logout" class="btn-logout" onclick="return confirm('Yakin mau keluar?')">
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Keluar
+      </a>
+    </div>
+  </header>
+  <div class="page-head">
+    <div class="page-label">Warga · Pembayaran</div>
+    <h1 class="page-title">Simulasi <strong>Pembayaran</strong></h1>
+  </div>
+  <div class="form-card">
+    <div class="form-card-header">
+      <div class="form-card-header-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+      <span class="form-card-header-title">Detail Pembayaran</span>
+    </div>
+    <form th:action="@{/warga/laporan/bayar/{id}(id=${laporan.id})}" method="post">
+      <div class="form-body">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">ID Laporan</div>
+            <div class="info-value mono" th:text="'#' + ${laporan.id}">—</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Jenis Sampah</div>
+            <div class="info-value" th:text="${laporan.jenisSampah}">—</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Berat</div>
+            <div class="info-value mono" th:text="${laporan.berat} + ' kg'">—</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Total Bayar</div>
+            <div class="info-value amount" th:text="'Rp ' + ${#numbers.formatDecimal(pembayaran.totalPembayaran, 0, 'COMMA', 0, 'POINT')}">—</div>
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="metodePembayaran">Metode Pembayaran</label>
+          <select id="metodePembayaran" name="metodePembayaran" class="field-select" required>
+            <option value="">— Pilih Metode —</option>
+            <option value="Transfer Bank">Transfer Bank</option>
+            <option value="E-Wallet">E-Wallet (GoPay, OVO, Dana)</option>
+            <option value="Tunai">Tunai (Bayar di tempat)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <a href="/warga/dashboard" class="btn btn-ghost">
+          <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          Batal
+        </a>
+        <button type="submit" class="btn btn-primary">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Konfirmasi Pembayaran
+        </button>
+      </div>
+    </form>
+  </div>
+  <footer>
+    <span class="footer-id">WARGA · PEMBAYARAN</span>
+    <span class="footer-id">SORTIFY v1.0</span>
+  </footer>
+</div>
+</body>
+</html>

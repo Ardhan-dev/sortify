@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Controller
-@RequestMapping("/transaksi")
+@RequestMapping("/admin/transaksi")
 public class TransaksiWebController {
 
     @Autowired private TransaksiRepository transaksiRepo;

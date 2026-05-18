@@ -598,7 +598,7 @@
 
   <div class="menu-grid">
 
-    <a href="/warga" class="menu-card card--warga animate delay-3">
+    <a href="/admin/warga" class="menu-card card--warga animate delay-3">
       <div class="card-head">
         <div class="card-icon-wrap">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -629,7 +629,7 @@
       </div>
     </a>
 
-    <a href="/staff" class="menu-card card--staff animate delay-4">
+    <a href="/admin/staff" class="menu-card card--staff animate delay-4">
       <div class="card-head">
         <div class="card-icon-wrap">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="var(--amber)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -658,7 +658,7 @@
       </div>
     </a>
 
-    <a href="/transaksi" class="menu-card card--transaksi animate delay-5">
+    <a href="/admin/transaksi" class="menu-card card--transaksi animate delay-5">
       <div class="card-head">
         <div class="card-icon-wrap">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="var(--teal)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -699,22 +699,22 @@
     <div class="stat-item">
       <div class="stat-label">Total Warga</div>
       <div class="stat-val" th:text="${totalWarga ?: '—'}">—</div>
-      <div class="stat-sub">Nasabah terdaftar</div>
+      <div class="stat-sub">Warga terdaftar</div>
     </div>
     <div class="stat-item">
       <div class="stat-label">Staff Aktif</div>
-      <div class="stat-val" th:text="${totalStaff ?: '—'}">—</div>
-      <div class="stat-sub">Petugas tervalidasi</div>
+      <div class="stat-val" th:text="${totalPetugas ?: '—'}">—</div>
+      <div class="stat-sub">Petugas aktif</div>
     </div>
     <div class="stat-item">
       <div class="stat-label">Transaksi Hari Ini</div>
-      <div class="stat-val" th:text="${transaksiHariIni ?: '—'}">—</div>
-      <div class="stat-sub">Setoran diproses</div>
+      <div class="stat-val" th:text="${laporanSelesai ?: '—'}">—</div>
+      <div class="stat-sub">Laporan selesai</div>
     </div>
     <div class="stat-item">
       <div class="stat-label">Total Bobot (kg)</div>
-      <div class="stat-val" th:text="${totalBobot ?: '—'}">—</div>
-      <div class="stat-sub">Sampah diklasifikasi</div>
+      <div class="stat-val" th:text="${rewardDitukar ?: '—'}">—</div>
+      <div class="stat-sub">Reward ditukar</div>
     </div>
   </div>
 
