@@ -69,14 +69,18 @@ public class PetugasController {
     @PostMapping("/laporan/selesai/{id}")
     @Transactional
     public String selesaikanLaporan(@PathVariable Long id,
+                                    @RequestParam("beratFinal") double beratFinal,
                                     @RequestParam("foto") MultipartFile foto) {
         if (foto.isEmpty()) {
             throw new RuntimeException("Foto bukti harus diupload");
         }
+        if (beratFinal <= 0) {
+            throw new RuntimeException("Berat final harus lebih dari 0");
+        }
 
         String filename = simpanFoto(foto);
 
-        laporanService.selesaikanDenganFoto(id, filename);
+        laporanService.selesaikanDenganFoto(id, beratFinal, filename);
 
         return "redirect:/petugas/dashboard";
     }

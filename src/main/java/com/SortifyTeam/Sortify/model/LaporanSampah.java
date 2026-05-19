@@ -36,6 +36,8 @@ public class LaporanSampah {
 
     private String fotoBukti;
 
+    private Double beratFinal;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private StatusLaporan status;

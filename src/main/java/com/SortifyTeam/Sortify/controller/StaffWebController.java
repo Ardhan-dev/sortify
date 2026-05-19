@@ -1,41 +1,45 @@
 package com.SortifyTeam.Sortify.controller;
 
 import com.SortifyTeam.Sortify.model.Staff;
+import com.SortifyTeam.Sortify.model.User;
 import com.SortifyTeam.Sortify.repository.StaffRepository;
+import com.SortifyTeam.Sortify.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Controller
 @RequestMapping("/admin/staff")
 public class StaffWebController {
 
     @Autowired
+    private UserRepository userRepo;
+
+    @Autowired
     private StaffRepository staffRepo;
 
-    // LIST
     @GetMapping
     public String halamanStaff(Model model) {
-        model.addAttribute("daftarStaff", staffRepo.findAll());
+        List<User> users = userRepo.findByRole(User.Role.PETUGAS);
+        model.addAttribute("daftarStaff", users);
         return "staff-view";
     }
 
-    // FORM TAMBAH
     @GetMapping("/tambah")
     public String formTambah(Model model) {
         model.addAttribute("staff", new Staff());
         return "staff-form";
     }
 
-    // SIMPAN TAMBAH
     @PostMapping("/tambah")
     public String simpanTambah(@ModelAttribute Staff staff) {
         staffRepo.save(staff);
-        return "redirect:/staff";
+        return "redirect:/admin/staff";
     }
 
-    // FORM EDIT
     @GetMapping("/edit/{id}")
     public String formEdit(@PathVariable Long id, Model model) {
         Staff staff = staffRepo.findById(id)
@@ -44,18 +48,16 @@ public class StaffWebController {
         return "staff-form";
     }
 
-    // SIMPAN EDIT
     @PostMapping("/edit/{id}")
     public String simpanEdit(@PathVariable Long id, @ModelAttribute Staff staff) {
         staff.setIdStaff(id);
         staffRepo.save(staff);
-        return "redirect:/staff";
+        return "redirect:/admin/staff";
     }
 
-    // HAPUS
     @GetMapping("/hapus/{id}")
     public String hapus(@PathVariable Long id) {
         staffRepo.deleteById(id);
-        return "redirect:/staff";
+        return "redirect:/admin/staff";
     }
 }

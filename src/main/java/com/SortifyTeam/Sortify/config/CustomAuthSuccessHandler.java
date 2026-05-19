@@ -3,7 +3,6 @@ package com.SortifyTeam.Sortify.config;
 import jakarta.servlet.http.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
@@ -23,15 +22,13 @@ public class CustomAuthSuccessHandler implements AuthenticationSuccessHandler {
                 .findFirst().map(a -> a.getAuthority()).orElse("UNKNOWN");
 
         log.info("==================================================");
-        log.info("[LOGIN SUCCESS] User: {} dengan Role: {} berhasil masuk ke sistem!", username, role);
+        log.info("[LOGIN SUCCESS] User: {} dengan Role: {})" ,  username, role);
         log.info("==================================================");
 
-        if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
-            response.sendRedirect("/admin/dashboard");
-        } else if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_PETUGAS"))) {
-            response.sendRedirect("/petugas/dashboard");
-        } else {
-            response.sendRedirect("/warga/dashboard");
+        switch (role) {
+            case "ROLE_ADMIN" ->    response.sendRedirect("/admin/dashboard");
+            case "ROLE_PETUGAS" ->  response.sendRedirect("/petugas/dashboard");
+            default ->              response.sendRedirect("/warga/dashboard");
         }
     }
 }

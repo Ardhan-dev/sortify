@@ -9,6 +9,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Slf4j
 @Controller
 @RequestMapping("/admin")
@@ -38,7 +40,21 @@ public class AdminController {
         model.addAttribute("laporanDitolak", laporanService.countByStatus(LaporanSampah.StatusLaporan.DITOLAK));
         model.addAttribute("transaksiSukses", pembayaranService.countByStatus(Pembayaran.StatusPembayaran.BERHASIL));
         model.addAttribute("rewardDitukar", rewardService.countTotalPenukaran());
-        return "index";
+        return "admin-dashboard";
+    }
+
+    @GetMapping("/monitoring")
+    public String monitoring(Model model) {
+        log.info("[ACCESS] Admin membuka halaman Monitoring Transaksi");
+        List<LaporanSampah> laporanSelesai = laporanService.getLaporanSelesai();
+        model.addAttribute("laporanList", laporanSelesai);
+        model.addAttribute("totalSelesai", laporanSelesai.size());
+        double totalBeratFinal = laporanSelesai.stream()
+                .filter(l -> l.getBeratFinal() != null)
+                .mapToDouble(LaporanSampah::getBeratFinal)
+                .sum();
+        model.addAttribute("totalBeratFinal", totalBeratFinal);
+        return "admin-monitoring";
     }
 }
 

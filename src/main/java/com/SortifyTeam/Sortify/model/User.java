@@ -1,7 +1,9 @@
 package com.SortifyTeam.Sortify.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
 
 @Entity
 @Table(name = "users")
@@ -27,6 +29,16 @@ public class User {
 
     @Column(nullable = false)
     private int totalPoints = 0;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @ToString.Exclude
+    @JsonIgnore
+    private Warga warga;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @ToString.Exclude
+    @JsonIgnore
+    private Staff staff;
 
     public enum Role {
         ADMIN, PETUGAS, WARGA

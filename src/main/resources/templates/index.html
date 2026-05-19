@@ -302,7 +302,7 @@
     /* ── MENU CARDS ── */
     .menu-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
       gap: 1.5px;
       background: var(--border);
       border: 1px solid var(--border);
@@ -438,6 +438,8 @@
     .card--staff .card-icon-wrap { background: rgba(200,137,26,0.08); }
     .card--transaksi { --card-accent: var(--teal); }
     .card--transaksi .card-icon-wrap { background: rgba(42,156,122,0.08); }
+    .card--monitoring { --card-accent: var(--accent); }
+    .card--monitoring .card-icon-wrap { background: rgba(134,187,76,0.08); }
 
     /* ── QUICK STATS ROW ── */
     .stats-row {
@@ -681,6 +683,68 @@
       </div>
       <div class="card-cta">
         Mulai Transaksi
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+        </svg>
+      </div>
+    </a>
+
+    <a href="/admin/kategori-sampah" class="menu-card card--monitoring animate delay-6">
+      <div class="card-head">
+        <div class="card-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            <line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="14" y2="11"/>
+          </svg>
+        </div>
+        <div class="card-arrow">
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/>
+          </svg>
+        </div>
+      </div>
+      <div>
+        <div class="card-index">04</div>
+        <div class="card-title">Kamus Sampah</div>
+      </div>
+      <div class="card-desc">
+        Kelola kategori sampah, poin per kg, dan instruksi penanganan untuk referensi warga.
+      </div>
+      <div class="card-cta">
+        Kelola Data
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+        </svg>
+      </div>
+    </a>
+
+    <a href="/admin/monitoring" class="menu-card card--monitoring animate delay-6">
+      <div class="card-head">
+        <div class="card-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+        </div>
+        <div class="card-arrow">
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/>
+          </svg>
+        </div>
+      </div>
+      <div>
+        <div class="card-index">04</div>
+        <div class="card-title">Monitoring Transaksi</div>
+      </div>
+      <div class="card-desc">
+        Rekap seluruh transaksi sampah yang sudah selesai divalidasi, lengkap dengan bukti foto pengangkutan.
+      </div>
+      <div class="card-cta">
+        Lihat Rekap
         <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
         </svg>

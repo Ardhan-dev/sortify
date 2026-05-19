@@ -8,8 +8,10 @@ public class LaporanSampahDTO {
     private String namaWarga;
     private String jenisSampah;
     private double berat;
+    private Double beratFinal;
     private String alamatLengkap;
     private String catatan;
+    private String fotoBukti;
     private String status;
     private String createdAt;
 
@@ -19,8 +21,10 @@ public class LaporanSampahDTO {
         dto.setNamaWarga(l.getWarga().getFullName());
         dto.setJenisSampah(l.getJenisSampah().name());
         dto.setBerat(l.getBerat());
+        dto.setBeratFinal(l.getBeratFinal());
         dto.setAlamatLengkap(l.getAlamatLengkap());
         dto.setCatatan(l.getCatatan());
+        dto.setFotoBukti(l.getFotoBukti());
         dto.setStatus(l.getStatus().name());
         dto.setCreatedAt(l.getCreatedAt().toString());
         return dto;
@@ -34,10 +38,14 @@ public class LaporanSampahDTO {
     public void setJenisSampah(String jenisSampah) { this.jenisSampah = jenisSampah; }
     public double getBerat() { return berat; }
     public void setBerat(double berat) { this.berat = berat; }
+    public Double getBeratFinal() { return beratFinal; }
+    public void setBeratFinal(Double beratFinal) { this.beratFinal = beratFinal; }
     public String getAlamatLengkap() { return alamatLengkap; }
     public void setAlamatLengkap(String alamatLengkap) { this.alamatLengkap = alamatLengkap; }
     public String getCatatan() { return catatan; }
     public void setCatatan(String catatan) { this.catatan = catatan; }
+    public String getFotoBukti() { return fotoBukti; }
+    public void setFotoBukti(String fotoBukti) { this.fotoBukti = fotoBukti; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
     public String getCreatedAt() { return createdAt; }

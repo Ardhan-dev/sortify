@@ -96,7 +96,7 @@ public class TransaksiWebController {
         transaksi.setTotalPoin(totalPoin);
         transaksiRepo.save(transaksi);
 
-        return "redirect:/transaksi";
+        return "redirect:/admin/transaksi";
     }
 
     // FORM EDIT
@@ -154,7 +154,7 @@ public class TransaksiWebController {
         transaksi.setTotalBerat(totalBerat);
         transaksi.setTotalPoin(totalPoin);
         transaksiRepo.save(transaksi);
-        return "redirect:/transaksi";
+        return "redirect:/admin/transaksi";
     }
 
     // HAPUS
@@ -162,6 +162,6 @@ public class TransaksiWebController {
     @Transactional
     public String hapus(@PathVariable Long id) {
         transaksiRepo.deleteById(id);
-        return "redirect:/transaksi";
+        return "redirect:/admin/transaksi";
     }
 }

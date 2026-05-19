@@ -1,7 +1,9 @@
 package com.SortifyTeam.Sortify.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
 
 @Entity
 @Table(name = "staff")
@@ -22,4 +24,11 @@ public class Staff {
 
     @Column(nullable = false)
     private String password;
+
+    // ── RELASI KE USER ──
+    @OneToOne
+    @JoinColumn(name = "user_id")
+    @ToString.Exclude
+    @JsonIgnore
+    private User user;
 }
