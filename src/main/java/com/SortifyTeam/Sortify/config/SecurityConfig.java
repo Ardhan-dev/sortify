@@ -4,9 +4,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.header.writers.CacheControlHeadersWriter;
 
 @Configuration
 @EnableWebSecurity
@@ -52,7 +54,20 @@ public class SecurityConfig {
                 .logoutSuccessUrl("/login")
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
+                .clearAuthentication(true)
+                .addLogoutHandler((request, response, authentication) -> {
+                    if (authentication != null) {
+                        SecurityContextHolder.clearContext();
+                    }
+                    response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+                    response.setHeader("Pragma", "no-cache");
+                    response.setHeader("Expires", "0");
+                })
                 .permitAll()
+            )
+            .headers(headers -> headers
+                .cacheControl(cache -> cache.disable())
+                .addHeaderWriter(new CacheControlHeadersWriter())
             );
         return http.build();
     }

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sortify — Form Kategori Sampah</title>
+  <title>Sortify — Form Reward</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
   <style>
@@ -12,6 +12,7 @@
       --bg: #0d0f0c; --surface: #141710; --surface-raised: #1a1e16;
       --border: rgba(134, 187, 76, 0.12); --border-hover: rgba(134, 187, 76, 0.28); --border-focus: rgba(134, 187, 76, 0.55);
       --accent: #86bb4c; --accent-dim: rgba(134, 187, 76, 0.08);
+      --amber: #c8891a; --amber-dim: rgba(200,137,26,0.08);
       --text-primary: #e8ede2; --text-secondary: #8a9480; --text-muted: #4e5749;
       --mono: 'Space Mono', monospace; --sans: 'DM Sans', sans-serif;
     }
@@ -29,29 +30,28 @@
     .btn-back:hover { border-color: var(--border-hover); color: var(--text-primary); }
     .btn-back svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
     .page-head { padding: 3rem 0 2rem; }
-    .page-label { font-family: var(--mono); font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--accent); display: flex; align-items: center; gap: 8px; margin-bottom: 0.6rem; }
-    .page-label::before { content: ''; display: block; width: 24px; height: 1px; background: var(--accent); }
+    .page-label { font-family: var(--mono); font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--amber); display: flex; align-items: center; gap: 8px; margin-bottom: 0.6rem; }
+    .page-label::before { content: ''; display: block; width: 24px; height: 1px; background: var(--amber); }
     .page-title { font-size: 2rem; font-weight: 300; letter-spacing: -1px; }
-    .page-title strong { font-weight: 500; color: var(--accent); }
+    .page-title strong { font-weight: 500; color: var(--amber); }
     .form-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
     .form-card-header { padding: 1.25rem 1.75rem; background: var(--surface-raised); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
-    .form-card-header-icon { width: 28px; height: 28px; border-radius: 6px; background: var(--accent-dim); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; }
-    .form-card-header-icon svg { width: 14px; height: 14px; stroke: var(--accent); fill: none; stroke-width: 2; }
+    .form-card-header-icon { width: 28px; height: 28px; border-radius: 6px; background: var(--amber-dim); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; }
+    .form-card-header-icon svg { width: 14px; height: 14px; stroke: var(--amber); fill: none; stroke-width: 2; }
     .form-card-header-title { font-family: var(--mono); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); }
     .form-body { padding: 2rem 1.75rem; }
     .field-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 1.25rem; }
     .field-label { font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); }
-    .field-label .required { color: var(--accent); }
-    .field-input, .field-textarea { width: 100%; padding: 0.7rem 1rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: var(--sans); font-size: 14px; outline: none; }
-    .field-input:focus, .field-textarea:focus { border-color: var(--border-focus); background: var(--surface); }
-    .field-textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
+    .field-label .required { color: var(--amber); }
+    .field-input { width: 100%; padding: 0.7rem 1rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: var(--sans); font-size: 14px; outline: none; }
+    .field-input:focus { border-color: var(--border-focus); background: var(--surface); }
     .form-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 1.25rem 1.75rem; background: var(--surface-raised); border-top: 1px solid var(--border); }
     .btn { display: inline-flex; align-items: center; gap: 7px; padding: 0.6rem 1.25rem; font-family: var(--mono); font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; text-decoration: none; border-radius: 7px; border: 1px solid; cursor: pointer; }
     .btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
-    .btn-primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
-    .btn-primary:hover { background: #97cc5a; }
+    .btn-primary { background: var(--amber); color: var(--bg); border-color: var(--amber); }
+    .btn-primary:hover { background: #da9b2a; }
     .btn-ghost { background: transparent; color: var(--text-secondary); border-color: var(--border); }
-    .btn-ghost:hover { border-color: var(--border-hover); color: var(--text-primary); background: var(--accent-dim); }
+    .btn-ghost:hover { border-color: var(--border-hover); color: var(--text-primary); background: var(--amber-dim); }
     footer { border-top: 1px solid var(--border); padding: 1.5rem 0; margin-top: 3rem; display: flex; justify-content: space-between; }
     .footer-id { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 1px; }
     @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
@@ -66,41 +66,41 @@
         <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.35C16.5 22.15 20 17.25 20 12V6L12 2z"/></svg></div>
         <div><div class="brand-name">Sortify</div><div class="brand-version">v1.0 · Admin</div></div>
       </a>
-      <a href="/admin/kategori-sampah" class="btn-back">
+      <a href="/admin/reward" class="btn-back">
         <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
         Kembali
       </a>
     </div>
   </header>
   <div class="page-head">
-    <div class="page-label">Admin · Kategori Sampah</div>
-    <h1 class="page-title" th:text="${isEdit} ? 'Edit <strong>Kategori</strong>' : 'Tambah <strong>Kategori</strong>'" th:utext="${isEdit} ? 'Edit <strong>Kategori</strong>' : 'Tambah <strong>Kategori</strong>'">Tambah Kategori</h1>
+    <div class="page-label">Admin · Reward</div>
+    <h1 class="page-title" th:text="${isEdit} ? 'Edit <strong>Reward</strong>' : 'Tambah <strong>Reward</strong>'" th:utext="${isEdit} ? 'Edit <strong>Reward</strong>' : 'Tambah <strong>Reward</strong>'">Tambah Reward</h1>
   </div>
   <div class="form-card">
     <div class="form-card-header">
-      <div class="form-card-header-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
-      <span class="form-card-header-title" th:text="${isEdit} ? 'Edit data kategori sampah' : 'Isi data kategori sampah baru'">Form</span>
+      <div class="form-card-header-icon"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+      <span class="form-card-header-title" th:text="${isEdit} ? 'Edit data reward' : 'Isi data reward baru'">Form</span>
     </div>
-    <form th:action="${isEdit} ? @{/admin/kategori-sampah/edit/{id}(id=${kategori.idKategori})} : @{/admin/kategori-sampah/tambah}" method="post">
+    <form th:action="${isEdit} ? @{/admin/reward/edit/{id}(id=${reward.id})} : @{/admin/reward/tambah}" method="post">
       <div class="form-body">
         <div class="field-group">
-          <label class="field-label" for="namaKategori">Nama Kategori <span class="required">*</span></label>
-          <input type="text" id="namaKategori" name="namaKategori" class="field-input"
-                 th:value="${kategori.namaKategori}" placeholder="Contoh: PLASTIK, KERTAS, ORGANIK" required>
+          <label class="field-label" for="namaBarang">Nama Barang <span class="required">*</span></label>
+          <input type="text" id="namaBarang" name="namaBarang" class="field-input"
+                 th:value="${reward?.namaBarang}" placeholder="Contoh: Beras 5kg" required>
         </div>
         <div class="field-group">
-          <label class="field-label" for="poinPerKg">Poin per Kg <span class="required">*</span></label>
-          <input type="number" id="poinPerKg" name="poinPerKg" class="field-input"
-                 th:value="${kategori.poinPerKg}" step="1" min="0" placeholder="5" required>
+          <label class="field-label" for="pointNeeded">Poin Dibutuhkan <span class="required">*</span></label>
+          <input type="number" id="pointNeeded" name="pointNeeded" class="field-input"
+                 th:value="${reward?.pointNeeded}" step="1" min="1" placeholder="1000" required>
         </div>
         <div class="field-group">
-          <label class="field-label" for="instruksiPenanganan">Instruksi Penanganan</label>
-          <textarea id="instruksiPenanganan" name="instruksiPenanganan" class="field-textarea"
-                    placeholder="Petunjuk cara menangani sampah kategori ini..." th:text="${kategori.instruksiPenanganan}"></textarea>
+          <label class="field-label" for="stock">Stok <span class="required">*</span></label>
+          <input type="number" id="stock" name="stock" class="field-input"
+                 th:value="${reward?.stock}" step="1" min="0" placeholder="50" required>
         </div>
       </div>
       <div class="form-actions">
-        <a href="/admin/kategori-sampah" class="btn btn-ghost">
+        <a href="/admin/reward" class="btn btn-ghost">
           <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
           Batal
         </a>
@@ -112,7 +112,7 @@
     </form>
   </div>
   <footer>
-    <span class="footer-id">ADMIN · KATEGORI</span>
+    <span class="footer-id">ADMIN · REWARD</span>
     <span class="footer-id">SORTIFY v1.0</span>
   </footer>
 </div>

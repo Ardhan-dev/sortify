@@ -2,15 +2,26 @@ package com.SortifyTeam.Sortify.controller;
 
 import com.SortifyTeam.Sortify.model.*;
 import com.SortifyTeam.Sortify.repository.UserRepository;
-import com.SortifyTeam.Sortify.service.LaporanService;
-import com.SortifyTeam.Sortify.service.PembayaranService;
+import com.SortifyTeam.Sortify.repository.WargaRepository;
 import com.SortifyTeam.Sortify.service.PointService;
 import com.SortifyTeam.Sortify.service.RewardService;
+import com.SortifyTeam.Sortify.service.TransaksiService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Controller
@@ -18,21 +29,24 @@ import org.springframework.web.bind.annotation.*;
 public class WargaController {
 
     private final UserRepository userRepo;
-    private final LaporanService laporanService;
-    private final PembayaranService pembayaranService;
     private final RewardService rewardService;
     private final PointService pointService;
+    private final TransaksiService transaksiService;
+    private final WargaRepository wargaRepo;
+
+    @Value("${app.upload.dir:uploads}")
+    private String uploadDir;
 
     public WargaController(UserRepository userRepo,
-                           LaporanService laporanService,
-                           PembayaranService pembayaranService,
                            RewardService rewardService,
-                           PointService pointService) {
+                           PointService pointService,
+                           TransaksiService transaksiService,
+                           WargaRepository wargaRepo) {
         this.userRepo = userRepo;
-        this.laporanService = laporanService;
-        this.pembayaranService = pembayaranService;
         this.rewardService = rewardService;
         this.pointService = pointService;
+        this.transaksiService = transaksiService;
+        this.wargaRepo = wargaRepo;
     }
 
     private User getCurrentUser(Authentication auth) {
@@ -40,47 +54,90 @@ public class WargaController {
                 .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
     }
 
+    private Warga getCurrentWargaEntity(User user) {
+        Warga warga = user.getWarga();
+        if (warga == null) {
+            warga = wargaRepo.findByUser(user)
+                    .orElseThrow(() -> new RuntimeException("Data warga tidak ditemukan"));
+        }
+        return warga;
+    }
+
+    private String simpanFoto(MultipartFile file) {
+        try {
+            Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
+            Files.createDirectories(uploadPath);
+
+            String original = file.getOriginalFilename();
+            String ext = "";
+            if (original != null && original.contains(".")) {
+                ext = original.substring(original.lastIndexOf("."));
+            }
+            String filename = UUID.randomUUID().toString() + ext;
+
+            Path targetPath = uploadPath.resolve(filename);
+            Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+
+            log.info("[UPLOAD] File {} tersimpan sebagai {}", original, filename);
+            return filename;
+        } catch (IOException e) {
+            throw new RuntimeException("Gagal menyimpan file: " + e.getMessage());
+        }
+    }
+
     @GetMapping("/dashboard")
     public String dashboard(Authentication auth, Model model) {
         log.info("[ACCESS] Warga {} sedang membuka halaman Dashboard/Profil Warga", auth.getName());
         User warga = getCurrentUser(auth);
         model.addAttribute("warga", warga);
-        model.addAttribute("laporanList", laporanService.getLaporanByWarga(warga));
         model.addAttribute("totalPoints", warga.getTotalPoints());
+
+        Warga entitasWarga = getCurrentWargaEntity(warga);
+        List<Transaksi> transaksiList = transaksiService.getTransaksiByWarga(entitasWarga);
+        model.addAttribute("transaksiList", transaksiList);
+
         return "profil";
     }
 
-    @GetMapping("/laporan/tambah")
-    public String formTambahLaporan(Model model) {
-        model.addAttribute("jenisList", LaporanSampah.JenisSampah.values());
-        return "warga-form-laporan";
+    @GetMapping("/transaksi/tambah")
+    public String formTambahTransaksi(Model model) {
+        model.addAttribute("jenisList", Transaksi.JenisSampah.values());
+        return "warga-form-transaksi";
     }
 
-    @PostMapping("/laporan/tambah")
-    public String simpanLaporan(Authentication auth,
-                                @RequestParam String jenisSampah,
-                                @RequestParam double berat,
-                                @RequestParam String alamatLengkap,
-                                @RequestParam(required = false) String catatan) {
-        User warga = getCurrentUser(auth);
-        laporanService.buatLaporan(warga, jenisSampah, berat, alamatLengkap, catatan);
-        return "redirect:/warga/dashboard";
-    }
+    @PostMapping("/transaksi/tambah")
+    public String simpanTransaksi(Authentication auth,
+                                   @RequestParam("jenisSampah") Transaksi.JenisSampah jenisSampah,
+                                   @RequestParam("fotoLaporanWarga") MultipartFile fotoLaporanWarga,
+                                   @RequestParam("beratSampah") Double beratSampah,
+                                   @RequestParam("lokasi") String lokasi,
+                                   @RequestParam(value = "detail", required = false, defaultValue = "") String detail,
+                                   RedirectAttributes redirectAttributes) {
+        if (fotoLaporanWarga.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Foto laporan warga harus diupload.");
+            return "redirect:/warga/transaksi/tambah";
+        }
 
-    @GetMapping("/laporan/bayar/{id}")
-    public String formBayar(@PathVariable Long id, Model model) {
-        LaporanSampah laporan = laporanService.getLaporanById(id);
-        Pembayaran pembayaran = pembayaranService.getPembayaranByLaporan(laporan);
-        model.addAttribute("laporan", laporan);
-        model.addAttribute("pembayaran", pembayaran);
-        return "warga-form-bayar";
-    }
+        if (beratSampah == null || beratSampah <= 0) {
+            redirectAttributes.addFlashAttribute("error", "Berat sampah harus diisi dan lebih dari 0.");
+            return "redirect:/warga/transaksi/tambah";
+        }
 
-    @PostMapping("/laporan/bayar/{id}")
-    public String prosesBayar(@PathVariable Long id,
-                              @RequestParam String metodePembayaran) {
-        pembayaranService.bayar(id, metodePembayaran);
-        laporanService.prosesLaporan(id);
+        if (lokasi == null || lokasi.isBlank()) {
+            redirectAttributes.addFlashAttribute("error", "Lokasi drop point harus diisi.");
+            return "redirect:/warga/transaksi/tambah";
+        }
+
+        try {
+            User user = getCurrentUser(auth);
+            Warga warga = getCurrentWargaEntity(user);
+            String namaFoto = simpanFoto(fotoLaporanWarga);
+            transaksiService.buatLaporanDropPoint(warga, jenisSampah, namaFoto, beratSampah, lokasi, detail);
+            redirectAttributes.addFlashAttribute("success", "Drop point berhasil dilaporkan! Menunggu verifikasi petugas.");
+        } catch (Exception e) {
+            log.error("[ERROR] Gagal membuat transaksi: {}", e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("error", "Gagal membuat laporan: " + e.getMessage());
+        }
         return "redirect:/warga/dashboard";
     }
 
@@ -95,15 +152,16 @@ public class WargaController {
     }
 
     @PostMapping("/reward/tukar/{id}")
-    public String tukarReward(Authentication auth, @PathVariable Long id) {
+    public String tukarReward(Authentication auth, @PathVariable Long id,
+                              RedirectAttributes redirectAttributes) {
         User warga = getCurrentUser(auth);
         try {
             rewardService.tukarReward(warga, id);
+            redirectAttributes.addFlashAttribute("success", "Reward berhasil ditukar!");
         } catch (RuntimeException e) {
-            return "redirect:/warga/reward?error=" + e.getMessage();
+            log.error("[ERROR] Gagal menukar reward #{}: {}", id, e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Gagal menukar reward: " + e.getMessage());
         }
-        return "redirect:/warga/reward?success=true";
+        return "redirect:/warga/reward";
     }
 }
-
-

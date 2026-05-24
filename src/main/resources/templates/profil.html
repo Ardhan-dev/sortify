@@ -151,6 +151,14 @@
     </div>
   </header>
 
+  <!-- Flash Messages -->
+  <div th:if="${success}" style="background:var(--accent-dim); border:1px solid rgba(134,187,76,0.3); border-radius:10px; padding:0.85rem 1.25rem; margin-bottom:1rem; font-family:var(--mono); font-size:11px; color:var(--accent); display:flex; align-items:center; gap:8px;">
+    <span th:text="${success}">✓ Berhasil!</span>
+  </div>
+  <div th:if="${error}" style="background:var(--red-dim); border:1px solid rgba(224,84,84,0.3); border-radius:10px; padding:0.85rem 1.25rem; margin-bottom:1rem; font-family:var(--mono); font-size:11px; color:var(--red); display:flex; align-items:center; gap:8px;">
+    <span th:text="${error}">✗ Error</span>
+  </div>
+
   <div class="page-head">
     <div class="page-label">Modul 03 · Profil</div>
     <h1 class="page-title">Profil <strong>Saya</strong></h1>
@@ -194,10 +202,10 @@
   </div>
 
   <!-- Action Buttons -->
-  <div style="display:flex; gap:10px; margin: 1.5rem 0;">
-    <a href="/warga/laporan/tambah" style="display:inline-flex; align-items:center; gap:7px; padding:0.55rem 1.1rem; font-family:var(--mono); font-size:11px; letter-spacing:0.5px; text-transform:uppercase; text-decoration:none; border-radius:7px; background:var(--accent); color:var(--bg); border:1px solid var(--accent); transition:background 0.18s;">
+  <div style="display:flex; gap:10px; margin: 1.5rem 0; flex-wrap:wrap;">
+    <a href="/warga/transaksi/tambah" style="display:inline-flex; align-items:center; gap:7px; padding:0.55rem 1.1rem; font-family:var(--mono); font-size:11px; letter-spacing:0.5px; text-transform:uppercase; text-decoration:none; border-radius:7px; background:var(--accent); color:var(--bg); border:1px solid var(--accent); transition:background 0.18s;">
       <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Lapor Sampah
+      + Drop Point
     </a>
     <a href="/warga/reward" style="display:inline-flex; align-items:center; gap:7px; padding:0.55rem 1.1rem; font-family:var(--mono); font-size:11px; letter-spacing:0.5px; text-transform:uppercase; text-decoration:none; border-radius:7px; background:transparent; color:var(--text-secondary); border:1px solid var(--border); transition:all 0.18s;">
       <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
@@ -209,60 +217,41 @@
     </a>
   </div>
 
-  <!-- Laporan History -->
+  <!-- Transaksi Drop Point History -->
   <div class="section-head">
-    <div class="section-label">History Laporan</div>
-    <span class="section-count" th:text="${laporanList != null ? #lists.size(laporanList) + ' laporan' : '0 laporan'}">0 laporan</span>
+    <div class="section-label">History Drop Point</div>
+    <span class="section-count" th:text="${transaksiList != null ? #lists.size(transaksiList) + ' transaksi' : '0 transaksi'}">0 transaksi</span>
   </div>
 
-  <div class="tx-list" th:if="${laporanList != null and !laporanList.isEmpty()}">
-    <div class="tx-item" th:each="l : ${laporanList}">
-
-      <div class="tx-icon"
-           th:classappend="${l.jenisSampah.name() == 'ORGANIK'} ? 'organik' : (${l.jenisSampah.name() == 'ANORGANIK'} ? 'anorganik' : 'b3')">
-        <svg th:if="${l.jenisSampah.name() == 'ORGANIK'}" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2">
-          <path d="M17 8C8 10 5.9 16.17 3.82 19.34A1 1 0 0 0 4.8 21 12.07 12.07 0 0 0 21 9c0-4-2-6-4-6C16 3 17 5 17 8z"/>
-          <path d="M4 22a14 14 0 0 0 4-2 15 15 0 0 0 4-5"/>
-        </svg>
-        <svg th:if="${l.jenisSampah.name() == 'ANORGANIK'}" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2">
-          <polyline points="1 4 1 10 7 10"/>
-          <path d="M3.51 15a9 9 0 1 0 .49-4.5"/>
-        </svg>
-        <svg th:if="${l.jenisSampah.name() == 'B3'}" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2">
-          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-          <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+  <div class="tx-list" th:if="${transaksiList != null and !transaksiList.isEmpty()}">
+    <div class="tx-item" th:each="t : ${transaksiList}">
+      <div class="tx-icon" style="background:var(--accent-dim);">
+        <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
         </svg>
       </div>
-
       <div class="tx-meta">
-        <div class="tx-jenis"
-             th:classappend="${l.jenisSampah.name() == 'ORGANIK'} ? 'organik' : (${l.jenisSampah.name() == 'ANORGANIK'} ? 'anorganik' : 'b3')"
-             th:text="${l.jenisSampah.name()}">JENIS</div>
+        <div class="tx-jenis" style="color:var(--accent);" th:text="${t.jenisSampah != null ? t.jenisSampah.name() : 'Drop Point'}">Drop Point</div>
         <div class="tx-sub">
-          <span class="tx-id" th:text="'#LP-' + ${l.id}">—</span>
+          <span class="tx-id" th:text="'#DP-' + ${t.idTransaksi}">—</span>
           <span class="tx-dot"></span>
-          <span class="tx-date" th:text="${#temporals.format(l.createdAt, 'dd MMM yyyy')}">—</span>
+          <span class="tx-date" th:text="${#temporals.format(t.tanggalTransaksi, 'dd MMM yyyy')}">—</span>
         </div>
       </div>
-
       <div class="tx-right">
-        <div class="tx-berat" th:text="${l.beratFinal != null ? l.beratFinal + ' kg' : l.berat + ' kg'}">— kg</div>
+        <div class="tx-berat" th:text="${t.totalBerat != null ? t.totalBerat + ' kg' : '— kg'}">— kg</div>
         <div class="tx-status"
-             th:classappend="${l.status.name() == 'SELESAI'} ? 'selesai' : (${l.status.name() == 'DIPROSES'} ? 'proses' : (${l.status.name() == 'DITOLAK'} ? 'ditolak' : 'proses'))"
-             th:text="${l.status.name()}">Status</div>
-        <a th:if="${l.status.name() == 'MENUNGGU_PEMBAYARAN'}" th:href="@{/warga/laporan/bayar/{id}(id=${l.id})}" style="font-family:var(--mono); font-size:9px; color:var(--accent); text-decoration:none; margin-top:4px;">
-          Bayar →
-        </a>
+             th:classappend="${t.status.name() == 'SELESAI'} ? 'selesai' : (${t.status.name() == 'DIPROSES'} ? 'proses' : 'proses')"
+             th:text="${t.status != null ? t.status.name() : 'PENDING'}">Status</div>
       </div>
-
     </div>
   </div>
 
-  <div class="tx-empty" th:if="${laporanList == null or laporanList.isEmpty()}">
+  <div class="tx-empty" th:if="${transaksiList == null or transaksiList.isEmpty()}">
     <div class="tx-empty-icon">
       <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
     </div>
-    <div class="tx-empty-text">Belum ada laporan sampah</div>
+    <div class="tx-empty-text">Belum ada transaksi drop point</div>
   </div>
 
   <footer>

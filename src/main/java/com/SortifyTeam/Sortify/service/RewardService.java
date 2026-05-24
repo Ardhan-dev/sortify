@@ -66,6 +66,40 @@ public class RewardService {
     public long countTotalPenukaran() {
         return penukaranRepo.count();
     }
+
+    // ── CRUD untuk Admin ──
+
+    public List<RewardItem> getAllRewardItems() {
+        return rewardItemRepo.findAll();
+    }
+
+    public RewardItem getRewardById(Long id) {
+        return rewardItemRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Reward tidak ditemukan: " + id));
+    }
+
+    @Transactional
+    public RewardItem simpanReward(String namaBarang, int pointNeeded, int stock) {
+        RewardItem item = new RewardItem();
+        item.setNamaBarang(namaBarang);
+        item.setPointNeeded(pointNeeded);
+        item.setStock(stock);
+        return rewardItemRepo.save(item);
+    }
+
+    @Transactional
+    public RewardItem updateReward(Long id, String namaBarang, int pointNeeded, int stock) {
+        RewardItem item = getRewardById(id);
+        item.setNamaBarang(namaBarang);
+        item.setPointNeeded(pointNeeded);
+        item.setStock(stock);
+        return rewardItemRepo.save(item);
+    }
+
+    @Transactional
+    public void hapusReward(Long id) {
+        rewardItemRepo.deleteById(id);
+    }
 }
 
 

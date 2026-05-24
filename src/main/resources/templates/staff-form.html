@@ -359,6 +359,24 @@
                  required>
         </div>
 
+        <!-- Username -->
+        <div class="field">
+          <label class="field-label" for="username">Username</label>
+          <input type="text" id="username" name="username"
+                 th:value="*{username}"
+                 placeholder="Username untuk login"
+                 required>
+        </div>
+
+        <!-- Password (only for new records) -->
+        <div class="field" th:if="${isNew}">
+          <label class="field-label" for="password">Password</label>
+          <input type="password" id="password" name="password"
+                 placeholder="Min. 6 karakter"
+                 minlength="6"
+                 required>
+        </div>
+
         <!-- NIP -->
         <div class="field field-nip">
           <label class="field-label" for="nip">NIP</label>

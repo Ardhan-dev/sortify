@@ -1,8 +1,7 @@
 package com.SortifyTeam.Sortify.controller;
 
 import com.SortifyTeam.Sortify.model.*;
-import com.SortifyTeam.Sortify.repository.UserRepository;
-import com.SortifyTeam.Sortify.service.LaporanService;
+import com.SortifyTeam.Sortify.service.TransaksiService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -11,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -25,62 +25,62 @@ import java.util.UUID;
 @RequestMapping("/petugas")
 public class PetugasController {
 
-    private final UserRepository userRepo;
-    private final LaporanService laporanService;
+    private final TransaksiService transaksiService;
 
     @Value("${app.upload.dir:uploads}")
     private String uploadDir;
 
-    public PetugasController(UserRepository userRepo,
-                             LaporanService laporanService) {
-        this.userRepo = userRepo;
-        this.laporanService = laporanService;
-    }
-
-    private User getCurrentUser(Authentication auth) {
-        return userRepo.findByUsername(auth.getName())
-                .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
+    public PetugasController(TransaksiService transaksiService) {
+        this.transaksiService = transaksiService;
     }
 
     @GetMapping("/dashboard")
     public String dashboard(Authentication auth, Model model) {
         log.info("[ACCESS] Petugas {} sedang membuka halaman Dashboard Petugas", auth.getName());
-        List<LaporanSampah> menungguList = laporanService.getLaporanByStatus(LaporanSampah.StatusLaporan.MENUNGGU);
-        List<LaporanSampah> diprosesList = laporanService.getLaporanByStatus(LaporanSampah.StatusLaporan.DIPROSES);
-        model.addAttribute("menungguList", menungguList);
-        model.addAttribute("diprosesList", diprosesList);
+        List<Transaksi> transaksiPending = transaksiService.getTransaksiByStatus(Transaksi.StatusTransaksi.PENDING);
+        List<Transaksi> transaksiDiproses = transaksiService.getTransaksiByStatus(Transaksi.StatusTransaksi.DIPROSES);
+        model.addAttribute("transaksiPending", transaksiPending);
+        model.addAttribute("transaksiDiproses", transaksiDiproses);
         return "petugas-dashboard";
     }
 
-    @PostMapping("/laporan/acc/{id}")
+    @PostMapping("/transaksi/proses/{id}")
     @Transactional
-    public String accLaporan(Authentication auth, @PathVariable Long id) {
-        User petugas = getCurrentUser(auth);
-        laporanService.accLaporan(id, petugas);
+    public String prosesTransaksi(@PathVariable Long id,
+                                   RedirectAttributes redirectAttributes) {
+        try {
+            transaksiService.prosesTransaksi(id);
+            redirectAttributes.addFlashAttribute("success", "Drop point #" + id + " sedang diproses.");
+        } catch (Exception e) {
+            log.error("[ERROR] Gagal memproses transaksi #{}: {}", id, e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("error", "Gagal memproses: " + e.getMessage());
+        }
         return "redirect:/petugas/dashboard";
     }
 
-    @PostMapping("/laporan/tolak/{id}")
-    public String tolakLaporan(@PathVariable Long id) {
-        laporanService.tolakLaporan(id);
-        return "redirect:/petugas/dashboard";
-    }
-
-    @PostMapping("/laporan/selesai/{id}")
+    @PostMapping("/transaksi/selesai/{id}")
     @Transactional
-    public String selesaikanLaporan(@PathVariable Long id,
-                                    @RequestParam("beratFinal") double beratFinal,
-                                    @RequestParam("foto") MultipartFile foto) {
-        if (foto.isEmpty()) {
-            throw new RuntimeException("Foto bukti harus diupload");
+    public String selesaikanTransaksi(@PathVariable Long id,
+                                       @RequestParam("beratSampah") double beratSampah,
+                                       @RequestParam("fotoBuktiTimbangan") MultipartFile fotoBuktiTimbangan,
+                                       RedirectAttributes redirectAttributes) {
+        if (fotoBuktiTimbangan.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Foto bukti timbangan harus diupload.");
+            return "redirect:/petugas/dashboard";
         }
-        if (beratFinal <= 0) {
-            throw new RuntimeException("Berat final harus lebih dari 0");
+        if (beratSampah <= 0) {
+            redirectAttributes.addFlashAttribute("error", "Berat sampah harus lebih dari 0.");
+            return "redirect:/petugas/dashboard";
         }
 
-        String filename = simpanFoto(foto);
-
-        laporanService.selesaikanDenganFoto(id, beratFinal, filename);
+        try {
+            String filename = simpanFoto(fotoBuktiTimbangan);
+            transaksiService.selesaikanTransaksi(id, beratSampah, filename);
+            redirectAttributes.addFlashAttribute("success", "Drop point #" + id + " berhasil diselesaikan.");
+        } catch (Exception e) {
+            log.error("[ERROR] Gagal menyelesaikan transaksi #{}: {}", id, e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("error", "Gagal menyelesaikan: " + e.getMessage());
+        }
 
         return "redirect:/petugas/dashboard";
     }
@@ -103,7 +103,7 @@ public class PetugasController {
             log.info("[UPLOAD] File {} tersimpan sebagai {}", original, filename);
             return filename;
         } catch (IOException e) {
-            throw new RuntimeException("Gagal menyimpan foto: " + e.getMessage(), e);
+            throw new RuntimeException(e);
         }
     }
 }

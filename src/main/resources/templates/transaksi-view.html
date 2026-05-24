@@ -208,6 +208,15 @@
     }
     .poin-badge svg { width: 11px; height: 11px; fill: var(--amber); stroke: none; }
 
+    .status-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px; border: 1px solid; }
+    .status-badge .dot { width: 5px; height: 5px; border-radius: 50%; }
+    .badge-menunggu { background: rgba(200,137,26,0.1); border-color: rgba(200,137,26,0.25); color: var(--amber); }
+    .badge-menunggu .dot { background: var(--amber); }
+    .badge-diproses { background: rgba(42,156,122,0.1); border-color: rgba(42,156,122,0.25); color: var(--teal); }
+    .badge-diproses .dot { background: var(--teal); }
+    .badge-selesai { background: rgba(134,187,76,0.1); border-color: rgba(134,187,76,0.25); color: var(--accent); }
+    .badge-selesai .dot { background: var(--accent); }
+
     .cell-actions { display: flex; justify-content: center; gap: 6px; }
     .icon-btn { width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--border); background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); transition: background 0.15s, border-color 0.15s, color 0.15s; text-decoration: none; }
     .icon-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
@@ -334,6 +343,7 @@
           <th>Tanggal</th>
           <th>Berat</th>
           <th>Poin</th>
+          <th>Status</th>
           <th class="col-actions">Aksi</th>
         </tr>
       </thead>
@@ -373,6 +383,14 @@
           </td>
 
           <td>
+            <span class="status-badge"
+                  th:classappend="${t.status.name() == 'PENDING'} ? 'badge-menunggu' : (${t.status.name() == 'DIPROSES'} ? 'badge-diproses' : 'badge-selesai')">
+              <span class="dot"></span>
+              <span th:text="${t.status != null ? t.status.name() : 'PENDING'}">PENDING</span>
+            </span>
+          </td>
+
+          <td>
             <div class="cell-actions">
               <a th:href="@{/admin/transaksi/edit/{id}(id=${t.idTransaksi})}" class="icon-btn" title="Edit">
                 <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -386,7 +404,7 @@
 
         <!-- Empty state -->
         <tr th:if="${#lists.isEmpty(daftarTransaksi)}" id="emptyDefault">
-          <td colspan="7">
+          <td colspan="8">
             <div class="empty-state">
               <div class="empty-icon">
                 <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>

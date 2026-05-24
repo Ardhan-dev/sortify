@@ -3,7 +3,6 @@ package com.SortifyTeam.Sortify.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Table(name = "transaksi")
@@ -25,6 +24,27 @@ public class Transaksi {
     private Double totalBerat;
     private Double totalPoin;
 
-    @OneToMany(mappedBy = "transaksi", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<DetailTransaksi> details;
+    private String fotoLaporanWarga;
+
+    private String fotoBuktiTimbangan;
+
+    private Double beratSampah;
+
+    private String lokasi;
+
+    private String detail;
+
+    @Enumerated(EnumType.STRING)
+    private JenisSampah jenisSampah;
+
+    @Enumerated(EnumType.STRING)
+    private StatusTransaksi status;
+
+    public enum JenisSampah {
+        ORGANIK, ANORGANIK, B3
+    }
+
+    public enum StatusTransaksi {
+        PENDING, DIPROSES, SELESAI
+    }
 }

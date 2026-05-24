@@ -21,12 +21,22 @@ public class PenukaranReward {
     @JoinColumn(name = "reward_item_id", nullable = false)
     private RewardItem rewardItem;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private StatusPenukaran status = StatusPenukaran.PENDING;
+
+    private String fotoBukti;
+
     @Column(nullable = false)
     private LocalDateTime tanggalPenukaran;
 
     @PrePersist
     protected void onCreate() {
         tanggalPenukaran = LocalDateTime.now();
+    }
+
+    public enum StatusPenukaran {
+        PENDING, SUDAH_DIAMBIL
     }
 }
 

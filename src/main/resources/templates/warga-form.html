@@ -453,6 +453,45 @@
           <!-- Spacer saat edit agar nama tetap di kolom kanan -->
           <div th:if="${warga.idWarga != null}"></div>
 
+          <!-- Username -->
+          <div class="field-group">
+            <label class="field-label" for="username">
+              Username <span class="required">*</span>
+            </label>
+            <div class="field-input-wrap">
+              <div class="field-icon">
+                <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </div>
+              <input type="text"
+                     id="username"
+                     class="field-input"
+                     th:field="*{username}"
+                     placeholder="Username untuk login"
+                     required
+                     style="padding-right: 2.4rem;">
+            </div>
+          </div>
+
+          <!-- Password (only for new records) -->
+          <div class="field-group" th:if="${isNew}">
+            <label class="field-label" for="password">
+              Password <span class="required">*</span>
+            </label>
+            <div class="field-input-wrap">
+              <div class="field-icon">
+                <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </div>
+              <input type="password"
+                     id="password"
+                     class="field-input"
+                     th:field="*{password}"
+                     placeholder="Min. 6 karakter"
+                     required
+                     minlength="6"
+                     style="padding-right: 2.4rem;">
+            </div>
+          </div>
+
           <!-- Nama -->
           <div class="field-group" th:classappend="${warga.idWarga == null} ? 'full' : ''">
             <label class="field-label" for="nama">

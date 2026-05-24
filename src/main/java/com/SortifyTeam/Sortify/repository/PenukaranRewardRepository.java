@@ -10,7 +10,6 @@ import java.util.List;
 @Repository
 public interface PenukaranRewardRepository extends JpaRepository<PenukaranReward, Long> {
     List<PenukaranReward> findByWargaOrderByTanggalPenukaranDesc(User warga);
-    long count();
+    long countByStatus(PenukaranReward.StatusPenukaran status);
+    List<PenukaranReward> findAllByOrderByTanggalPenukaranDesc();
 }
-
-

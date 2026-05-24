@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sortify — Monitoring Transaksi</title>
+  <title>Sortify — Monitoring Tukar Reward</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
   <style>
@@ -12,6 +12,7 @@
       --bg: #0d0f0c;
       --surface: #141710;
       --surface-raised: #1a1e16;
+      --surface-hover: #1d1e14;
       --border: rgba(134, 187, 76, 0.12);
       --border-hover: rgba(134, 187, 76, 0.28);
       --accent: #86bb4c;
@@ -63,6 +64,11 @@
     .stat-val { font-family: var(--mono); font-size: 22px; font-weight: 700; line-height: 1; }
     .stat-sub { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
 
+    .alert { padding: 0.85rem 1.25rem; border-radius: 10px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.5px; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; border: 1px solid; }
+    .alert svg { width: 14px; height: 14px; fill: none; stroke-width: 2; flex-shrink: 0; }
+    .alert-error { background: rgba(200,74,74,0.1); border-color: rgba(200,74,74,0.25); color: var(--danger); }
+    .alert-success { background: var(--accent-dim); border-color: rgba(134,187,76,0.25); color: var(--accent); }
+
     .section-head { display: flex; align-items: center; gap: 10px; margin: 2rem 0 1rem; font-family: var(--mono); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); }
     .section-head::after { content: ''; flex: 1; height: 1px; background: var(--border); }
     .section-count { font-family: var(--mono); font-size: 10px; color: var(--text-muted); background: var(--surface-raised); border: 1px solid var(--border); border-radius: 20px; padding: 2px 10px; }
@@ -71,33 +77,30 @@
     table { width: 100%; border-collapse: collapse; }
     thead { background: var(--surface-raised); border-bottom: 1px solid var(--border); }
     thead th { padding: 0.85rem 1rem; font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); font-weight: 400; text-align: left; white-space: nowrap; }
+    thead th.col-actions { width: 180px; text-align: center; }
     tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
     tbody tr:last-child { border-bottom: none; }
     tbody tr:hover { background: var(--surface-hover); }
     tbody td { padding: 0.85rem 1rem; font-size: 14px; vertical-align: middle; }
     .cell-id { font-family: var(--mono); font-size: 12px; color: var(--text-muted); }
     .cell-nama { font-weight: 500; }
-    .cell-berat { font-family: var(--mono); font-size: 13px; }
     .cell-poin { font-family: var(--mono); font-size: 13px; color: var(--accent); }
     .cell-tanggal { font-family: var(--mono); font-size: 12px; color: var(--text-secondary); white-space: nowrap; }
 
     .status-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px; border: 1px solid; }
     .status-badge .dot { width: 5px; height: 5px; border-radius: 50%; }
-    .badge-selesai { background: var(--accent-dim); border-color: rgba(134,187,76,0.25); color: var(--accent); }
-    .badge-selesai .dot { background: var(--accent); }
+    .badge-pending { background: rgba(200,137,26,0.1); border-color: rgba(200,137,26,0.25); color: var(--amber); }
+    .badge-pending .dot { background: var(--amber); }
+    .badge-ambil { background: var(--accent-dim); border-color: rgba(134,187,76,0.25); color: var(--accent); }
+    .badge-ambil .dot { background: var(--accent); }
 
-    .foto-cell { text-align: center; }
-    .foto-thumb { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border); cursor: pointer; transition: transform 0.2s; }
-    .foto-thumb:hover { transform: scale(1.1); }
-    .foto-empty { font-family: var(--mono); font-size: 9px; color: var(--text-muted); }
-
-    .lightbox-overlay {
-      position: fixed; inset: 0; z-index: 9999;
-      background: rgba(0,0,0,0.85); display: none;
-      align-items: center; justify-content: center;
-    }
-    .lightbox-overlay.active { display: flex; }
-    .lightbox-img { max-width: 90vw; max-height: 90vh; border-radius: 10px; border: 2px solid var(--border); }
+    .cell-actions { display: flex; justify-content: center; gap: 6px; }
+    .btn-sm { display: inline-flex; align-items: center; gap: 5px; padding: 0.4rem 0.9rem; font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase; text-decoration: none; border-radius: 6px; border: 1px solid; cursor: pointer; transition: all 0.15s; background: transparent; }
+    .btn-sm svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .btn-selesai { background: var(--accent-dim); color: var(--accent); border-color: rgba(134,187,76,0.25); }
+    .btn-selesai:hover { background: rgba(134,187,76,0.2); }
+    .btn-detail { background: rgba(42,156,122,0.08); color: var(--teal); border-color: rgba(42,156,122,0.25); }
+    .btn-detail:hover { background: rgba(42,156,122,0.15); }
 
     .empty-state { padding: 3rem 2rem; text-align: center; }
     .empty-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--accent-dim); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; }
@@ -108,6 +111,43 @@
     footer { border-top: 1px solid var(--border); padding: 1.5rem 0; margin-top: 3rem; display: flex; align-items: center; justify-content: space-between; }
     .footer-id { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 1px; }
 
+    /* ── Modal Overlay ── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 999;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 2rem 2.5rem;
+      max-width: 500px;
+      width: 90%;
+      animation: fadeUp 0.25s ease both;
+    }
+    .modal-title { font-family: var(--mono); font-size: 13px; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
+    .modal-desc { font-size: 14px; color: var(--text-secondary); margin-bottom: 1.5rem; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem 1.5rem; margin-bottom: 1.25rem; padding: 1rem; background: var(--surface-raised); border: 1px solid var(--border); border-radius: 8px; }
+    .info-item { display: flex; flex-direction: column; }
+    .info-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-muted); }
+    .info-value { font-size: 14px; color: var(--text-primary); font-weight: 500; word-break: break-all; }
+    .form-group { margin-bottom: 1.25rem; }
+    .form-label { display: block; font-family: var(--mono); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.4rem; }
+    .form-input { width: 100%; padding: 0.65rem 0.9rem; background: var(--surface-raised); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: var(--sans); font-size: 14px; outline: none; transition: border-color 0.2s; }
+    .form-input:focus { border-color: var(--accent); }
+    .form-input[type=file] { padding: 0.5rem; }
+    .form-input::file-selector-button { font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase; padding: 0.3rem 0.8rem; border: 1px solid var(--border); border-radius: 6px; background: var(--surface-hover); color: var(--text-secondary); cursor: pointer; margin-right: 0.7rem; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 1.5rem; }
+    .btn-modal-batal { display: inline-flex; align-items: center; gap: 5px; padding: 0.5rem 1.2rem; font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); cursor: pointer; transition: all 0.15s; }
+    .btn-modal-batal:hover { background: var(--surface-hover); color: var(--text-secondary); }
+    .btn-modal-konfirm { display: inline-flex; align-items: center; gap: 5px; padding: 0.5rem 1.2rem; font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase; border-radius: 6px; border: 1px solid rgba(134,187,76,0.25); background: var(--accent-dim); color: var(--accent); cursor: pointer; transition: all 0.15s; }
+    .btn-modal-konfirm:hover { background: rgba(134,187,76,0.2); }
+
+    .foto-bukti-display { max-width: 100%; border-radius: 8px; border: 1px solid var(--border); margin-top: 0.5rem; }
+
     @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
     .animate { animation: fadeUp 0.45s ease both; }
     .delay-1 { animation-delay: 0.05s; }
@@ -116,8 +156,8 @@
 
     @media (max-width: 768px) {
       .stats-row { grid-template-columns: 1fr; }
+      thead th.col-actions { width: 140px; }
       thead th, tbody td { padding: 0.6rem 0.5rem; font-size: 12px; }
-      .foto-thumb { width: 36px; height: 36px; }
     }
   </style>
 </head>
@@ -151,102 +191,246 @@
 
   <div class="page-head animate delay-1">
     <div>
-      <div class="page-label">Admin · Monitoring</div>
-      <h1 class="page-title">Rekap Transaksi <strong>Selesai</strong></h1>
+      <div class="page-label">Admin · Reward</div>
+      <h1 class="page-title">Monitoring Tukar <strong>Reward</strong></h1>
     </div>
+  </div>
+
+  <div th:if="${success}" class="alert alert-success animate delay-1">
+    <svg viewBox="0 0 24 24" stroke="currentColor"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    <span th:text="${success}">Berhasil!</span>
+  </div>
+  <div th:if="${error}" class="alert alert-error animate delay-1">
+    <svg viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+    <span th:text="${error}">Terjadi kesalahan.</span>
   </div>
 
   <div class="stats-row animate delay-2">
     <div class="stat-item">
-      <div class="stat-label">Total Transaksi</div>
-      <div class="stat-val" th:text="${totalSelesai}">0</div>
-      <div class="stat-sub">Laporan selesai</div>
+      <div class="stat-label">Total Penukaran</div>
+      <div class="stat-val" th:text="${totalPenukaran}">0</div>
+      <div class="stat-sub">Seluruh klaim reward</div>
     </div>
     <div class="stat-item">
-      <div class="stat-label">Total Berat Final</div>
-      <div class="stat-val" th:text="${#numbers.formatDecimal(totalBeratFinal, 1, 2)} + ' kg'">0 kg</div>
-      <div class="stat-sub">Berat aktif setelah ditimbang</div>
+      <div class="stat-label">Menunggu Diproses</div>
+      <div class="stat-val" th:text="${menungguDiproses}">0</div>
+      <div class="stat-sub">Belum diserahkan ke warga</div>
     </div>
     <div class="stat-item">
-      <div class="stat-label">Jenis Terbanyak</div>
-      <div class="stat-val" th:text="${#lists.size(laporanList)} > 0 ? ${#strings.toUpperCase(#lists.sort(#lists.map(laporanList, l -> l.jenisSampah.name()))[0])} : '—'">—</div>
-      <div class="stat-sub">Kategori dominan</div>
+      <div class="stat-label">Reward Keluar</div>
+      <div class="stat-val" th:text="${rewardKeluar}">0</div>
+      <div class="stat-sub">Sukses diserahkan</div>
     </div>
   </div>
 
   <div class="section-head animate delay-2">
-    Riwayat Transaksi
-    <span class="section-count" th:text="${#lists.size(laporanList)} + ' transaksi'">0 transaksi</span>
+    Riwayat Penukaran Reward
+    <span class="section-count" th:text="${#lists.size(penukaranList)} + ' klaim'">0 klaim</span>
   </div>
 
   <div class="table-wrap animate delay-3">
-    <th:block th:if="${not #lists.isEmpty(laporanList)}">
+    <th:block th:if="${not #lists.isEmpty(penukaranList)}">
     <table>
       <thead>
         <tr>
-          <th>ID</th>
-          <th>Warga</th>
-          <th>Petugas</th>
-          <th>Jenis</th>
-          <th>Berat Awal</th>
-          <th>Berat Final</th>
-          <th>Poin</th>
-          <th>Tanggal</th>
-          <th>Foto Bukti</th>
+          <th>ID Klaim</th>
+          <th>Nama Warga</th>
+          <th>Nama Barang</th>
+          <th>Poin Ditukarkan</th>
+          <th>Tanggal Penukaran</th>
+          <th>Status</th>
+          <th class="col-actions">Aksi</th>
         </tr>
       </thead>
       <tbody>
-        <tr th:each="l : ${laporanList}">
-          <td class="cell-id" th:text="'#' + ${l.id}">001</td>
-          <td class="cell-nama" th:text="${l.warga?.fullName ?: '—'}">Warga</td>
-          <td th:text="${l.petugas != null ? l.petugas.fullName : '—'}">Petugas</td>
-          <td><span class="status-badge badge-selesai"><span class="dot"></span><span th:text="${l.jenisSampah}">ORGANIK</span></span></td>
-          <td class="cell-berat" th:text="${l.berat} + ' kg'">0 kg</td>
-          <td class="cell-berat" th:text="${l.beratFinal != null ? l.beratFinal + ' kg' : '—'}">0 kg</td>
-          <td class="cell-poin" th:text="${l.petugas != null and l.beratFinal != null} ? ${#numbers.formatInteger((l.beratFinal * 100), 0)} + ' poin' : '—'">—</td>
-          <td class="cell-tanggal" th:text="${l.createdAt != null} ? ${#temporals.format(l.createdAt, 'dd MMM yyyy HH:mm')} : '—'">—</td>
-          <td class="foto-cell">
-            <th:block th:if="${l.fotoBukti != null}">
-              <img th:src="@{'/uploads/' + ${l.fotoBukti}}" alt="Bukti" class="foto-thumb foto-trigger"
-                   th:attr="data-src=${'/uploads/' + l.fotoBukti}">
-            </th:block>
-            <span th:unless="${l.fotoBukti != null}" class="foto-empty">—</span>
+        <tr th:each="p : ${penukaranList}">
+          <td class="cell-id" th:text="'#' + ${p.id}">001</td>
+          <td class="cell-nama" th:text="${p.warga?.fullName ?: '—'}">Nama Warga</td>
+          <td th:text="${p.rewardItem?.namaBarang ?: '—'}">Nama Barang</td>
+          <td class="cell-poin" th:text="${p.rewardItem?.pointNeeded ?: '—'} + ' poin'">100 poin</td>
+          <td class="cell-tanggal" th:text="${p.tanggalPenukaran != null} ? ${#temporals.format(p.tanggalPenukaran, 'dd MMM yyyy HH:mm')} : '—'">—</td>
+          <td>
+            <span class="status-badge" th:classappend="${p.status.name() == 'SUDAH_DIAMBIL'} ? 'badge-ambil' : 'badge-pending'">
+              <span class="dot"></span>
+              <span th:text="${p.status.name() == 'SUDAH_DIAMBIL'} ? 'SUDAH DIAMBIL' : 'PENDING'">PENDING</span>
+            </span>
+          </td>
+          <td>
+            <div class="cell-actions">
+              <button th:if="${p.status.name() == 'PENDING'}" type="button" class="btn-sm btn-selesai btn-konfirmasi-trigger"
+                      th:attr="data-id=${p.id}, data-warga=${p.warga?.fullName ?: 'Warga'}, data-barang=${p.rewardItem?.namaBarang ?: 'Reward'}, data-poin=${p.rewardItem?.pointNeeded ?: '0'}">
+                <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                Selesai / Serahkan
+              </button>
+              <button th:if="${p.status.name() == 'SUDAH_DIAMBIL'}" type="button" class="btn-sm btn-detail btn-detail-trigger"
+                      th:attr="data-id=${p.id}, data-warga=${p.warga?.fullName ?: 'Warga'}, data-barang=${p.rewardItem?.namaBarang ?: 'Reward'}, data-poin=${p.rewardItem?.pointNeeded ?: '0'}, data-tanggal=${#temporals.format(p.tanggalPenukaran, 'dd MMM yyyy HH:mm')}, data-foto=${p.fotoBukti != null ? '/uploads/' + p.fotoBukti : ''}">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                Lihat Bukti
+              </button>
+            </div>
           </td>
         </tr>
       </tbody>
     </table>
     </th:block>
-    <th:block th:unless="${not #lists.isEmpty(laporanList)}">
+    <th:block th:unless="${not #lists.isEmpty(penukaranList)}">
       <div class="empty-state">
         <div class="empty-icon">
-          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
         </div>
-        <div class="empty-title">Belum ada transaksi selesai</div>
-        <div class="empty-desc">Transaksi akan muncul setelah petugas memvalidasi laporan.</div>
+        <div class="empty-title">Belum ada penukaran reward</div>
+        <div class="empty-desc">Warga akan mengajukan klaim reward dari halaman reward warga.</div>
       </div>
     </th:block>
   </div>
 
   <footer class="animate delay-3">
-    <span class="footer-id">ADMIN · MONITORING</span>
+    <span class="footer-id">ADMIN · MONITORING REWARD</span>
     <span class="footer-id">SORTIFY v1.0</span>
   </footer>
 
 </div>
 
-<div id="lightbox" class="lightbox-overlay">
-  <img src="" alt="Foto Bukti" class="lightbox-img" id="lightboxImg">
+<!-- ── MODAL KONFIRMASI SERAHKAN ── -->
+<div id="modalKonfirmasi" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title">Konfirmasi Penyerahan</div>
+    <div class="modal-desc">Upload foto bukti serah terima reward ke warga.</div>
+
+    <div class="info-grid">
+      <div class="info-item">
+        <span class="info-label">ID Klaim</span>
+        <span class="info-value" id="konfirmId">—</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Nama Warga</span>
+        <span class="info-value" id="konfirmWarga">—</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Nama Barang</span>
+        <span class="info-value" id="konfirmBarang">—</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Poin Ditukarkan</span>
+        <span class="info-value" id="konfirmPoin">—</span>
+      </div>
+    </div>
+
+    <form id="formKonfirmasi" method="post" enctype="multipart/form-data" style="margin:0;">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+      <div class="form-group">
+        <label class="form-label" for="fotoBukti">Foto Bukti Penyerahan <span style="color:var(--accent);">*</span></label>
+        <input type="file" id="fotoBukti" name="fotoBukti" class="form-input" accept="image/*" required>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-modal-batal" id="btnKonfirmBatal">Batal</button>
+        <button type="submit" class="btn-modal-konfirm">Konfirmasi Penyerahan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ── MODAL DETAIL ── -->
+<div id="modalDetail" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title">Detail Penyerahan Reward</div>
+    <div class="modal-desc">Ringkasan penukaran reward beserta bukti serah terima.</div>
+
+    <div class="info-grid">
+      <div class="info-item">
+        <span class="info-label">ID Klaim</span>
+        <span class="info-value" id="detailId">—</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Nama Warga</span>
+        <span class="info-value" id="detailWarga">—</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Nama Barang</span>
+        <span class="info-value" id="detailBarang">—</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Poin Ditukarkan</span>
+        <span class="info-value" id="detailPoin">—</span>
+      </div>
+      <div class="info-item" style="grid-column:1/-1;">
+        <span class="info-label">Tanggal Penukaran</span>
+        <span class="info-value" id="detailTanggal">—</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Foto Bukti Penyerahan</label>
+      <div id="detailFotoContainer" style="text-align:center; padding:1rem; background:var(--surface-raised); border:1px solid var(--border); border-radius:8px;">
+        <img id="detailFoto" src="" alt="Foto Bukti" class="foto-bukti-display" style="max-height:300px;">
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-modal-batal" id="btnDetailTutup">Tutup</button>
+    </div>
+  </div>
 </div>
 
 <script>
-  document.querySelectorAll('.foto-trigger').forEach(function(img) {
-    img.addEventListener('click', function() {
-      document.getElementById('lightboxImg').src = this.getAttribute('data-src');
-      document.getElementById('lightbox').classList.add('active');
+  /* ── Modal Konfirmasi ── */
+  document.querySelectorAll('.btn-konfirmasi-trigger').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var id = this.getAttribute('data-id');
+      var warga = this.getAttribute('data-warga');
+      var barang = this.getAttribute('data-barang');
+      var poin = this.getAttribute('data-poin');
+      document.getElementById('konfirmId').textContent = '#' + id;
+      document.getElementById('konfirmWarga').textContent = warga;
+      document.getElementById('konfirmBarang').textContent = barang;
+      document.getElementById('konfirmPoin').textContent = poin + ' poin';
+      document.getElementById('formKonfirmasi').action = '/admin/reward/konfirmasi/' + id;
+      document.getElementById('modalKonfirmasi').classList.add('active');
     });
   });
-  document.getElementById('lightbox').addEventListener('click', function() {
-    this.classList.remove('active');
+
+  document.getElementById('btnKonfirmBatal').addEventListener('click', function() {
+    document.getElementById('modalKonfirmasi').classList.remove('active');
+  });
+
+  document.getElementById('modalKonfirmasi').addEventListener('click', function(e) {
+    if (e.target === this) {
+      this.classList.remove('active');
+    }
+  });
+
+  /* ── Modal Detail ── */
+  document.querySelectorAll('.btn-detail-trigger').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var id = this.getAttribute('data-id');
+      var warga = this.getAttribute('data-warga');
+      var barang = this.getAttribute('data-barang');
+      var poin = this.getAttribute('data-poin');
+      var tanggal = this.getAttribute('data-tanggal');
+      var foto = this.getAttribute('data-foto');
+      document.getElementById('detailId').textContent = '#' + id;
+      document.getElementById('detailWarga').textContent = warga;
+      document.getElementById('detailBarang').textContent = barang;
+      document.getElementById('detailPoin').textContent = poin + ' poin';
+      document.getElementById('detailTanggal').textContent = tanggal;
+      if (foto) {
+        document.getElementById('detailFoto').src = foto;
+        document.getElementById('detailFoto').style.display = 'inline';
+      } else {
+        document.getElementById('detailFoto').style.display = 'none';
+      }
+      document.getElementById('modalDetail').classList.add('active');
+    });
+  });
+
+  document.getElementById('btnDetailTutup').addEventListener('click', function() {
+    document.getElementById('modalDetail').classList.remove('active');
+  });
+
+  document.getElementById('modalDetail').addEventListener('click', function(e) {
+    if (e.target === this) {
+      this.classList.remove('active');
+    }
   });
 </script>
 
