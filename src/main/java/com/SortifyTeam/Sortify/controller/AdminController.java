@@ -153,17 +153,26 @@ public class AdminController {
         try (Writer writer = new OutputStreamWriter(response.getOutputStream())) {
             CSVWriter csvWriter = new CSVWriter(writer);
 
-            String[] header = {"ID Transaksi", "Tanggal", "Nama Warga", "Jenis Sampah",
+            String[] header = {"ID Transaksi", "Tanggal", "Nama Warga", "Detail Sampah",
                     "Berat (Kg)", "Total Poin", "Nama Petugas"};
             csvWriter.writeNext(header);
 
             for (Transaksi t : daftar) {
+                String detailSampah = "-";
+                if (t.getDetails() != null && !t.getDetails().isEmpty()) {
+                    detailSampah = t.getDetails().stream()
+                            .filter(d -> d.getKategoriSampah() != null)
+                            .map(d -> d.getKategoriSampah().getNamaKategori()
+                                    + " " + (d.getBeratFinal() != null ? d.getBeratFinal() : d.getBeratEstimasi()) + "kg")
+                            .reduce((a, b) -> a + ", " + b)
+                            .orElse("-");
+                }
                 String[] row = {
                         String.valueOf(t.getIdTransaksi()),
                         t.getTanggalTransaksi() != null
                                 ? t.getTanggalTransaksi().toString() : "-",
                         t.getWarga() != null ? t.getWarga().getNama() : "-",
-                        t.getJenisSampah() != null ? t.getJenisSampah().name() : "-",
+                        detailSampah,
                         t.getTotalBerat() != null ? String.valueOf(t.getTotalBerat()) : "0",
                         t.getTotalPoin() != null ? String.valueOf(t.getTotalPoin().intValue()) : "0",
                         t.getStaff() != null ? t.getStaff().getNama() : "-"

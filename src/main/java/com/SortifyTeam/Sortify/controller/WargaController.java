@@ -3,10 +3,7 @@ package com.SortifyTeam.Sortify.controller;
 import com.SortifyTeam.Sortify.model.*;
 import com.SortifyTeam.Sortify.repository.UserRepository;
 import com.SortifyTeam.Sortify.repository.WargaRepository;
-import com.SortifyTeam.Sortify.service.NotifikasiService;
-import com.SortifyTeam.Sortify.service.PointService;
-import com.SortifyTeam.Sortify.service.RewardService;
-import com.SortifyTeam.Sortify.service.TransaksiService;
+import com.SortifyTeam.Sortify.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -36,6 +33,7 @@ public class WargaController {
     private final TransaksiService transaksiService;
     private final WargaRepository wargaRepo;
     private final NotifikasiService notifService;
+    private final KategoriSampahService kategoriSampahService;
 
     @Value("")
     private String uploadDir;
@@ -45,13 +43,15 @@ public class WargaController {
                            PointService pointService,
                            TransaksiService transaksiService,
                            WargaRepository wargaRepo,
-                           NotifikasiService notifService) {
+                           NotifikasiService notifService,
+                           KategoriSampahService kategoriSampahService) {
         this.userRepo = userRepo;
         this.rewardService = rewardService;
         this.pointService = pointService;
         this.transaksiService = transaksiService;
         this.wargaRepo = wargaRepo;
         this.notifService = notifService;
+        this.kategoriSampahService = kategoriSampahService;
     }
 
     private User getCurrentUser(Authentication auth) {
@@ -118,15 +118,15 @@ public class WargaController {
 
     @GetMapping("/transaksi/tambah")
     public String formTambahTransaksi(Model model) {
-        model.addAttribute("jenisList", Transaksi.JenisSampah.values());
+        model.addAttribute("kategoriList", kategoriSampahService.getSemua());
         return "warga-form-transaksi";
     }
 
     @PostMapping("/transaksi/tambah")
     public String simpanTransaksi(Authentication auth,
-                                   @RequestParam("jenisSampah") Transaksi.JenisSampah jenisSampah,
                                    @RequestParam("fotoLaporanWarga") MultipartFile fotoLaporanWarga,
-                                   @RequestParam("beratSampah") Double beratSampah,
+                                   @RequestParam("idKategori") List<Long> idKategori,
+                                   @RequestParam("beratEstimasi") List<Double> beratEstimasi,
                                    @RequestParam("lokasi") String lokasi,
                                    @RequestParam(value = "detail", required = false, defaultValue = "") String detail,
                                    RedirectAttributes redirectAttributes) {
@@ -135,8 +135,8 @@ public class WargaController {
             return "redirect:/warga/transaksi/tambah";
         }
 
-        if (beratSampah == null || beratSampah <= 0) {
-            redirectAttributes.addFlashAttribute("error", "Berat sampah harus diisi dan lebih dari 0.");
+        if (idKategori == null || idKategori.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Minimal satu jenis sampah harus diisi.");
             return "redirect:/warga/transaksi/tambah";
         }
 
@@ -149,7 +149,7 @@ public class WargaController {
             User user = getCurrentUser(auth);
             Warga warga = getCurrentWargaEntity(user);
             String namaFoto = simpanFoto(fotoLaporanWarga);
-            transaksiService.buatLaporanDropPoint(warga, jenisSampah, namaFoto, beratSampah, lokasi, detail);
+            transaksiService.buatLaporanDropPoint(warga, namaFoto, lokasi, detail, idKategori, beratEstimasi);
             redirectAttributes.addFlashAttribute("success", "Drop point berhasil dilaporkan! Menunggu verifikasi petugas.");
         } catch (Exception e) {
             log.error("[ERROR] Gagal membuat transaksi: {}", e.getMessage(), e);

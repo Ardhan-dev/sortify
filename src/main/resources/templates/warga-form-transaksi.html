@@ -58,6 +58,14 @@
     .form-input::file-selector-button { font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase; padding: 0.3rem 0.8rem; border: 1px solid var(--border); border-radius: 6px; background: var(--surface-hover); color: var(--text-secondary); cursor: pointer; margin-right: 0.7rem; background: var(--surface-raised); }
     .form-hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; display: flex; align-items: center; gap: 6px; }
     .form-hint svg { width: 12px; height: 12px; stroke: var(--text-muted); fill: none; stroke-width: 2; flex-shrink: 0; }
+    .form-select { width: 100%; padding: 0.7rem 1rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: var(--sans); font-size: 14px; outline: none; transition: border-color 0.18s, box-shadow 0.18s; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234e5749' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 2.2rem; cursor: pointer; }
+    .form-select:hover { border-color: var(--border-hover); }
+    .form-select:focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px rgba(134,187,76,0.08); }
+    .form-select option { background: var(--surface-raised); color: var(--text-primary); }
+
+    .input-wrap { position: relative; }
+    .input-suffix { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-family: var(--mono); font-size: 11px; color: var(--text-muted); pointer-events: none; }
+    .input-wrap .form-input { padding-right: 3rem; }
 
     .upload-area { border: 2px dashed var(--border); border-radius: 10px; padding: 2.5rem 1.5rem; text-align: center; cursor: pointer; transition: border-color 0.18s, background 0.18s; }
     .upload-area:hover { border-color: var(--border-hover); background: var(--accent-dim); }
@@ -72,20 +80,39 @@
     .alert { padding: 0.85rem 1.25rem; border-radius: 10px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.5px; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; border: 1px solid; }
     .alert-error { background: rgba(224,84,84,0.1); border-color: rgba(224,84,84,0.25); color: #e05454; }
 
-    .form-divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
-    .form-actions { display: flex; justify-content: flex-end; gap: 10px; padding-top: 0.5rem; }
+    /* ── DINAMIC ROW ── */
+    .item-row { display: grid; grid-template-columns: 1fr 1fr auto; align-items: end; gap: 0.75rem; margin-bottom: 0.75rem; padding: 1rem 1.1rem; background: var(--surface-raised); border: 1px solid var(--border); border-radius: 10px; transition: border-color 0.15s; }
+    .item-row:hover { border-color: var(--border-hover); }
+    .item-row .field-group { margin-bottom: 0; }
+
+    .icon-btn { width: 34px; height: 34px; border-radius: 7px; border: 1px solid var(--border); background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); transition: background 0.15s, border-color 0.15s, color 0.15s; flex-shrink: 0; }
+    .icon-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .icon-btn.danger:hover { background: rgba(184,84,84,0.1); border-color: rgba(184,84,84,0.35); color: #b85454; }
+
+    .summary-box { padding: 0.9rem 1.1rem; background: var(--accent-dim); border: 1px solid var(--border); border-radius: 10px; margin-top: 0.5rem; }
+    .summary-box .summary-label { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; }
+    .summary-box .summary-value { font-family: var(--mono); font-size: 16px; font-weight: 700; color: var(--accent); }
+
     .btn { display: inline-flex; align-items: center; gap: 7px; padding: 0.6rem 1.25rem; font-family: var(--mono); font-size: 12px; letter-spacing: 0.5px; text-transform: uppercase; text-decoration: none; border-radius: 7px; border: 1px solid; cursor: pointer; transition: all 0.18s; }
     .btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
     .btn-primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
     .btn-primary:hover { background: #97cc5a; border-color: #97cc5a; }
     .btn-ghost { background: transparent; color: var(--text-secondary); border-color: var(--border); }
-    .btn-ghost:hover { border-color: var(--border-hover); color: var(--text-primary); }
+    .btn-ghost:hover { border-color: var(--border-hover); color: var(--text-primary); background: var(--accent-dim); }
+
+    .form-divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
+    .form-actions { display: flex; justify-content: flex-end; gap: 10px; padding-top: 0.5rem; }
 
     footer { border-top: 1px solid var(--border); padding: 1.5rem 0; margin-top: 3rem; display: flex; justify-content: space-between; }
     .back-link { display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 11px; color: var(--text-muted); text-decoration: none; letter-spacing: 0.5px; transition: color 0.15s; }
     .back-link svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
     .back-link:hover { color: var(--accent); }
     .footer-id { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 1px; }
+
+    @media (max-width: 520px) {
+      .item-row { grid-template-columns: 1fr auto; }
+      .item-row .field-group:first-child { grid-column: 1 / -1; }
+    }
   </style>
 </head>
 <body>
@@ -126,25 +153,43 @@
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
         <div class="form-group">
-          <label class="form-label" for="jenisSampah">Jenis Sampah <span class="required">*</span></label>
-          <select id="jenisSampah" name="jenisSampah" class="form-input" required onchange="hitungPerkiraanPoin()">
-            <option value="" disabled selected>Pilih jenis sampah</option>
-            <option value="ORGANIK">Organik (sisa makanan, daun, dll.)</option>
-            <option value="ANORGANIK">Anorganik (plastik, kertas, logam, dll.)</option>
-            <option value="B3">B3 (baterai, lampu, elektronik, dll.)</option>
-          </select>
+          <label class="form-label">Jenis &amp; Berat Sampah <span class="required">*</span></label>
+          <div id="itemList">
+            <div class="item-row">
+              <div class="field-group">
+                <label class="form-label">Kategori Sampah</label>
+                <select name="idKategori" class="form-select kategori-select" required onchange="hitungTotal()">
+                  <option value="">— Pilih —</option>
+                  <option th:each="k : ${kategoriList}"
+                          th:value="${k.idKategori}"
+                          th:text="${k.namaKategori} + ' (' + ${k.poinPerKg} + ' poin/kg)'"
+                          th:attr="data-poin=${k.poinPerKg}">
+                  </option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label class="form-label">Berat (kg)</label>
+                <div class="input-wrap">
+                  <input type="number" name="beratEstimasi" class="form-input berat-input" step="0.1" min="0.1" placeholder="0.0" required oninput="hitungTotal()">
+                  <span class="input-suffix">kg</span>
+                </div>
+              </div>
+              <div style="width:34px;"></div>
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-ghost" onclick="tambahRow()" style="margin-top:0.5rem;">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            + Tambah Jenis Sampah Lain
+          </button>
         </div>
 
-        <div class="form-group">
-          <label class="form-label" for="beratSampah">Berat Sampah (kg) <span class="required">*</span></label>
-          <input type="number" id="beratSampah" name="beratSampah" class="form-input" step="0.1" min="0.1" placeholder="0.0" required oninput="hitungPerkiraanPoin()">
+        <div class="summary-box">
+          <div class="summary-label">Total Estimasi</div>
+          <div class="summary-value"><span id="totalEstimasi">0</span> Poin</div>
         </div>
 
-        <div class="form-group" style="padding:0.75rem 1rem; background:var(--accent-dim); border:1px solid var(--border); border-radius:8px;">
-          <span style="font-size:13px; color:var(--text-secondary);">Perkiraan Poin yang Didapat: <strong style="color:var(--accent);"><span id="perkiraanPoin">0</span> Poin</strong></span>
-        </div>
-
-        <div class="form-group">
+        <div class="form-group" style="margin-top:1.5rem;">
           <label class="form-label" for="lokasi">Lokasi Drop Point <span class="required">*</span></label>
           <input type="text" id="lokasi" name="lokasi" class="form-input" placeholder="Contoh: Jl. Merdeka No. 10, RT 02/RW 03" required>
         </div>
@@ -203,6 +248,10 @@
   </footer>
 </div>
 
+<script th:inline="javascript">
+  const kategoriList = /*[[${kategoriList}]]*/ [];
+</script>
+
 <script>
   function previewUpload(input) {
     var preview = document.getElementById('uploadPreview');
@@ -215,16 +264,66 @@
     }
   }
 
-  function hitungPerkiraanPoin() {
-    var jenis = document.getElementById('jenisSampah').value;
-    var berat = parseFloat(document.getElementById('beratSampah').value) || 0;
-    var poinPerKg = 0;
-    switch (jenis) {
-      case 'ORGANIK': poinPerKg = 100; break;
-      case 'ANORGANIK': poinPerKg = 200; break;
-      case 'B3': poinPerKg = 300; break;
+  function getOptionsHtml() {
+    var html = '<option value="">— Pilih —</option>';
+    for (var i = 0; i < kategoriList.length; i++) {
+      var k = kategoriList[i];
+      html += '<option value="' + k.idKategori + '" data-poin="' + k.poinPerKg + '">'
+           + k.namaKategori + ' (' + k.poinPerKg + ' poin/kg)</option>';
     }
-    document.getElementById('perkiraanPoin').textContent = Math.floor(berat * poinPerKg);
+    return html;
+  }
+
+  function tambahRow() {
+    var list = document.getElementById('itemList');
+    var div = document.createElement('div');
+    div.className = 'item-row';
+    div.innerHTML =
+      '<div class="field-group">' +
+        '<label class="form-label">Kategori Sampah</label>' +
+        '<select name="idKategori" class="form-select kategori-select" required onchange="hitungTotal()">' +
+          getOptionsHtml() +
+        '</select>' +
+      '</div>' +
+      '<div class="field-group">' +
+        '<label class="form-label">Berat (kg)</label>' +
+        '<div class="input-wrap">' +
+          '<input type="number" name="beratEstimasi" class="form-input berat-input" step="0.1" min="0.1" placeholder="0.0" required oninput="hitungTotal()">' +
+          '<span class="input-suffix">kg</span>' +
+        '</div>' +
+      '</div>' +
+      '<button type="button" class="icon-btn danger" onclick="hapusRow(this)" title="Hapus">' +
+        '<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2">' +
+          '<polyline points="3 6 5 6 21 6"/>' +
+          '<path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>' +
+          '<path d="M10 11v6"/><path d="M14 11v6"/>' +
+        '</svg>' +
+      '</button>';
+    list.appendChild(div);
+    hitungTotal();
+  }
+
+  function hapusRow(btn) {
+    var allRows = document.querySelectorAll('#itemList .item-row');
+    if (allRows.length <= 1) return;
+    var row = btn.closest('.item-row');
+    row.remove();
+    hitungTotal();
+  }
+
+  function hitungTotal() {
+    var rows = document.querySelectorAll('.item-row');
+    var totalPoin = 0;
+    rows.forEach(function(row) {
+      var sel = row.querySelector('.kategori-select');
+      var beratInput = row.querySelector('.berat-input');
+      if (!sel || !beratInput) return;
+      var berat = parseFloat(beratInput.value) || 0;
+      var opt = sel.options[sel.selectedIndex];
+      var poinPerKg = opt ? parseFloat(opt.getAttribute('data-poin')) || 0 : 0;
+      totalPoin += berat * poinPerKg;
+    });
+    document.getElementById('totalEstimasi').textContent = Math.floor(totalPoin);
   }
 </script>
 </body>

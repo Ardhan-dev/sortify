@@ -3,6 +3,8 @@ package com.SortifyTeam.Sortify.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "transaksi")
@@ -28,21 +30,15 @@ public class Transaksi {
 
     private String fotoBuktiTimbangan;
 
-    private Double beratSampah;
-
     private String lokasi;
 
     private String detail;
 
-    @Enumerated(EnumType.STRING)
-    private JenisSampah jenisSampah;
+    @OneToMany(mappedBy = "transaksi", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TransaksiDetail> details = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     private StatusTransaksi status;
-
-    public enum JenisSampah {
-        ORGANIK, ANORGANIK, B3
-    }
 
     public enum StatusTransaksi {
         PENDING, DIPROSES, SELESAI

@@ -61,21 +61,22 @@ public class PetugasController {
     @PostMapping("/transaksi/selesai/{id}")
     @Transactional
     public String selesaikanTransaksi(@PathVariable Long id,
-                                       @RequestParam("beratSampah") double beratSampah,
+                                       @RequestParam("detailId") List<Long> detailIds,
+                                       @RequestParam("beratFinal") List<Double> beratFinal,
                                        @RequestParam("fotoBuktiTimbangan") MultipartFile fotoBuktiTimbangan,
                                        RedirectAttributes redirectAttributes) {
         if (fotoBuktiTimbangan.isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "Foto bukti timbangan harus diupload.");
             return "redirect:/petugas/dashboard";
         }
-        if (beratSampah <= 0) {
-            redirectAttributes.addFlashAttribute("error", "Berat sampah harus lebih dari 0.");
+        if (detailIds == null || detailIds.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Data detail transaksi tidak valid.");
             return "redirect:/petugas/dashboard";
         }
 
         try {
             String filename = simpanFoto(fotoBuktiTimbangan);
-            transaksiService.selesaikanTransaksi(id, beratSampah, filename);
+            transaksiService.selesaikanTransaksi(id, detailIds, beratFinal, filename);
             redirectAttributes.addFlashAttribute("success", "Drop point #" + id + " berhasil diselesaikan.");
         } catch (Exception e) {
             log.error("[ERROR] Gagal menyelesaikan transaksi #{}: {}", id, e.getMessage(), e);

@@ -308,7 +308,7 @@
           <td>
             <div class="cell-actions">
               <button type="button" class="btn-sm btn-selesai btn-transaksi-selesai-trigger"
-                      th:attr="data-id=${t.idTransaksi}, data-warga=${t.warga?.nama ?: 'Warga'}, data-jenis=${t.jenisSampah?.name() ?: ''}, data-berat-sampah=${t.beratSampah != null ? t.beratSampah : ''}, data-foto=${t.fotoLaporanWarga != null ? '/uploads/' + t.fotoLaporanWarga : ''}">
+                      th:attr="data-id=${t.idTransaksi}, data-warga=${t.warga?.nama ?: 'Warga'}, data-foto=${t.fotoLaporanWarga != null ? '/uploads/' + t.fotoLaporanWarga : ''}, data-details=${#strings.listJoin(t.details.![id + '|' + #strings.replace(kategoriSampah?.namaKategori ?: '-', '|', '') + '|' + (kategoriSampah?.poinPerKg ?: 100) + '|' + (beratEstimasi ?: 0)], ',')}">
                 <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
                 Selesai
               </button>
@@ -353,15 +353,9 @@
         <span class="laporan-info-label">Warga</span>
         <span class="laporan-info-value" id="modalTransaksiWarga">—</span>
       </div>
-      <div class="laporan-info-item">
-        <span class="laporan-info-label">Jenis Sampah</span>
-        <span class="laporan-info-value" id="modalTransaksiJenis">—</span>
-      </div>
-      <div class="laporan-info-item">
-        <span class="laporan-info-label">Berat Warga</span>
-        <span class="laporan-info-value" id="modalTransaksiBeratAwal">—</span>
-      </div>
     </div>
+
+    <div id="detailItemContainer" style="margin-bottom:1rem;"></div>
 
     <div class="form-group" style="margin-bottom:0.75rem;">
       <label class="form-label">Foto Bukti Warga</label>
@@ -373,12 +367,9 @@
 
     <form id="formTransaksiSelesai" method="post" enctype="multipart/form-data" style="margin:0;">
       <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-      <div class="form-group">
-        <label class="form-label" for="beratSampah">Berat Sampah (kg) <span style="color:var(--accent);">*</span></label>
-        <input type="number" id="beratSampah" name="beratSampah" class="form-input" step="0.1" min="0.1" placeholder="0.0" required oninput="hitungPoinFinal()">
-      </div>
+      <div id="beratFinalContainer"></div>
       <div class="form-group" style="padding:0.65rem 1rem; background:var(--green-dim); border:1px solid rgba(134,187,76,0.2); border-radius:8px;">
-        <span style="font-size:13px; color:var(--text-secondary);">Poin Final yang Diberikan: <strong style="color:var(--green);"><span id="poinFinal">0</span> Poin</strong></span>
+        <span style="font-size:13px; color:var(--text-secondary);">Total Poin Final: <strong style="color:var(--green);"><span id="poinFinal">0</span> Poin</strong></span>
       </div>
       <div class="form-group">
         <label class="form-label" for="fotoBuktiTimbangan">Foto Bukti Timbangan <span style="color:var(--accent);">*</span></label>
@@ -392,26 +383,45 @@
   </div>
 </div>
 
-<script>
-  var poinPerKg = 0;
+<style>
+  .detail-input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    align-items: end;
+    gap: 0.75rem;
+    margin-bottom: 0.6rem;
+    padding: 0.75rem 1rem;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    transition: border-color 0.15s;
+  }
+  .detail-input-row:hover { border-color: var(--border-hover); }
+  .detail-input-row .form-label { display: block; font-family: var(--mono); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.3rem; }
+  .detail-input-row .detail-est { font-family: var(--mono); font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+</style>
 
-  function hitungPoinFinal() {
-    var berat = parseFloat(document.getElementById('beratSampah').value) || 0;
-    document.getElementById('poinFinal').textContent = Math.floor(berat * poinPerKg);
+<script>
+  function hitungTotalPoin() {
+    var rows = document.querySelectorAll('#beratFinalContainer .detail-input-row');
+    var total = 0;
+    rows.forEach(function(row) {
+      var ppk = parseFloat(row.getAttribute('data-poin')) || 0;
+      var berat = parseFloat(row.querySelector('input[name^=\"beratFinal\"]').value) || 0;
+      total += berat * ppk;
+    });
+    document.getElementById('poinFinal').textContent = Math.floor(total);
   }
 
   document.querySelectorAll('.btn-transaksi-selesai-trigger').forEach(function(btn) {
     btn.addEventListener('click', function() {
       var id = this.getAttribute('data-id');
       var warga = this.getAttribute('data-warga');
-      var jenis = this.getAttribute('data-jenis');
-      var beratAwal = this.getAttribute('data-berat-sampah');
       var foto = this.getAttribute('data-foto');
+      var detailsStr = this.getAttribute('data-details') || '';
 
       document.getElementById('modalTransaksiId').textContent = '#' + id;
       document.getElementById('modalTransaksiWarga').textContent = warga;
-      document.getElementById('modalTransaksiJenis').textContent = jenis || '—';
-      document.getElementById('modalTransaksiBeratAwal').textContent = beratAwal ? beratAwal + ' kg' : '— kg';
 
       var img = document.getElementById('modalTransaksiFoto');
       var empty = document.getElementById('modalTransaksiFotoEmpty');
@@ -424,14 +434,53 @@
         empty.style.display = 'inline';
       }
 
-      switch (jenis) {
-        case 'ORGANIK': poinPerKg = 100; break;
-        case 'ANORGANIK': poinPerKg = 200; break;
-        case 'B3': poinPerKg = 300; break;
-        default: poinPerKg = 0;
+      // Build detail rows
+      var detailContainer = document.getElementById('detailItemContainer');
+      var beratContainer = document.getElementById('beratFinalContainer');
+      detailContainer.innerHTML = '';
+      beratContainer.innerHTML = '';
+
+      if (detailsStr) {
+        var items = detailsStr.split(',');
+        items.forEach(function(item, idx) {
+          var parts = item.split('|');
+          if (parts.length < 4) return;
+          var dId = parts[0];
+          var dKategori = parts[1];
+          var dPoin = parseInt(parts[2]) || 0;
+          var dEst = parseFloat(parts[3]) || 0;
+
+          // Info row (read-only)
+          var infoDiv = document.createElement('div');
+          infoDiv.className = 'detail-input-row';
+          infoDiv.style.gridTemplateColumns = '1fr 1fr';
+          infoDiv.innerHTML =
+            '<div>' +
+              '<div class="form-label">Kategori</div>' +
+              '<div style="font-size:14px;font-weight:500;">' + dKategori + '</div>' +
+            '</div>' +
+            '<div>' +
+              '<div class="form-label">Estimasi Berat</div>' +
+              '<div style="font-family:var(--mono);font-size:13px;">' + dEst.toFixed(1) + ' kg</div>' +
+            '</div>';
+          detailContainer.appendChild(infoDiv);
+
+          // Input row
+          var inputRow = document.createElement('div');
+          inputRow.className = 'detail-input-row';
+          inputRow.setAttribute('data-poin', dPoin);
+          inputRow.innerHTML =
+            '<div>' +
+              '<div class="form-label">' + dKategori + ' — Berat Final (kg) <span style="color:var(--accent);">*</span></div>' +
+              '<input type="number" name="beratFinal" class="form-input" step="0.1" min="0" placeholder="0.0" required oninput="hitungTotalPoin()">' +
+              '<div class="detail-est">' + dPoin + ' poin/kg</div>' +
+            '</div>' +
+            '<div></div>' +
+            '<input type="hidden" name="detailId" value="' + dId + '">';
+          beratContainer.appendChild(inputRow);
+        });
       }
 
-      document.getElementById('beratSampah').value = '';
       document.getElementById('poinFinal').textContent = '0';
       document.getElementById('formTransaksiSelesai').action = '/petugas/transaksi/selesai/' + id;
       document.getElementById('modalTransaksiSelesai').classList.add('active');

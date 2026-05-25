@@ -258,7 +258,7 @@
         </svg>
       </div>
       <div class="tx-meta">
-        <div class="tx-jenis" style="color:var(--accent);" th:text="${t.jenisSampah != null ? t.jenisSampah.name() : 'Drop Point'}">Drop Point</div>
+        <div class="tx-jenis" style="color:var(--accent); font-size:12px;" th:text="${t.details != null and !t.details.isEmpty()} ? ${#strings.listJoin(t.details.![kategoriSampah.namaKategori + ' ' + (beratFinal != null ? beratFinal : beratEstimasi) + 'kg'], ', ')} : 'Drop Point'">Drop Point</div>
         <div class="tx-sub">
           <span class="tx-id" th:text="'#DP-' + ${t.idTransaksi}">—</span>
           <span class="tx-dot"></span>

@@ -91,7 +91,6 @@ public class TransaksiWebController {
 
         transaksi.setTotalBerat(totalBerat);
         transaksi.setTotalPoin(totalPoin);
-        transaksi.setBeratSampah(totalBerat);
         transaksiRepo.save(transaksi);
 
         return "redirect:/admin/transaksi";
@@ -141,7 +140,6 @@ public class TransaksiWebController {
 
         transaksi.setTotalBerat(totalBerat);
         transaksi.setTotalPoin(totalPoin);
-        transaksi.setBeratSampah(totalBerat);
         transaksiRepo.save(transaksi);
         return "redirect:/admin/transaksi";
     }
