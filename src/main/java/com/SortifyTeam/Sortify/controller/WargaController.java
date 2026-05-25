@@ -5,7 +5,6 @@ import com.SortifyTeam.Sortify.repository.UserRepository;
 import com.SortifyTeam.Sortify.repository.WargaRepository;
 import com.SortifyTeam.Sortify.service.*;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,13 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -34,9 +27,7 @@ public class WargaController {
     private final WargaRepository wargaRepo;
     private final NotifikasiService notifService;
     private final KategoriSampahService kategoriSampahService;
-
-    @Value("")
-    private String uploadDir;
+    private final FileStorageService fileStorageService;
 
     public WargaController(UserRepository userRepo,
                            RewardService rewardService,
@@ -44,7 +35,8 @@ public class WargaController {
                            TransaksiService transaksiService,
                            WargaRepository wargaRepo,
                            NotifikasiService notifService,
-                           KategoriSampahService kategoriSampahService) {
+                           KategoriSampahService kategoriSampahService,
+                           FileStorageService fileStorageService) {
         this.userRepo = userRepo;
         this.rewardService = rewardService;
         this.pointService = pointService;
@@ -52,6 +44,7 @@ public class WargaController {
         this.wargaRepo = wargaRepo;
         this.notifService = notifService;
         this.kategoriSampahService = kategoriSampahService;
+        this.fileStorageService = fileStorageService;
     }
 
     private User getCurrentUser(Authentication auth) {
@@ -66,28 +59,6 @@ public class WargaController {
                     .orElseThrow(() -> new RuntimeException("Data warga tidak ditemukan"));
         }
         return warga;
-    }
-
-    private String simpanFoto(MultipartFile file) {
-        try {
-            Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
-            Files.createDirectories(uploadPath);
-
-            String original = file.getOriginalFilename();
-            String ext = "";
-            if (original != null && original.contains(".")) {
-                ext = original.substring(original.lastIndexOf("."));
-            }
-            String filename = UUID.randomUUID().toString() + ext;
-
-            Path targetPath = uploadPath.resolve(filename);
-            Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
-
-            log.info("[UPLOAD] File {} tersimpan sebagai {}", original, filename);
-            return filename;
-        } catch (IOException e) {
-            throw new RuntimeException("Gagal menyimpan file: " + e.getMessage());
-        }
     }
 
     @GetMapping("/dashboard")
@@ -148,7 +119,7 @@ public class WargaController {
         try {
             User user = getCurrentUser(auth);
             Warga warga = getCurrentWargaEntity(user);
-            String namaFoto = simpanFoto(fotoLaporanWarga);
+            String namaFoto = fileStorageService.storeFile(fotoLaporanWarga, null);
             transaksiService.buatLaporanDropPoint(warga, namaFoto, lokasi, detail, idKategori, beratEstimasi);
             redirectAttributes.addFlashAttribute("success", "Drop point berhasil dilaporkan! Menunggu verifikasi petugas.");
         } catch (Exception e) {

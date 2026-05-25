@@ -4,12 +4,13 @@ import com.SortifyTeam.Sortify.model.User;
 import com.SortifyTeam.Sortify.model.Warga;
 import com.SortifyTeam.Sortify.repository.UserRepository;
 import com.SortifyTeam.Sortify.repository.WargaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Controller
 @RequestMapping("/admin/warga")
@@ -26,9 +27,16 @@ public class WargaWebController {
     }
 
     @GetMapping
-    public String halamanWarga(Model model) {
-        List<User> users = userRepo.findByRole(User.Role.WARGA);
-        model.addAttribute("daftarWarga", users);
+    public String halamanWarga(@RequestParam(defaultValue = "0") int page,
+                                @RequestParam(defaultValue = "10") int size,
+                                Model model) {
+        Page<User> wargaPage = userRepo.findByRole(User.Role.WARGA,
+                PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id")));
+        model.addAttribute("daftarWarga", wargaPage.getContent());
+        model.addAttribute("currentPage", wargaPage.getNumber());
+        model.addAttribute("totalPages", wargaPage.getTotalPages());
+        model.addAttribute("totalElements", wargaPage.getTotalElements());
+        model.addAttribute("pageSize", size);
         return "warga-view";
     }
 

@@ -365,16 +365,15 @@
     'default': { bg: 'rgba(134,187,76,0.05)', color: '#8a9480', icon: '📦' }
   };
 
-  var DATA = [
-    /*[# th:each="k : ${daftarKategori}"]*/
-    {
-      id: /*[(${k.idKategori})]*/ 0,
-      nama: /*[(${#strings.escapeJava(k.namaKategori)})]*/ '',
-      poin: /*[(${k.poinPerKg})]*/ 0,
-      tips: /*[(${#strings.escapeJava(k.instruksiPenanganan != null ? k.instruksiPenanganan : '')})]*/ ''
-    },
-    /*[/]*/
-  ];
+  var RAW = /*[[${daftarKategori}]]*/ [];
+  var DATA = RAW.map(function(k) {
+    return {
+      id: k.idKategori,
+      nama: k.namaKategori,
+      poin: k.poinPerKg,
+      tips: k.instruksiPenanganan || ''
+    };
+  });
 
   var UNIK_KAT = [...new Set(DATA.map(d => d.nama.toUpperCase()))];
   var pillContainer = document.getElementById('ks-pills');

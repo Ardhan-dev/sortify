@@ -1,9 +1,9 @@
 package com.SortifyTeam.Sortify.controller;
 
 import com.SortifyTeam.Sortify.model.*;
+import com.SortifyTeam.Sortify.service.FileStorageService;
 import com.SortifyTeam.Sortify.service.TransaksiService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,13 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
-import java.util.UUID;
 
 @Slf4j
 @Controller
@@ -26,12 +20,12 @@ import java.util.UUID;
 public class PetugasController {
 
     private final TransaksiService transaksiService;
+    private final FileStorageService fileStorageService;
 
-    @Value("${app.upload.dir:uploads}")
-    private String uploadDir;
-
-    public PetugasController(TransaksiService transaksiService) {
+    public PetugasController(TransaksiService transaksiService,
+                             FileStorageService fileStorageService) {
         this.transaksiService = transaksiService;
+        this.fileStorageService = fileStorageService;
     }
 
     @GetMapping("/dashboard")
@@ -75,7 +69,7 @@ public class PetugasController {
         }
 
         try {
-            String filename = simpanFoto(fotoBuktiTimbangan);
+            String filename = fileStorageService.storeFile(fotoBuktiTimbangan, null);
             transaksiService.selesaikanTransaksi(id, detailIds, beratFinal, filename);
             redirectAttributes.addFlashAttribute("success", "Drop point #" + id + " berhasil diselesaikan.");
         } catch (Exception e) {
@@ -86,27 +80,6 @@ public class PetugasController {
         return "redirect:/petugas/dashboard";
     }
 
-    private String simpanFoto(MultipartFile file) {
-        try {
-            Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
-            Files.createDirectories(uploadPath);
-
-            String original = file.getOriginalFilename();
-            String ext = "";
-            if (original != null && original.contains(".")) {
-                ext = original.substring(original.lastIndexOf("."));
-            }
-            String filename = UUID.randomUUID().toString() + ext;
-
-            Path targetPath = uploadPath.resolve(filename);
-            Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
-
-            log.info("[UPLOAD] File {} tersimpan sebagai {}", original, filename);
-            return filename;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
 }
 
 

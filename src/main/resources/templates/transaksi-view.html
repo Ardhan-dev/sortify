@@ -223,6 +223,39 @@
     .icon-btn:hover { background: var(--accent-dim); border-color: var(--border-hover); color: var(--accent); }
     .icon-btn.danger:hover { background: rgba(184,84,84,0.1); border-color: rgba(184,84,84,0.35); color: var(--danger); }
 
+    /* ── PAGINATION ── */
+    .pagination {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 1.25rem;
+      border-top: 1px solid var(--border);
+      background: var(--surface-raised);
+    }
+
+    .pagination-info {
+      font-family: var(--mono); font-size: 10px;
+      color: var(--text-muted); letter-spacing: 0.5px;
+    }
+    .pagination-info span { color: var(--accent); font-weight: 700; }
+
+    .pagination-links { display: flex; align-items: center; gap: 4px; }
+
+    .page-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 32px; height: 32px;
+      padding: 0 8px;
+      font-family: var(--mono); font-size: 11px;
+      color: var(--text-secondary);
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      text-decoration: none;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .page-btn:hover { background: var(--accent-dim); border-color: var(--border-hover); color: var(--accent); }
+    .page-btn.active { background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 700; }
+    .page-btn.disabled { opacity: 0.35; pointer-events: none; }
+    .page-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+
     /* ── EMPTY STATE ── */
     .empty-state { padding: 5rem 2rem; text-align: center; }
     .empty-icon { width: 52px; height: 52px; border-radius: 12px; background: var(--accent-dim); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; }
@@ -421,6 +454,40 @@
 
       </tbody>
     </table>
+
+    <!-- Pagination -->
+    <div class="pagination" th:if="${totalPages > 0}">
+      <div class="pagination-info">
+        Halaman <span th:text="${currentPage + 1}">1</span>
+        dari <span th:text="${totalPages}">1</span>
+        · <span th:text="${totalElements}">0</span> transaksi
+      </div>
+      <div class="pagination-links">
+        <a class="page-btn"
+           th:classappend="${currentPage == 0} ? 'disabled'"
+           th:href="@{/admin/transaksi(page=${currentPage - 1}, size=${pageSize})}"
+           th:unless="${currentPage == 0}">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        </a>
+        <span class="page-btn disabled" th:if="${currentPage == 0}">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        </span>
+        <a th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+           class="page-btn"
+           th:classappend="${i == currentPage} ? 'active'"
+           th:href="@{/admin/transaksi(page=${i}, size=${pageSize})}"
+           th:text="${i + 1}">1</a>
+        <a class="page-btn"
+           th:classappend="${currentPage == totalPages - 1} ? 'disabled'"
+           th:href="@{/admin/transaksi(page=${currentPage + 1}, size=${pageSize})}"
+           th:unless="${currentPage == totalPages - 1}">
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+        <span class="page-btn disabled" th:if="${currentPage == totalPages - 1}">
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </span>
+      </div>
+    </div>
 
     <div id="noResult" style="display:none;">
       <div class="empty-state">

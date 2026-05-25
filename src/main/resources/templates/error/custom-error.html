@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sortify — Error</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0f0c;
+      --surface: #141710;
+      --surface-raised: #1a1e16;
+      --border: rgba(134, 187, 76, 0.12);
+      --border-hover: rgba(134, 187, 76, 0.28);
+      --accent: #86bb4c;
+      --accent-dim: rgba(134, 187, 76, 0.08);
+      --text-primary: #e8ede2;
+      --text-secondary: #8a9480;
+      --text-muted: #4e5749;
+      --danger: #c84a4a;
+      --danger-dim: rgba(200, 74, 74, 0.1);
+      --mono: 'Space Mono', monospace;
+      --sans: 'DM Sans', sans-serif;
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-primary);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(134,187,76,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(134,187,76,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+
+    body::after {
+      content: '';
+      position: fixed; top: -200px; left: 50%;
+      transform: translateX(-50%);
+      width: 700px; height: 400px;
+      background: radial-gradient(ellipse, rgba(200,74,74,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .error-card {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 520px;
+      margin: 1.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-header {
+      padding: 2.5rem 2rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface-raised);
+      text-align: center;
+    }
+
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 10px;
+      font-family: var(--mono); font-size: 11px; font-weight: 700;
+      letter-spacing: 2px; text-transform: uppercase;
+      color: var(--danger);
+      background: var(--danger-dim);
+      border: 1px solid rgba(200,74,74,0.2);
+      padding: 6px 16px;
+      border-radius: 20px;
+      margin-bottom: 1.25rem;
+    }
+
+    .status-badge svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.5; }
+
+    .brand {
+      display: inline-flex; align-items: center;
+      gap: 10px; margin-bottom: 1rem;
+      text-decoration: none;
+    }
+
+    .brand-icon {
+      width: 36px; height: 36px;
+      background: var(--accent); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .brand-icon svg { width: 20px; height: 20px; fill: var(--bg); }
+
+    .brand-name { font-family: var(--mono); font-size: 18px; font-weight: 700; color: var(--accent); letter-spacing: -0.5px; }
+
+    .error-code {
+      font-family: var(--mono);
+      font-size: 4rem;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--danger);
+      margin-bottom: 0.5rem;
+      letter-spacing: -2px;
+    }
+
+    .error-phrase {
+      font-size: 14px;
+      color: var(--text-secondary);
+      font-weight: 300;
+    }
+
+    .card-body { padding: 1.75rem 2rem 2rem; }
+
+    .error-detail {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .detail-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .detail-message {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    .detail-path {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      background: var(--surface);
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      word-break: break-all;
+      margin-top: 0.75rem;
+    }
+
+    .divider {
+      display: flex; align-items: center; gap: 10px;
+      margin: 1.25rem 0 1.25rem;
+    }
+
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    .divider svg { width: 14px; height: 14px; stroke: var(--text-muted); fill: none; stroke-width: 2; flex-shrink: 0; }
+
+    .actions { display: flex; gap: 10px; }
+
+    .btn {
+      flex: 1; padding: 0.7rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: var(--mono); font-size: 11px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.18s, border-color 0.18s, color 0.18s;
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    }
+
+    .btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.5; }
+
+    .btn-primary {
+      background: var(--accent); color: var(--bg);
+      border-color: var(--accent); font-weight: 700;
+    }
+    .btn-primary:hover { background: #97cc5a; }
+
+    .btn-secondary {
+      background: var(--surface-raised); color: var(--text-secondary);
+    }
+    .btn-secondary:hover { border-color: var(--border-hover); color: var(--text-primary); }
+
+    .card-footer {
+      padding: 1rem 2rem;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-family: var(--mono); font-size: 10px;
+      color: var(--text-muted); letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="error-card">
+  <div class="card-header">
+    <div class="status-badge">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Error Terdeteksi
+    </div>
+    <a href="/" class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.35C16.5 22.15 20 17.25 20 12V6L12 2zm-1 13l-3-3 1.4-1.4 1.6 1.6 4.6-4.6 1.4 1.4L11 15z"/></svg>
+      </div>
+      <div class="brand-name">Sortify</div>
+    </a>
+    <div class="error-code" th:text="${statusCode}">500</div>
+    <div class="error-phrase" th:text="${statusPhrase}">Internal Server Error</div>
+  </div>
+
+  <div class="card-body">
+    <div class="error-detail">
+      <div class="detail-label">Pesan Error</div>
+      <div class="detail-message" th:text="${errorMsg}">Terjadi kesalahan yang tidak terduga.</div>
+      <div class="detail-path" th:text="'Path: ' + ${path}">Path: /</div>
+    </div>
+
+    <div class="divider">
+      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    </div>
+
+    <div class="actions">
+      <a href="javascript:history.back()" class="btn btn-secondary">
+        <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Kembali
+      </a>
+      <a href="/" class="btn btn-primary">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Beranda
+      </a>
+    </div>
+  </div>
+
+  <div class="card-footer">SORTIFY · SISTEM AMAN · v1.0</div>
+</div>
+
+</body>
+</html>
