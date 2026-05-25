@@ -159,6 +159,33 @@
     <span th:text="${error}">✗ Error</span>
   </div>
 
+  <!-- Notifikasi Alert -->
+  <div th:if="${notifikasiList != null and !notifikasiList.isEmpty()}" style="margin-bottom:1.25rem; display:flex; flex-direction:column; gap:8px;">
+    <div th:each="notif : ${notifikasiList}"
+         style="background:var(--accent-dim); border:1px solid rgba(134,187,76,0.25); border-radius:10px; padding:0.85rem 1.25rem; display:flex; align-items:flex-start; justify-content:space-between; gap:12px; animation:fadeUp 0.3s ease both;">
+      <div style="display:flex; align-items:flex-start; gap:10px; flex:1; min-width:0;">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--accent)" stroke-width="2" style="flex-shrink:0; margin-top:2px;">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <div style="font-size:13px; color:var(--text-primary); line-height:1.5; word-break:break-word;" th:text="${notif.pesan}">Pesan notifikasi</div>
+      </div>
+      <form th:action="@{/warga/notifikasi/baca/{id}(id=${notif.id})}" method="post" style="flex-shrink:0; margin:0;">
+        <button type="submit" style="background:none; border:none; cursor:pointer; color:var(--text-muted); padding:2px; display:flex; align-items:center; transition:color 0.15s;"
+                onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color=''">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </form>
+    </div>
+    <form th:action="@{/warga/notifikasi/baca-semua}" method="post" style="margin:0;">
+      <button type="submit" style="display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10px; letter-spacing:0.5px; color:var(--text-muted); background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:6px 12px; cursor:pointer; transition:all 0.15s;">
+        Tandai semua sudah dibaca
+      </button>
+    </form>
+  </div>
+
   <div class="page-head">
     <div class="page-label">Modul 03 · Profil</div>
     <h1 class="page-title">Profil <strong>Saya</strong></h1>

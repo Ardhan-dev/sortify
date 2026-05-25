@@ -3,6 +3,7 @@ package com.SortifyTeam.Sortify.controller;
 import com.SortifyTeam.Sortify.model.*;
 import com.SortifyTeam.Sortify.repository.UserRepository;
 import com.SortifyTeam.Sortify.repository.WargaRepository;
+import com.SortifyTeam.Sortify.service.NotifikasiService;
 import com.SortifyTeam.Sortify.service.PointService;
 import com.SortifyTeam.Sortify.service.RewardService;
 import com.SortifyTeam.Sortify.service.TransaksiService;
@@ -22,6 +23,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Controller
@@ -33,20 +35,23 @@ public class WargaController {
     private final PointService pointService;
     private final TransaksiService transaksiService;
     private final WargaRepository wargaRepo;
+    private final NotifikasiService notifService;
 
-    @Value("${app.upload.dir:uploads}")
+    @Value("")
     private String uploadDir;
 
     public WargaController(UserRepository userRepo,
                            RewardService rewardService,
                            PointService pointService,
                            TransaksiService transaksiService,
-                           WargaRepository wargaRepo) {
+                           WargaRepository wargaRepo,
+                           NotifikasiService notifService) {
         this.userRepo = userRepo;
         this.rewardService = rewardService;
         this.pointService = pointService;
         this.transaksiService = transaksiService;
         this.wargaRepo = wargaRepo;
+        this.notifService = notifService;
     }
 
     private User getCurrentUser(Authentication auth) {
@@ -95,6 +100,18 @@ public class WargaController {
         Warga entitasWarga = getCurrentWargaEntity(warga);
         List<Transaksi> transaksiList = transaksiService.getTransaksiByWarga(entitasWarga);
         model.addAttribute("transaksiList", transaksiList);
+
+        // Leaderboard: Top 5 warga by total points
+        List<User> leaderboard = userRepo.findTop5ByOrderByTotalPointsDesc()
+                .stream()
+                .filter(u -> u.getRole() == User.Role.WARGA)
+                .limit(5)
+                .collect(Collectors.toList());
+        model.addAttribute("leaderboard", leaderboard);
+
+        // Notifikasi
+        List<Notifikasi> notifikasiList = notifService.getNotifikasiBelumDibaca(warga);
+        model.addAttribute("notifikasiList", notifikasiList);
 
         return "profil";
     }
@@ -163,5 +180,20 @@ public class WargaController {
             redirectAttributes.addFlashAttribute("error", "Gagal menukar reward: " + e.getMessage());
         }
         return "redirect:/warga/reward";
+    }
+
+    // ── Notifikasi endpoints ──
+
+    @PostMapping("/notifikasi/baca/{id}")
+    public String tandaiDibaca(@PathVariable Long id) {
+        notifService.tandaiDibaca(id);
+        return "redirect:/warga/dashboard";
+    }
+
+    @PostMapping("/notifikasi/baca-semua")
+    public String tandaiSemuaDibaca(Authentication auth) {
+        User warga = getCurrentUser(auth);
+        notifService.tandaiSemuaDibaca(warga);
+        return "redirect:/warga/dashboard";
     }
 }

@@ -3,6 +3,8 @@ package com.SortifyTeam.Sortify.controller;
 import com.SortifyTeam.Sortify.model.*;
 import com.SortifyTeam.Sortify.repository.*;
 import com.SortifyTeam.Sortify.service.*;
+import com.opencsv.CSVWriter;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -14,6 +16,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -31,7 +35,7 @@ public class AdminController {
     private final TransaksiRepository transaksiRepo;
     private final PenukaranRewardRepository penukaranRepo;
 
-    @Value("${app.upload.dir:uploads}")
+    @Value("")
     private String uploadDir;
 
     public AdminController(UserRepository userRepo,
@@ -136,6 +140,38 @@ public class AdminController {
         redirectAttributes.addFlashAttribute("success", "Reward berhasil diserahkan ke warga.");
         return "redirect:/admin/monitoring";
     }
+
+    @GetMapping("/transaksi/export")
+    public void exportTransaksi(HttpServletResponse response) throws IOException {
+        log.info("[EXPORT] Admin mengexport laporan transaksi SELESAI ke CSV");
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition",
+                "attachment; filename=laporan-transaksi-selesai.csv");
+
+        List<Transaksi> daftar = transaksiRepo.findByStatus(Transaksi.StatusTransaksi.SELESAI);
+
+        try (Writer writer = new OutputStreamWriter(response.getOutputStream())) {
+            CSVWriter csvWriter = new CSVWriter(writer);
+
+            String[] header = {"ID Transaksi", "Tanggal", "Nama Warga", "Jenis Sampah",
+                    "Berat (Kg)", "Total Poin", "Nama Petugas"};
+            csvWriter.writeNext(header);
+
+            for (Transaksi t : daftar) {
+                String[] row = {
+                        String.valueOf(t.getIdTransaksi()),
+                        t.getTanggalTransaksi() != null
+                                ? t.getTanggalTransaksi().toString() : "-",
+                        t.getWarga() != null ? t.getWarga().getNama() : "-",
+                        t.getJenisSampah() != null ? t.getJenisSampah().name() : "-",
+                        t.getTotalBerat() != null ? String.valueOf(t.getTotalBerat()) : "0",
+                        t.getTotalPoin() != null ? String.valueOf(t.getTotalPoin().intValue()) : "0",
+                        t.getStaff() != null ? t.getStaff().getNama() : "-"
+                };
+                csvWriter.writeNext(row);
+            }
+
+            csvWriter.flush();
+        }
+    }
 }
-
-

@@ -13,4 +13,5 @@ public interface TransaksiRepository extends JpaRepository<Transaksi, Long> {
     List<Transaksi> findByStatusInOrderByTanggalTransaksiDesc(List<Transaksi.StatusTransaksi> statuses);
     List<Transaksi> findByWargaOrderByTanggalTransaksiDesc(Warga warga);
     List<Transaksi> findByWargaAndStatusOrderByTanggalTransaksiDesc(Warga warga, Transaksi.StatusTransaksi status);
+    List<Transaksi> findByStatus(Transaksi.StatusTransaksi status);
 }

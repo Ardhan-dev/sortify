@@ -180,14 +180,14 @@ public class InitialDataLoader implements CommandLineRunner {
 
         if (kategoriRepo.count() == 0) {
             KategoriSampah[] seeds = {
-                buatKategori("ORGANIK", 3, "Pisahkan dari plastik dan kemasan. Cocok untuk kompos. Cacah dahulu agar proses pengomposan lebih cepat."),
-                buatKategori("ANORGANIK", 5, "Cuci dan keringkan dahulu sebelum disetor. Pisahkan berdasarkan jenis: plastik, kertas, logam, atau kaca."),
-                buatKategori("B3", 8, "JANGAN dibuang ke tempat sampah biasa! Kembalikan ke drop box B3 terdekat. Simpan dalam wadah asli yang tertutup rapat."),
-                buatKategori("KERTAS", 4, "Lepaskan selotip, stapler, dan sampul plastik. Simpan di tempat kering. Kertas basah tidak diterima."),
-                buatKategori("PLASTIK", 2, "Bersihkan dari sisa makanan dan keringkan. Plastik keras (ember, kursi) bernilai lebih tinggi dari plastik tipis."),
-                buatKategori("LOGAM", 10, "Pisahkan dari material non-logam. Logam campuran diterima. Kabel tembaga bernilai sangat tinggi."),
-                buatKategori("KACA", 4, "Cuci bersih. Bungkus dengan koran atau kain sebelum dibawa untuk mencegah pecah. Pecahan kaca diterima."),
-                buatKategori("ELEKTRONIK", 15, "Hapus data pribadi sebelum menyetor. Lepaskan baterai jika memungkinkan. Jangan membongkar perangkat."),
+                buatKategori("ORGANIK", 100, "Pisahkan dari plastik dan kemasan. Cocok untuk kompos. Cacah dahulu agar proses pengomposan lebih cepat."),
+                buatKategori("ANORGANIK", 75, "Cuci dan keringkan dahulu sebelum disetor. Pisahkan berdasarkan jenis: plastik, kertas, logam, atau kaca."),
+                buatKategori("B3", 200, "JANGAN dibuang ke tempat sampah biasa! Kembalikan ke drop box B3 terdekat. Simpan dalam wadah asli yang tertutup rapat."),
+                buatKategori("KERTAS", 50, "Lepaskan selotip, stapler, dan sampul plastik. Simpan di tempat kering. Kertas basah tidak diterima."),
+                buatKategori("PLASTIK", 30, "Bersihkan dari sisa makanan dan keringkan. Plastik keras (ember, kursi) bernilai lebih tinggi dari plastik tipis."),
+                buatKategori("LOGAM", 150, "Pisahkan dari material non-logam. Logam campuran diterima. Kabel tembaga bernilai sangat tinggi."),
+                buatKategori("KACA", 40, "Cuci bersih. Bungkus dengan koran atau kain sebelum dibawa untuk mencegah pecah. Pecahan kaca diterima."),
+                buatKategori("ELEKTRONIK", 250, "Hapus data pribadi sebelum menyetor. Lepaskan baterai jika memungkinkan. Jangan membongkar perangkat."),
             };
             for (KategoriSampah k : seeds) {
                 kategoriRepo.save(k);

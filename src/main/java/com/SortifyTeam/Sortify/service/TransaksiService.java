@@ -14,13 +14,16 @@ public class TransaksiService {
     private final TransaksiRepository transaksiRepo;
     private final PointService pointService;
     private final KategoriSampahRepository kategoriRepo;
+    private final NotifikasiService notifikasiService;
 
     public TransaksiService(TransaksiRepository transaksiRepo,
                             PointService pointService,
-                            KategoriSampahRepository kategoriRepo) {
+                            KategoriSampahRepository kategoriRepo,
+                            NotifikasiService notifikasiService) {
         this.transaksiRepo = transaksiRepo;
         this.pointService = pointService;
         this.kategoriRepo = kategoriRepo;
+        this.notifikasiService = notifikasiService;
     }
 
     public List<Transaksi> getTransaksiByStatus(Transaksi.StatusTransaksi status) {
@@ -91,20 +94,43 @@ public class TransaksiService {
             User userWarga = entitasWarga.getUser();
             pointService.tambahPoint(userWarga, poin,
                     "Poin transaksi drop-point #" + transaksiId + " (" + beratSampah + " kg)");
+            notifikasiService.buatNotifikasi(userWarga,
+                    "Hore! Transaksi sampah " + transaksi.getJenisSampah().name()
+                    + " seberat " + beratSampah + " kg berhasil diproses. " + poin
+                    + " Poin telah ditambahkan ke saldo Anda!");
         }
 
         return transaksi;
     }
 
     private int hitungPoin(Transaksi transaksi) {
-        if (transaksi.getBeratSampah() == null || transaksi.getJenisSampah() == null) {
-            return (int) (transaksi.getBeratSampah() != null ? transaksi.getBeratSampah() * 100 : 0);
+        Double berat = transaksi.getBeratSampah();
+        if (berat == null || berat <= 0) {
+            return 0;
         }
-        String namaKategori = transaksi.getJenisSampah().name();
-        KategoriSampah kategori = kategoriRepo.findByNamaKategoriIgnoreCase(namaKategori).orElse(null);
-        if (kategori == null || kategori.getPoinPerKg() == null) {
-            return (int) (transaksi.getBeratSampah() * 100);
+
+        KategoriSampah kategori = null;
+        if (transaksi.getJenisSampah() != null) {
+            String namaKategori = transaksi.getJenisSampah().name();
+            kategori = kategoriRepo.findByNamaKategoriIgnoreCase(namaKategori).orElse(null);
         }
-        return (int) (transaksi.getBeratSampah() * kategori.getPoinPerKg());
+
+        int poinPerKg;
+        if (kategori != null && kategori.getPoinPerKg() != null && kategori.getPoinPerKg() > 0) {
+            poinPerKg = kategori.getPoinPerKg();
+        } else {
+            Transaksi.JenisSampah js = transaksi.getJenisSampah();
+            if (js == null) {
+                poinPerKg = 100;
+            } else {
+                poinPerKg = switch (js) {
+                    case ORGANIK   -> 100;
+                    case ANORGANIK -> 75;
+                    case B3        -> 200;
+                };
+            }
+        }
+
+        return (int) (berat * poinPerKg);
     }
 }
