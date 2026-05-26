@@ -1,10 +1,12 @@
 package com.SortifyTeam.Sortify.config;
 
+import com.SortifyTeam.Sortify.model.ItemSampah;
 import com.SortifyTeam.Sortify.model.KategoriSampah;
 import com.SortifyTeam.Sortify.model.RewardItem;
 import com.SortifyTeam.Sortify.model.Staff;
 import com.SortifyTeam.Sortify.model.User;
 import com.SortifyTeam.Sortify.model.Warga;
+import com.SortifyTeam.Sortify.repository.ItemSampahRepository;
 import com.SortifyTeam.Sortify.repository.KategoriSampahRepository;
 import com.SortifyTeam.Sortify.repository.RewardItemRepository;
 import com.SortifyTeam.Sortify.repository.StaffRepository;
@@ -20,6 +22,7 @@ public class InitialDataLoader implements CommandLineRunner {
     private final UserRepository userRepo;
     private final RewardItemRepository rewardItemRepo;
     private final KategoriSampahRepository kategoriRepo;
+    private final ItemSampahRepository itemSampahRepo;
     private final WargaRepository wargaRepo;
     private final StaffRepository staffRepo;
     private final PasswordEncoder passwordEncoder;
@@ -27,12 +30,14 @@ public class InitialDataLoader implements CommandLineRunner {
     public InitialDataLoader(UserRepository userRepo,
                              RewardItemRepository rewardItemRepo,
                              KategoriSampahRepository kategoriRepo,
+                             ItemSampahRepository itemSampahRepo,
                              WargaRepository wargaRepo,
                              StaffRepository staffRepo,
                              PasswordEncoder passwordEncoder) {
         this.userRepo = userRepo;
         this.rewardItemRepo = rewardItemRepo;
         this.kategoriRepo = kategoriRepo;
+        this.itemSampahRepo = itemSampahRepo;
         this.wargaRepo = wargaRepo;
         this.staffRepo = staffRepo;
         this.passwordEncoder = passwordEncoder;
@@ -180,17 +185,72 @@ public class InitialDataLoader implements CommandLineRunner {
 
         if (kategoriRepo.count() == 0) {
             KategoriSampah[] seeds = {
-                buatKategori("ORGANIK", 100, "Pisahkan dari plastik dan kemasan. Cocok untuk kompos. Cacah dahulu agar proses pengomposan lebih cepat."),
-                buatKategori("ANORGANIK", 75, "Cuci dan keringkan dahulu sebelum disetor. Pisahkan berdasarkan jenis: plastik, kertas, logam, atau kaca."),
-                buatKategori("B3", 200, "JANGAN dibuang ke tempat sampah biasa! Kembalikan ke drop box B3 terdekat. Simpan dalam wadah asli yang tertutup rapat."),
-                buatKategori("KERTAS", 50, "Lepaskan selotip, stapler, dan sampul plastik. Simpan di tempat kering. Kertas basah tidak diterima."),
-                buatKategori("PLASTIK", 30, "Bersihkan dari sisa makanan dan keringkan. Plastik keras (ember, kursi) bernilai lebih tinggi dari plastik tipis."),
-                buatKategori("LOGAM", 150, "Pisahkan dari material non-logam. Logam campuran diterima. Kabel tembaga bernilai sangat tinggi."),
-                buatKategori("KACA", 40, "Cuci bersih. Bungkus dengan koran atau kain sebelum dibawa untuk mencegah pecah. Pecahan kaca diterima."),
-                buatKategori("ELEKTRONIK", 250, "Hapus data pribadi sebelum menyetor. Lepaskan baterai jika memungkinkan. Jangan membongkar perangkat."),
+                buatKategori("ORGANIK", 100, "Sisa makanan, daun, sayuran, dan bahan organik lainnya. Cocok untuk kompos. Pisahkan dari plastik dan kemasan sebelum disetor."),
+                buatKategori("ANORGANIK", 75, "Plastik, kertas, logam, kaca, dan barang daur ulang lainnya. Cuci dan keringkan dahulu sebelum disetor."),
+                buatKategori("B3", 200, "Limbah Bahan Berbahaya dan Beracun. JANGAN dicampur dengan sampah biasa! Kembalikan ke drop box B3 terdekat dalam wadah tertutup rapat."),
             };
             for (KategoriSampah k : seeds) {
                 kategoriRepo.save(k);
+            }
+        }
+
+        itemSampahRepo.deleteAll();
+
+        KategoriSampah organik = kategoriRepo.findByNamaKategoriIgnoreCase("ORGANIK").orElse(null);
+        KategoriSampah anorganik = kategoriRepo.findByNamaKategoriIgnoreCase("ANORGANIK").orElse(null);
+        KategoriSampah b3 = kategoriRepo.findByNamaKategoriIgnoreCase("B3").orElse(null);
+
+        if (organik != null) {
+            String[][] organikItems = {
+                {"Daun Kering/Ranting", "Daun kering dari halaman atau taman", "Cacah menjadi potongan kecil agar lebih cepat terkompos."},
+                {"Sisa Sayuran", "Sisa sayuran mentah dari dapur", "Tiriskan airnya, potong kecil-kecil sebelum dimasukkan ke komposter."},
+                {"Sisa Buah/Kulit Buah", "Kulit dan sisa buah-buahan", "Pisahkan dari biji keras, potong kecil-kecil."},
+                {"Sisa Makanan/Nasi Basi", "Nasi dan sisa makanan matang", "Tiriskan kuahnya, jangan campur dengan sampah plastik/kertas."},
+                {"Kulit Telur", "Kulit telur ayam atau bebek", "Remukkan atau tumbuk halus untuk mempercepat penguraian."},
+                {"Ampas Kopi/Teh", "Ampas kopi dan teh bekas seduh", "Keringkan terlebih dahulu atau langsung taburkan ke tanah."},
+                {"Tulang Ayam/Ikan", "Tulang dan duri sisa makanan", "Bersihkan dari sisa daging, bisa dikubur dalam tanah."},
+                {"Rumput/Tanaman Liar", "Rumput hasil potongan taman", "Jemur hingga layu sebelum dimasukkan ke wadah kompos."},
+                {"Tissue Bekas", "Tissue kertas bekas pakai", "Pastikan tidak tercampur bahan kimia, buang ke wadah organik."},
+                {"Kotoran Hewan", "Kotoran hewan ternak atau peliharaan", "Bungkus dengan daun/kertas koran atau masukkan ke biopori khusus."},
+            };
+            for (String[] item : organikItems) {
+                buatItemSampah(item[0], item[1], item[2], organik);
+            }
+        }
+
+        if (anorganik != null) {
+            String[][] anorganikItems = {
+                {"Botol Plastik", "Botol plastik bekas minuman atau kemasan", "Buang sisa air, lepaskan tutup dan labelnya, lalu remas/geprek untuk menghemat ruang."},
+                {"Gelas Plastik", "Gelas plastik sekali pakai", "Buang sisa minuman, bilas bersih, dan lepaskan segel plastiknya."},
+                {"Kantong Plastik", "Kantong plastik belanja atau kemasan", "Bersihkan dari sisa kotoran, lipat atau kumpulkan dalam satu wadah."},
+                {"Kardus", "Kardus bekas paket atau kemasan", "Kosongkan isinya, bongkar lipatannya, dan tumpuk hingga pipih."},
+                {"Kertas Koran/Buku", "Koran, buku, dan kertas bekas", "Ikat dengan tali rapi, pastikan tidak basah atau terkena minyak."},
+                {"Kaleng Aluminium", "Kaleng minuman ringan dari aluminium", "Buang sisa cairan, bilas bersih, lalu geprek hingga pipih."},
+                {"Kaleng Besi", "Kaleng susu atau makanan dari besi", "Cuci bersih dari sisa makanan/minyak, keringkan agar tidak berkarat."},
+                {"Botol Kaca", "Botol kaca bekas minuman atau saus", "Cuci bersih, keringkan, pisahkan tutupnya. JANGAN dipecahkan."},
+                {"Sedotan Plastik", "Sedotan plastik sekali pakai", "Bersihkan, kumpulkan jadi satu dalam botol plastik (ecobrick)."},
+                {"Styrofoam", "Styrofoam pembungkus makanan atau elektronik", "Cuci bersih dari sisa minyak/makanan, keringkan."},
+            };
+            for (String[] item : anorganikItems) {
+                buatItemSampah(item[0], item[1], item[2], anorganik);
+            }
+        }
+
+        if (b3 != null) {
+            String[][] b3Items = {
+                {"Baterai Bekas", "Baterai sekali pakai atau isi ulang yang sudah habis", "Pisahkan di wadah kering tertutup (botol kaca/plastik), jauhkan dari panas."},
+                {"Lampu Neon/Bohlam", "Lampu neon, bohlam pijar, atau lampu LED rusak", "Bungkus dengan koran/kardus bekas agar tidak pecah."},
+                {"Aki Kendaraan", "Aki mobil atau motor yang sudah soak", "Jangan membuang cairannya sembarangan, bawa utuh ke tempat pengepul khusus."},
+                {"Semprotan Aerosol", "Kaleng semprot pengharum, cat, atau pestisida", "Kosongkan isinya, JANGAN ditusuk atau dibakar karena mudah meledak."},
+                {"Kemasan Detergen", "Kemasan bekas detergen, pemutih, atau pembersih", "Bilas bersih dengan air, tutup rapat botolnya."},
+                {"Masker Medis", "Masker medis bekas pakai (non-infeksius)", "Gunting talinya, semprot desinfektan, bungkus plastik tertutup sebelum dibuang."},
+                {"Obat Kedaluwarsa", "Obat-obatan yang sudah melewati tanggal kadaluwarsa", "Hancurkan pil/kapsul, campur dengan tanah/ampas kopi, buang wadahnya terpisah."},
+                {"Termometer Raksa", "Termometer air raksa yang pecah atau rusak", "JANGAN sentuh raksa dengan tangan kosong, gunakan sarung tangan, masukkan ke botol tertutup."},
+                {"Kabel/Charger", "Kabel, charger, dan adaptor elektronik rusak", "Gulung rapi, ikat, dan kumpulkan bersama sampah elektronik lainnya."},
+                {"Elektronik Bekas", "Komponen atau perangkat elektronik kecil yang rusak", "Jangan dibongkar sendiri, serahkan ke drop point e-waste."},
+            };
+            for (String[] item : b3Items) {
+                buatItemSampah(item[0], item[1], item[2], b3);
             }
         }
     }
@@ -201,6 +261,15 @@ public class InitialDataLoader implements CommandLineRunner {
         k.setPoinPerKg(poin);
         k.setInstruksiPenanganan(instruksi);
         return k;
+    }
+
+    private void buatItemSampah(String nama, String deskripsi, String instruksi, KategoriSampah kategori) {
+        ItemSampah item = new ItemSampah();
+        item.setNamaItem(nama);
+        item.setDeskripsi(deskripsi);
+        item.setInstruksiPenanganan(instruksi);
+        item.setKategoriSampah(kategori);
+        itemSampahRepo.save(item);
     }
 }
 

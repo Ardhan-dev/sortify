@@ -228,6 +228,17 @@
       margin-top: auto;
     }
 
+    .card-instruksi {
+      font-size: 11px; color: var(--text-muted);
+      display: flex; align-items: flex-start; gap: 6px;
+      line-height: 1.5; padding-top: 2px;
+    }
+    .card-instruksi svg {
+      width: 13px; height: 13px; flex-shrink: 0;
+      stroke: var(--text-muted); fill: none; stroke-width: 2;
+      margin-top: 2px;
+    }
+
     .empty-state {
       grid-column: 1 / -1;
       text-align: center; padding: 4rem 2rem;
@@ -313,8 +324,8 @@
       </p>
     </div>
     <div class="page-stat animate delay-2">
-      <div class="page-stat-num" id="total-count" th:text="${totalKategori}">0</div>
-      <div class="page-stat-label">Kategori Sampah</div>
+      <div class="page-stat-num" id="total-count" th:text="${totalItem}">0</div>
+      <div class="page-stat-label">Item Sampah</div>
     </div>
   </section>
 
@@ -329,7 +340,8 @@
         <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
       </svg>
       <input class="search-input" type="search" id="ks-search"
-             placeholder="Cari kategori sampah..."
+             placeholder="Cari item sampah..."
+             th:value="${search}"
              oninput="ksRender()">
     </div>
     <div class="filter-pills" id="ks-pills">
@@ -337,7 +349,7 @@
     </div>
   </div>
 
-  <div class="result-meta" id="ks-meta" th:text="${totalKategori} + ' kategori ditemukan'">0 kategori ditemukan</div>
+  <div class="result-meta" id="ks-meta" th:text="${totalItem} + ' item ditemukan'">0 item ditemukan</div>
 
   <div class="cards-grid" id="ks-grid"></div>
 
@@ -357,25 +369,22 @@
     'ORGANIK': { bg: 'rgba(134,187,76,0.1)', color: '#86bb4c', icon: '🌿' },
     'ANORGANIK': { bg: 'rgba(200,137,26,0.08)', color: '#c8891a', icon: '♻️' },
     'B3': { bg: 'rgba(200,74,74,0.08)', color: '#c84a4a', icon: '☣️' },
-    'KERTAS': { bg: 'rgba(200,137,26,0.08)', color: '#c8891a', icon: '📄' },
-    'PLASTIK': { bg: 'rgba(58,130,196,0.08)', color: '#3a82c4', icon: '🛍️' },
-    'LOGAM': { bg: 'rgba(138,148,128,0.08)', color: '#8a9480', icon: '🔩' },
-    'KACA': { bg: 'rgba(42,156,122,0.08)', color: '#2a9c7a', icon: '🫙' },
-    'ELEKTRONIK': { bg: 'rgba(134,187,76,0.08)', color: '#86bb4c', icon: '💻' },
     'default': { bg: 'rgba(134,187,76,0.05)', color: '#8a9480', icon: '📦' }
   };
 
-  var RAW = /*[[${daftarKategori}]]*/ [];
-  var DATA = RAW.map(function(k) {
+  var RAW = /*[[${daftarItem}]]*/ [];
+  var DATA = RAW.map(function(item) {
     return {
-      id: k.idKategori,
-      nama: k.namaKategori,
-      poin: k.poinPerKg,
-      tips: k.instruksiPenanganan || ''
+      id: item.id,
+      nama: item.namaItem,
+      deskripsi: item.deskripsi || '',
+      instruksi: item.instruksiPenanganan || '',
+      kategori: item.kategoriSampah.namaKategori,
+      poin: item.kategoriSampah.poinPerKg
     };
   });
 
-  var UNIK_KAT = [...new Set(DATA.map(d => d.nama.toUpperCase()))];
+  var UNIK_KAT = [...new Set(DATA.map(function(d) { return d.kategori.toUpperCase(); }))];
   var pillContainer = document.getElementById('ks-pills');
   UNIK_KAT.forEach(function(kat) {
     var btn = document.createElement('button');
@@ -407,13 +416,13 @@
     var meta = document.getElementById('ks-meta');
 
     var filtered = DATA.filter(function(d) {
-      var matchKat = aktifKat === 'semua' || d.nama.toLowerCase() === aktifKat;
+      var matchKat = aktifKat === 'semua' || d.kategori.toLowerCase() === aktifKat;
       var matchQ = !q || d.nama.toLowerCase().includes(q);
       return matchKat && matchQ;
     });
 
     document.getElementById('total-count').textContent = filtered.length;
-    meta.textContent = filtered.length + ' kategori ditemukan';
+    meta.textContent = filtered.length + ' item ditemukan';
 
     if (!filtered.length) {
       grid.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-text">Tidak ditemukan · Coba kata lain</div></div>';
@@ -421,12 +430,12 @@
     }
 
     grid.innerHTML = filtered.map(function(d) {
-      var cs = getCatStyle(d.nama);
+      var cs = getCatStyle(d.kategori);
       return [
         '<div class="sampah-card" style="--card-color:' + cs.color + '">',
           '<div class="card-icon-wrap">',
             '<div class="card-icon" style="background:' + cs.bg + '">' + cs.icon + '</div>',
-            '<span class="cat-badge" style="color:' + cs.color + ';background:' + cs.bg + ';border-color:' + cs.color + '33">' + d.nama.toUpperCase() + '</span>',
+            '<span class="cat-badge" style="color:' + cs.color + ';background:' + cs.bg + ';border-color:' + cs.color + '33">' + d.kategori.toUpperCase() + '</span>',
           '</div>',
           '<div class="card-name">' + d.nama + '</div>',
           '<hr class="card-divider">',
@@ -436,7 +445,10 @@
               '<div class="card-poin"><span class="poin-num">+' + d.poin + '</span><span class="poin-unit">poin</span></div>',
             '</div>',
           '</div>',
-          (d.tips ? '<div class="card-tip">' + d.tips + '</div>' : ''),
+          (d.deskripsi ? '<div class="card-tip">' + d.deskripsi + '</div>' : ''),
+          (d.instruksi ? '<div class="card-instruksi">' +
+            '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>' +
+            '<span>' + d.instruksi + '</span></div>' : ''),
         '</div>'
       ].join('');
     }).join('');
