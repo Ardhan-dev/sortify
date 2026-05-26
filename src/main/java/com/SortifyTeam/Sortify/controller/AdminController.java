@@ -219,7 +219,8 @@ public class AdminController {
         List<Transaksi> semuaTransaksi = transaksiRepo.findAll();
         for (Transaksi t : semuaTransaksi) {
             if (t.getWarga() != null && t.getTotalBerat() != null) {
-                totalBeratMap.merge(t.getWarga().getIdWarga(), t.getTotalBerat(), Double::sum);
+                Long wargaId = t.getWarga().getIdWarga();
+                totalBeratMap.put(wargaId, totalBeratMap.getOrDefault(wargaId, 0.0) + t.getTotalBerat());
             }
         }
 
