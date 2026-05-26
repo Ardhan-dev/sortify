@@ -110,6 +110,7 @@ public class LaporanService {
         Transaksi transaksi = new Transaksi();
         transaksi.setWarga(entitasWarga);
         transaksi.setStaff(entitasStaff);
+        transaksi.setStatus(Transaksi.StatusTransaksi.SELESAI);
         transaksi.setTanggalTransaksi(LocalDateTime.now());
         transaksi.setTotalBerat(laporan.getBerat());
         transaksi.setTotalPoin((double) poin);
@@ -194,6 +195,7 @@ public class LaporanService {
         Transaksi transaksi = new Transaksi();
         transaksi.setWarga(entitasWarga);
         transaksi.setStaff(entitasStaff);
+        transaksi.setStatus(Transaksi.StatusTransaksi.SELESAI);
         transaksi.setTanggalTransaksi(LocalDateTime.now());
         transaksi.setTotalBerat(beratFinal);
         transaksi.setTotalPoin((double) poin);

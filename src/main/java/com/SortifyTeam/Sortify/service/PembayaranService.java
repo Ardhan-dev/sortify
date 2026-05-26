@@ -12,9 +12,12 @@ import java.time.LocalDateTime;
 public class PembayaranService {
 
     private final PembayaranRepository pembayaranRepo;
+    private final LaporanService laporanService;
 
-    public PembayaranService(PembayaranRepository pembayaranRepo) {
+    public PembayaranService(PembayaranRepository pembayaranRepo,
+                             LaporanService laporanService) {
         this.pembayaranRepo = pembayaranRepo;
+        this.laporanService = laporanService;
     }
 
     @Transactional
@@ -33,8 +36,7 @@ public class PembayaranService {
 
     @Transactional
     public void bayar(Long laporanId, String metodePembayaran) {
-        LaporanSampah laporan = new LaporanSampah();
-        laporan.setId(laporanId);
+        LaporanSampah laporan = laporanService.getLaporanById(laporanId);
         Pembayaran pembayaran = pembayaranRepo.findByLaporan(laporan)
                 .orElseThrow(() -> new RuntimeException("Pembayaran tidak ditemukan"));
         pembayaran.setMetodePembayaran(metodePembayaran);

@@ -27,8 +27,8 @@ public class StaffWebController {
 
     @GetMapping
     public String halamanStaff(Model model) {
-        List<User> users = userRepo.findByRole(User.Role.PETUGAS);
-        model.addAttribute("daftarStaff", users);
+        List<Staff> daftarStaff = staffRepo.findAll();
+        model.addAttribute("daftarStaff", daftarStaff);
         return "staff-view";
     }
 
@@ -71,6 +71,7 @@ public class StaffWebController {
 
         existing.setNama(staff.getNama());
         existing.setNip(staff.getNip());
+        existing.setJabatan(staff.getJabatan());
 
         if (staff.getPassword() != null && !staff.getPassword().isEmpty()) {
             existing.setPassword(passwordEncoder.encode(staff.getPassword()));
