@@ -19,7 +19,9 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.time.Year;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Controller
@@ -206,5 +208,23 @@ public class AdminController {
         model.addAttribute("logList", logAktivitasService.getSemuaLog());
         model.addAttribute("totalLog", logAktivitasService.countTotal());
         return "log-view";
+    }
+
+    @GetMapping("/leaderboard")
+    public String leaderboard(Model model) {
+        log.info("[ACCESS] Admin membuka Leaderboard Warga");
+        List<User> wargaList = userRepo.findByRoleOrderByTotalPointsDesc(User.Role.WARGA);
+
+        Map<Long, Double> totalBeratMap = new HashMap<>();
+        List<Transaksi> semuaTransaksi = transaksiRepo.findAll();
+        for (Transaksi t : semuaTransaksi) {
+            if (t.getWarga() != null && t.getTotalBerat() != null) {
+                totalBeratMap.merge(t.getWarga().getIdWarga(), t.getTotalBerat(), Double::sum);
+            }
+        }
+
+        model.addAttribute("daftarLeaderboard", wargaList);
+        model.addAttribute("totalBeratMap", totalBeratMap);
+        return "leaderboard-view";
     }
 }
