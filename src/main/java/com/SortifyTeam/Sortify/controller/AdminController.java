@@ -122,8 +122,8 @@ public class AdminController {
 
         List<Transaksi> daftar = transaksiRepo.findByStatus(Transaksi.StatusTransaksi.SELESAI);
 
-        try (Writer writer = new OutputStreamWriter(response.getOutputStream())) {
-            CSVWriter csvWriter = new CSVWriter(writer);
+        try (Writer writer = new OutputStreamWriter(response.getOutputStream());
+             CSVWriter csvWriter = new CSVWriter(writer)) {
 
             String[] header = {"ID Transaksi", "Tanggal", "Nama Warga", "Detail Sampah",
                     "Berat (Kg)", "Total Poin", "Nama Petugas"};
