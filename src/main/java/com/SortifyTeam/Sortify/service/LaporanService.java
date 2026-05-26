@@ -17,9 +17,9 @@ public class LaporanService {
     private final PointHistoryRepository pointHistoryRepo;
     private final PembayaranRepository pembayaranRepo;
     private final TransaksiRepository transaksiRepo;
-    private final DetailTransaksiRepository detailTransaksiRepo;
     private final WargaRepository wargaRepo;
     private final StaffRepository staffRepo;
+    private final LogAktivitasService logAktivitasService;
 
     public LaporanService(LaporanSampahRepository laporanRepo,
                           KategoriSampahRepository kategoriRepo,
@@ -27,18 +27,18 @@ public class LaporanService {
                           PointHistoryRepository pointHistoryRepo,
                           PembayaranRepository pembayaranRepo,
                           TransaksiRepository transaksiRepo,
-                          DetailTransaksiRepository detailTransaksiRepo,
                           WargaRepository wargaRepo,
-                          StaffRepository staffRepo) {
+                          StaffRepository staffRepo,
+                          LogAktivitasService logAktivitasService) {
         this.laporanRepo = laporanRepo;
         this.kategoriRepo = kategoriRepo;
         this.userRepo = userRepo;
         this.pointHistoryRepo = pointHistoryRepo;
         this.pembayaranRepo = pembayaranRepo;
         this.transaksiRepo = transaksiRepo;
-        this.detailTransaksiRepo = detailTransaksiRepo;
         this.wargaRepo = wargaRepo;
         this.staffRepo = staffRepo;
+        this.logAktivitasService = logAktivitasService;
     }
 
     @Transactional
@@ -120,14 +120,20 @@ public class LaporanService {
             String namaKategori = laporan.getJenisSampah().name();
             KategoriSampah kategori = kategoriRepo.findByNamaKategoriIgnoreCase(namaKategori).orElse(null);
             if (kategori != null) {
-                DetailTransaksi detail = new DetailTransaksi();
-                detail.setTransaksi(transaksi);
-                detail.setKategori(kategori);
-                detail.setBerat(laporan.getBerat());
-                detail.setSubtotalPoin(poin);
-                detailTransaksiRepo.save(detail);
+                TransaksiDetail td = new TransaksiDetail();
+                td.setTransaksi(transaksi);
+                td.setKategoriSampah(kategori);
+                td.setBeratEstimasi(laporan.getBerat());
+                td.setSubTotalPoin((double) poin);
+                transaksi.getDetails().add(td);
             }
         }
+        logAktivitasService.catatAktivitas(
+            petugas.getUsername(),
+            petugas.getRole().name(),
+            "ACC_LAPORAN",
+            "Menyetujui laporan #" + laporanId + " (" + laporan.getJenisSampah() + " " + laporan.getBerat() + " kg) — " + warga.getUsername()
+        );
     }
 
     @Transactional
@@ -205,12 +211,12 @@ public class LaporanService {
             String namaKategori = laporan.getJenisSampah().name();
             KategoriSampah kategori = kategoriRepo.findByNamaKategoriIgnoreCase(namaKategori).orElse(null);
             if (kategori != null) {
-                DetailTransaksi detail = new DetailTransaksi();
-                detail.setTransaksi(transaksi);
-                detail.setKategori(kategori);
-                detail.setBerat(beratFinal);
-                detail.setSubtotalPoin(poin);
-                detailTransaksiRepo.save(detail);
+                TransaksiDetail td = new TransaksiDetail();
+                td.setTransaksi(transaksi);
+                td.setKategoriSampah(kategori);
+                td.setBeratEstimasi(beratFinal);
+                td.setSubTotalPoin((double) poin);
+                transaksi.getDetails().add(td);
             }
         }
     }

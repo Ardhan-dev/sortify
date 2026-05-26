@@ -40,6 +40,22 @@ public class User {
     @JsonIgnore
     private Staff staff;
 
+    @Transient
+    public String getPangkat() {
+        if (totalPoints <= 1000) return "Bronze (Eco-Starter)";
+        if (totalPoints <= 3000) return "Silver (Eco-Saver)";
+        if (totalPoints <= 6000) return "Gold (Eco-Warrior)";
+        return "Emerald (Eco-Champion)";
+    }
+
+    @Transient
+    public String getBadgePangkat() {
+        if (totalPoints <= 1000) return "secondary";
+        if (totalPoints <= 3000) return "info";
+        if (totalPoints <= 6000) return "warning";
+        return "success";
+    }
+
     public enum Role {
         ADMIN, PETUGAS, WARGA
     }

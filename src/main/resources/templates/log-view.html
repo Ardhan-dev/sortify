@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sortify — Log Aktivitas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0f0c; --surface: #141710; --surface-raised: #1a1e16; --surface-hover: #1e2318;
+      --border: rgba(134, 187, 76, 0.12); --border-hover: rgba(134, 187, 76, 0.28);
+      --accent: #86bb4c; --accent-dim: rgba(134, 187, 76, 0.08);
+      --text-primary: #e8ede2; --text-secondary: #8a9480; --text-muted: #4e5749;
+      --amber: #c8891a; --teal: #2a9c7a; --danger: #b85454;
+      --mono: 'Space Mono', monospace; --sans: 'DM Sans', sans-serif;
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text-primary); font-family: var(--sans); font-size: 15px; line-height: 1.6; min-height: 100vh; }
+    body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(134,187,76,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(134,187,76,0.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; z-index: 0; }
+    body::after { content: ''; position: fixed; top: -200px; left: 50%; transform: translateX(-50%); width: 700px; height: 400px; background: radial-gradient(ellipse, rgba(134,187,76,0.06) 0%, transparent 70%); pointer-events: none; z-index: 0; }
+    .wrapper { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 2rem 4rem; }
+    header { padding: 2rem 0 0; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+    .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .brand-icon { width: 36px; height: 36px; background: var(--accent); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+    .brand-icon svg { width: 20px; height: 20px; fill: var(--bg); }
+    .brand-name { font-family: var(--mono); font-size: 18px; font-weight: 700; color: var(--accent); letter-spacing: -0.5px; }
+    .brand-version { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 1px; }
+    .topbar-right { display: flex; align-items: center; gap: 1.25rem; }
+    .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 1.5rem; padding: 3.5rem 0 2rem; }
+    .page-label { font-family: var(--mono); font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--accent); display: flex; align-items: center; gap: 8px; margin-bottom: 0.8rem; }
+    .page-label::before { content: ''; display: block; width: 24px; height: 1px; background: var(--accent); }
+    .page-title { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 300; letter-spacing: -1px; color: var(--text-primary); line-height: 1.2; }
+    .page-title strong { font-weight: 500; color: var(--accent); }
+    .count-badge { font-family: var(--mono); font-size: 11px; color: var(--text-muted); letter-spacing: 0.5px; }
+    .count-badge span { color: var(--accent); font-weight: 700; }
+    .table-wrap { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--surface); }
+    table { width: 100%; border-collapse: collapse; }
+    thead { background: var(--surface-raised); border-bottom: 1px solid var(--border); }
+    thead th { padding: 0.85rem 1.25rem; font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); font-weight: 400; text-align: left; white-space: nowrap; }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--surface-hover); }
+    tbody td { padding: 0.85rem 1.25rem; font-size: 14px; color: var(--text-primary); vertical-align: middle; }
+    .cell-mono { font-family: var(--mono); font-size: 12px; color: var(--text-secondary); }
+    .cell-mono strong { color: var(--text-primary); }
+    .aksi-badge { display: inline-flex; align-items: center; gap: 5px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+    .aksi-badge.acc { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(134,187,76,0.2); }
+    .aksi-badge.reward { background: rgba(200,137,26,0.1); color: var(--amber); border: 1px solid rgba(200,137,26,0.2); }
+    .aksi-badge.register { background: rgba(42,156,122,0.1); color: var(--teal); border: 1px solid rgba(42,156,122,0.2); }
+    .cell-role { font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px; padding: 2px 8px; border-radius: 4px; background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(134,187,76,0.15); }
+    .cell-desc { color: var(--text-secondary); font-size: 13px; max-width: 360px; }
+    .empty-state { padding: 5rem 2rem; text-align: center; }
+    .empty-icon { width: 52px; height: 52px; border-radius: 12px; background: var(--accent-dim); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; }
+    .empty-icon svg { width: 24px; height: 24px; stroke: var(--accent); fill: none; stroke-width: 1.5; }
+    .empty-title { font-size: 15px; font-weight: 500; margin-bottom: 6px; }
+    .empty-desc { font-size: 13px; color: var(--text-muted); }
+    footer { border-top: 1px solid var(--border); padding: 1.5rem 0; margin-top: 3rem; display: flex; align-items: center; justify-content: space-between; }
+    .back-link { display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 11px; color: var(--text-muted); text-decoration: none; letter-spacing: 0.5px; transition: color 0.15s; }
+    .back-link svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .back-link:hover { color: var(--accent); }
+    .footer-id { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 1px; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    .animate { animation: fadeUp 0.45s ease both; }
+    .delay-1 { animation-delay: 0.05s; }
+    .delay-2 { animation-delay: 0.12s; }
+    .delay-3 { animation-delay: 0.2s; }
+    @media (max-width: 768px) {
+      .page-head { flex-direction: column; align-items: flex-start; }
+      thead th:nth-child(2), tbody td:nth-child(2),
+      thead th:nth-child(4), tbody td:nth-child(4) { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header class="animate">
+    <div class="topbar">
+      <a href="/admin/dashboard" class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.35C16.5 22.15 20 17.25 20 12V6L12 2z"/></svg>
+        </div>
+        <div>
+          <div class="brand-name">Sortify</div>
+          <div class="brand-version">v1.0 &middot; Audit Trail</div>
+        </div>
+      </a>
+      <div class="topbar-right">
+        <form action="/logout" method="post" style="margin:0;">
+          <button type="submit" style="display:inline-flex; align-items:center; gap:7px; font-family:var(--mono); font-size:11px; letter-spacing:0.8px; text-transform:uppercase; color:var(--danger); background:rgba(200,74,74,0.08); border:1px solid rgba(200,74,74,0.2); border-radius:6px; padding:6px 14px; cursor:pointer; text-decoration:none; transition:background 0.2s;">
+            <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Logout
+          </button>
+        </form>
+      </div>
+    </div>
+  </header>
+
+  <div class="page-head animate delay-1">
+    <div>
+      <div class="page-label">Audit &middot; Trail</div>
+      <h1 class="page-title">Log <strong>Aktivitas</strong></h1>
+    </div>
+    <div class="count-badge">
+      <span th:text="${totalLog ?: 0}">0</span> event tercatat
+    </div>
+  </div>
+
+  <div class="table-wrap animate delay-2">
+    <table>
+      <thead>
+        <tr>
+          <th>Waktu</th>
+          <th>User</th>
+          <th>Role</th>
+          <th>Aksi</th>
+          <th>Deskripsi</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="log : ${logList}">
+          <td class="cell-mono" th:text="${#temporals.format(log.waktu, 'dd MMM yyyy HH:mm')}">—</td>
+          <td>
+            <span class="cell-mono" style="font-size:13px;">
+              <strong th:text="${log.username}">user</strong>
+            </span>
+          </td>
+          <td><span class="cell-role" th:text="${log.role}">WARGA</span></td>
+          <td>
+            <span class="aksi-badge"
+                  th:classappend="${log.aksi == 'ACC_LAPORAN'} ? 'acc' : (${log.aksi == 'TUKAR_REWARD'} ? 'reward' : 'register')"
+                  th:text="${log.aksi}">AKSI</span>
+          </td>
+          <td class="cell-desc" th:text="${log.deskripsi}">Deskripsi aktivitas</td>
+        </tr>
+
+        <tr th:if="${#lists.isEmpty(logList)}">
+          <td colspan="5">
+            <div class="empty-state">
+              <div class="empty-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+              </div>
+              <div class="empty-title">Belum ada log aktivitas</div>
+              <div class="empty-desc">Log akan muncul saat ada aktivitas sistem.</div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer class="animate delay-3">
+    <a href="/admin/dashboard" class="back-link">
+      <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Kembali ke Dashboard
+    </a>
+    <div class="footer-id">AUDIT &middot; LOG AKTIVITAS</div>
+  </footer>
+
+</div>
+</body>
+</html>

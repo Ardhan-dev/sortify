@@ -31,4 +31,16 @@ public class Warga {
     @ToString.Exclude
     @JsonIgnore
     private User user;
+
+    @Transient
+    public String getPangkat() {
+        if (user == null) return "Bronze (Eco-Starter)";
+        return user.getPangkat();
+    }
+
+    @Transient
+    public String getBadgePangkat() {
+        if (user == null) return "secondary";
+        return user.getBadgePangkat();
+    }
 }

@@ -34,6 +34,7 @@ public class AdminController {
     private final FileStorageService fileStorageService;
     private final WargaRepository wargaRepo;
     private final KategoriSampahRepository kategoriRepo;
+    private final LogAktivitasService logAktivitasService;
 
     public AdminController(UserRepository userRepo,
                            RewardService rewardService,
@@ -42,7 +43,8 @@ public class AdminController {
                            PenukaranRewardRepository penukaranRepo,
                            FileStorageService fileStorageService,
                            WargaRepository wargaRepo,
-                           KategoriSampahRepository kategoriRepo) {
+                           KategoriSampahRepository kategoriRepo,
+                           LogAktivitasService logAktivitasService) {
         this.userRepo = userRepo;
         this.rewardService = rewardService;
         this.transaksiRepo = transaksiRepo;
@@ -51,6 +53,7 @@ public class AdminController {
         this.fileStorageService = fileStorageService;
         this.wargaRepo = wargaRepo;
         this.kategoriRepo = kategoriRepo;
+        this.logAktivitasService = logAktivitasService;
     }
 
     @GetMapping("/dashboard")
@@ -195,5 +198,13 @@ public class AdminController {
 
             csvWriter.flush();
         }
+    }
+
+    @GetMapping("/logs")
+    public String halamanLog(Model model) {
+        log.info("[ACCESS] Admin membuka Log Aktivitas");
+        model.addAttribute("logList", logAktivitasService.getSemuaLog());
+        model.addAttribute("totalLog", logAktivitasService.countTotal());
+        return "log-view";
     }
 }

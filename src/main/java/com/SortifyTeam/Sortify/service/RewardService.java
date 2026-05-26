@@ -16,15 +16,18 @@ public class RewardService {
     private final PenukaranRewardRepository penukaranRepo;
     private final PointService pointService;
     private final UserRepository userRepo;
+    private final LogAktivitasService logAktivitasService;
 
     public RewardService(RewardItemRepository rewardItemRepo,
                          PenukaranRewardRepository penukaranRepo,
                          PointService pointService,
-                         UserRepository userRepo) {
+                         UserRepository userRepo,
+                         LogAktivitasService logAktivitasService) {
         this.rewardItemRepo = rewardItemRepo;
         this.penukaranRepo = penukaranRepo;
         this.pointService = pointService;
         this.userRepo = userRepo;
+        this.logAktivitasService = logAktivitasService;
     }
 
     public List<RewardItem> getRewardTersedia() {
@@ -61,6 +64,12 @@ public class RewardService {
         pointService.tambahPointHistory(warga, item.getPointNeeded(),
                 PointHistory.PointType.SPEND,
                 "Penukaran " + item.getNamaBarang());
+        logAktivitasService.catatAktivitas(
+            warga.getUsername(),
+            warga.getRole().name(),
+            "TUKAR_REWARD",
+            "Menukar " + item.getNamaBarang() + " (" + item.getPointNeeded() + " poin) — sisa poin: " + warga.getTotalPoints()
+        );
     }
 
     public long countTotalPenukaran() {

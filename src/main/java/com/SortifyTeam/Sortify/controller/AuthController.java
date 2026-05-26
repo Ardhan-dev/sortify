@@ -5,6 +5,7 @@ import com.SortifyTeam.Sortify.model.User;
 import com.SortifyTeam.Sortify.model.Warga;
 import com.SortifyTeam.Sortify.repository.UserRepository;
 import com.SortifyTeam.Sortify.repository.WargaRepository;
+import com.SortifyTeam.Sortify.service.LogAktivitasService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -17,11 +18,13 @@ public class AuthController {
     private final UserRepository userRepo;
     private final WargaRepository wargaRepo;
     private final PasswordEncoder passwordEncoder;
+    private final LogAktivitasService logAktivitasService;
 
-    public AuthController(UserRepository userRepo, WargaRepository wargaRepo, PasswordEncoder passwordEncoder) {
+    public AuthController(UserRepository userRepo, WargaRepository wargaRepo, PasswordEncoder passwordEncoder, LogAktivitasService logAktivitasService) {
         this.userRepo = userRepo;
         this.wargaRepo = wargaRepo;
         this.passwordEncoder = passwordEncoder;
+        this.logAktivitasService = logAktivitasService;
     }
 
     @GetMapping("/")
@@ -81,6 +84,13 @@ public class AuthController {
         warga.setNoHp("-");
         warga.setUser(user);
         wargaRepo.save(warga);
+
+        logAktivitasService.catatAktivitas(
+            user.getUsername(),
+            "WARGA",
+            "REGISTRASI_WARGA",
+            "Warga baru mendaftar: " + user.getFullName() + " (" + user.getUsername() + ")"
+        );
 
         model.addAttribute("registerSuccess", "Akun berhasil dibuat. Silakan login.");
         return "login";
