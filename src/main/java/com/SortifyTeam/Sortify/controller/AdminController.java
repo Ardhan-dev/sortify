@@ -17,6 +17,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.time.Year;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -27,17 +29,20 @@ public class AdminController {
     private final UserRepository userRepo;
     private final RewardService rewardService;
     private final TransaksiRepository transaksiRepo;
+    private final TransaksiDetailRepository transaksiDetailRepo;
     private final PenukaranRewardRepository penukaranRepo;
     private final FileStorageService fileStorageService;
 
     public AdminController(UserRepository userRepo,
                            RewardService rewardService,
                            TransaksiRepository transaksiRepo,
+                           TransaksiDetailRepository transaksiDetailRepo,
                            PenukaranRewardRepository penukaranRepo,
                            FileStorageService fileStorageService) {
         this.userRepo = userRepo;
         this.rewardService = rewardService;
         this.transaksiRepo = transaksiRepo;
+        this.transaksiDetailRepo = transaksiDetailRepo;
         this.penukaranRepo = penukaranRepo;
         this.fileStorageService = fileStorageService;
     }
@@ -62,6 +67,32 @@ public class AdminController {
         model.addAttribute("transaksiPending", transaksiPending);
         model.addAttribute("totalBerat", totalBerat);
         model.addAttribute("rewardDitukar", rewardService.countTotalPenukaran());
+
+        // ── Chart data: Berat per Bulan ──
+        int currentYear = Year.now().getValue();
+        List<Object[]> monthlyData = transaksiRepo.getMonthlyBerat(currentYear);
+        String[] labelBulan = {"Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
+                               "Jul", "Agu", "Sep", "Okt", "Nov", "Des"};
+        double[] dataBeratPerBulan = new double[12];
+        for (Object[] row : monthlyData) {
+            int month = ((Number) row[0]).intValue();
+            double berat = ((Number) row[1]).doubleValue();
+            dataBeratPerBulan[month - 1] = berat;
+        }
+        model.addAttribute("labelBulan", labelBulan);
+        model.addAttribute("dataBeratPerBulan", dataBeratPerBulan);
+
+        // ── Chart data: Berat per Kategori ──
+        List<Object[]> kategoriData = transaksiDetailRepo.getBeratPerKategori();
+        List<String> labelKategori = new ArrayList<>();
+        List<Double> dataKategori = new ArrayList<>();
+        for (Object[] row : kategoriData) {
+            labelKategori.add((String) row[0]);
+            dataKategori.add(((Number) row[1]).doubleValue());
+        }
+        model.addAttribute("labelKategori", labelKategori);
+        model.addAttribute("dataKategori", dataKategori);
+
         return "admin-dashboard";
     }
 
