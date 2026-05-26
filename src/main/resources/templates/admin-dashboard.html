@@ -238,6 +238,23 @@
   <!-- ── Chart Section ── -->
   <div class="chart-section animate delay-3">
     <div class="section-head">Grafik &amp; Statistik</div>
+
+    <!-- Filter Row -->
+    <div class="row g-2 mb-3">
+      <div class="col-md-6">
+        <select id="filterWarga" class="form-select form-select-sm" style="background:var(--surface);border-color:var(--border);color:var(--text-primary);font-size:13px;">
+          <option value="">Semua Warga</option>
+          <option th:each="w : ${daftarWarga}" th:value="${w.idWarga}" th:text="${w.nama} + ' (' + ${w.username} + ')'"></option>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <select id="filterKategori" class="form-select form-select-sm" style="background:var(--surface);border-color:var(--border);color:var(--text-primary);font-size:13px;">
+          <option value="">Semua Kategori</option>
+          <option th:each="k : ${daftarKategori}" th:value="${k.idKategori}" th:text="${k.namaKategori}"></option>
+        </select>
+      </div>
+    </div>
+
     <div class="row g-3">
       <div class="col-md-6">
         <div class="chart-card">
@@ -409,135 +426,121 @@
 
 </div>
 
-<script th:inline="javascript">
-/*<![CDATA[*/
-const labelBulan = /*[[${labelBulan}]]*/ [];
-const dataBeratPerBulan = /*[[${dataBeratPerBulan}]]*/ [];
-const labelKategori = /*[[${labelKategori}]]*/ [];
-const dataKategori = /*[[${dataKategori}]]*/ [];
-
+<script>
 Chart.defaults.color = '#8a9480';
 Chart.defaults.borderColor = 'rgba(134,187,76,0.08)';
 Chart.defaults.font.family = "'DM Sans', sans-serif";
 
+const BG_COLORS = [
+  'rgba(134,187,76,0.75)', 'rgba(42,156,122,0.75)', 'rgba(200,137,26,0.75)',
+  'rgba(184,84,84,0.75)',  'rgba(100,140,200,0.75)', 'rgba(160,110,190,0.75)',
+  'rgba(200,160,60,0.75)', 'rgba(80,180,200,0.75)'
+];
+const BORDER_COLORS = BG_COLORS.map(c => c.replace('0.75', '1'));
+
+const BAR_OPTIONS = {
+  responsive: true, maintainAspectRatio: true,
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      backgroundColor: '#1a1e16', titleColor: '#e8ede2', bodyColor: '#86bb4c',
+      borderColor: 'rgba(134,187,76,0.2)', borderWidth: 1, cornerRadius: 8, padding: 10,
+      callbacks: { label: ctx => ctx.parsed.y + ' Kg' }
+    }
+  },
+  scales: {
+    x: { grid: { display: false }, ticks: { color: '#8a9480', font: { size: 11 } } },
+    y: { beginAtZero: true, grid: { color: 'rgba(134,187,76,0.06)' },
+      ticks: { color: '#8a9480', font: { size: 11 }, callback: val => val + ' Kg' } }
+  }
+};
+
+const PIE_OPTIONS = {
+  responsive: true, maintainAspectRatio: true, cutout: '55%',
+  plugins: {
+    legend: { position: 'bottom', labels: { color: '#8a9480', font: { size: 11 }, padding: 12, usePointStyle: true, pointStyleWidth: 8 } },
+    tooltip: {
+      backgroundColor: '#1a1e16', titleColor: '#e8ede2', bodyColor: '#86bb4c',
+      borderColor: 'rgba(134,187,76,0.2)', borderWidth: 1, cornerRadius: 8, padding: 10,
+      callbacks: { label: ctx => {
+        if (!ctx.dataset.data.length || ctx.dataset.data[0] === 1) return 'Belum ada transaksi';
+        const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+        const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : 0;
+        return ctx.label + ': ' + ctx.parsed + ' Kg (' + pct + '%)';
+      }}
+    }
+  }
+};
+
+let barChart = null;
+let pieChart = null;
+
+function buildBarData(labels, data) {
+  return {
+    labels: labels,
+    datasets: [{
+      label: 'Berat (Kg)', data: data,
+      backgroundColor: 'rgba(134,187,76,0.65)',
+      borderColor: 'rgba(134,187,76,0.9)',
+      borderWidth: 1, borderRadius: 4, barPercentage: 0.55
+    }]
+  };
+}
+
+function buildPieData(labels, data) {
+  const hasData = labels && labels.length > 0;
+  return {
+    labels: hasData ? labels : ['Belum ada data'],
+    datasets: [{
+      data: hasData ? data : [1],
+      backgroundColor: hasData ? BG_COLORS.slice(0, labels.length) : ['rgba(78,87,73,0.3)'],
+      borderColor: hasData ? BORDER_COLORS.slice(0, labels.length) : ['rgba(78,87,73,0.3)'],
+      borderWidth: 2
+    }]
+  };
+}
+
+function fetchChartData() {
+  const wargaId = document.getElementById('filterWarga').value;
+  const kategoriId = document.getElementById('filterKategori').value;
+
+  const params = new URLSearchParams();
+  if (wargaId) params.set('wargaId', wargaId);
+  if (kategoriId) params.set('kategoriId', kategoriId);
+  const url = '/api/dashboard/chart-data' + (params.toString() ? '?' + params.toString() : '');
+
+  fetch(url)
+    .then(res => res.json())
+    .then(data => {
+      if (barChart) {
+        barChart.data = buildBarData(data.labelBulan, data.dataBeratPerBulan);
+        barChart.update();
+      }
+      if (pieChart) {
+        pieChart.data = buildPieData(data.labelKategori, data.dataKategori);
+        pieChart.update();
+      }
+    })
+    .catch(err => console.error('Gagal memuat chart data:', err));
+}
+
 function initCharts() {
+  const barCtx = document.getElementById('barChart');
+  const pieCtx = document.getElementById('doughnutChart');
 
-  if (document.getElementById('barChart')) {
-    new Chart(document.getElementById('barChart'), {
-      type: 'bar',
-      data: {
-        labels: labelBulan,
-        datasets: [{
-          label: 'Berat (Kg)',
-          data: dataBeratPerBulan,
-          backgroundColor: 'rgba(134,187,76,0.65)',
-          borderColor: 'rgba(134,187,76,0.9)',
-          borderWidth: 1,
-          borderRadius: 4,
-          barPercentage: 0.55
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: '#1a1e16',
-            titleColor: '#e8ede2',
-            bodyColor: '#86bb4c',
-            borderColor: 'rgba(134,187,76,0.2)',
-            borderWidth: 1,
-            cornerRadius: 8,
-            padding: 10,
-            callbacks: {
-              label: ctx => ctx.parsed.y + ' Kg'
-            }
-          }
-        },
-        scales: {
-          x: {
-            grid: { display: false },
-            ticks: { color: '#8a9480', font: { size: 11 } }
-          },
-          y: {
-            beginAtZero: true,
-            grid: { color: 'rgba(134,187,76,0.06)' },
-            ticks: {
-              color: '#8a9480',
-              font: { size: 11 },
-              callback: val => val + ' Kg'
-            }
-          }
-        }
-      }
-    });
-  }
+  const emptyBulan = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+  const emptyBerat = [0,0,0,0,0,0,0,0,0,0,0,0];
 
-  if (document.getElementById('doughnutChart')) {
-    const bgColors = [
-      'rgba(134,187,76,0.75)',
-      'rgba(42,156,122,0.75)',
-      'rgba(200,137,26,0.75)',
-      'rgba(184,84,84,0.75)',
-      'rgba(100,140,200,0.75)',
-      'rgba(160,110,190,0.75)',
-      'rgba(200,160,60,0.75)',
-      'rgba(80,180,200,0.75)'
-    ];
-    const borderColors = bgColors.map(c => c.replace('0.75', '1'));
+  if (barCtx) barChart = new Chart(barCtx, { type: 'bar', data: buildBarData(emptyBulan, emptyBerat), options: BAR_OPTIONS });
+  if (pieCtx) pieChart = new Chart(pieCtx, { type: 'doughnut', data: buildPieData([], []), options: PIE_OPTIONS });
 
-    new Chart(document.getElementById('doughnutChart'), {
-      type: 'doughnut',
-      data: {
-        labels: labelKategori.length ? labelKategori : ['Belum ada data'],
-        datasets: [{
-          data: labelKategori.length ? dataKategori : [1],
-          backgroundColor: labelKategori.length ? bgColors.slice(0, labelKategori.length) : ['rgba(78,87,73,0.3)'],
-          borderColor: labelKategori.length ? borderColors.slice(0, labelKategori.length) : ['rgba(78,87,73,0.3)'],
-          borderWidth: 2
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        cutout: '55%',
-        plugins: {
-          legend: {
-            position: 'bottom',
-            labels: {
-              color: '#8a9480',
-              font: { size: 11 },
-              padding: 12,
-              usePointStyle: true,
-              pointStyleWidth: 8
-            }
-          },
-          tooltip: {
-            backgroundColor: '#1a1e16',
-            titleColor: '#e8ede2',
-            bodyColor: '#86bb4c',
-            borderColor: 'rgba(134,187,76,0.2)',
-            borderWidth: 1,
-            cornerRadius: 8,
-            padding: 10,
-            callbacks: {
-              label: ctx => {
-                if (labelKategori.length === 0) return 'Belum ada transaksi';
-                const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : 0;
-                return ctx.label + ': ' + ctx.parsed + ' Kg (' + pct + '%)';
-              }
-            }
-          }
-        }
-      }
-    });
-  }
+  fetchChartData();
+
+  document.getElementById('filterWarga').addEventListener('change', fetchChartData);
+  document.getElementById('filterKategori').addEventListener('change', fetchChartData);
 }
 
 document.addEventListener('DOMContentLoaded', initCharts);
-/*]]>*/
 </script>
 
 </body>

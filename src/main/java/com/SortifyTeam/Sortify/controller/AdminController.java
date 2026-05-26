@@ -32,19 +32,25 @@ public class AdminController {
     private final TransaksiDetailRepository transaksiDetailRepo;
     private final PenukaranRewardRepository penukaranRepo;
     private final FileStorageService fileStorageService;
+    private final WargaRepository wargaRepo;
+    private final KategoriSampahRepository kategoriRepo;
 
     public AdminController(UserRepository userRepo,
                            RewardService rewardService,
                            TransaksiRepository transaksiRepo,
                            TransaksiDetailRepository transaksiDetailRepo,
                            PenukaranRewardRepository penukaranRepo,
-                           FileStorageService fileStorageService) {
+                           FileStorageService fileStorageService,
+                           WargaRepository wargaRepo,
+                           KategoriSampahRepository kategoriRepo) {
         this.userRepo = userRepo;
         this.rewardService = rewardService;
         this.transaksiRepo = transaksiRepo;
         this.transaksiDetailRepo = transaksiDetailRepo;
         this.penukaranRepo = penukaranRepo;
         this.fileStorageService = fileStorageService;
+        this.wargaRepo = wargaRepo;
+        this.kategoriRepo = kategoriRepo;
     }
 
     @GetMapping("/dashboard")
@@ -92,6 +98,10 @@ public class AdminController {
         }
         model.addAttribute("labelKategori", labelKategori);
         model.addAttribute("dataKategori", dataKategori);
+
+        // ── Data untuk filter dropdown ──
+        model.addAttribute("daftarWarga", wargaRepo.findAll());
+        model.addAttribute("daftarKategori", kategoriRepo.findAll());
 
         return "admin-dashboard";
     }

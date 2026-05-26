@@ -21,4 +21,14 @@ public interface TransaksiRepository extends JpaRepository<Transaksi, Long> {
            "FROM Transaksi t WHERE t.status = 'SELESAI' AND FUNCTION('YEAR', t.tanggalTransaksi) = :year " +
            "GROUP BY FUNCTION('MONTH', t.tanggalTransaksi) ORDER BY FUNCTION('MONTH', t.tanggalTransaksi)")
     List<Object[]> getMonthlyBerat(@Param("year") int year);
+
+    @Query("SELECT FUNCTION('MONTH', td.transaksi.tanggalTransaksi), COALESCE(SUM(td.beratFinal), 0) " +
+           "FROM TransaksiDetail td WHERE td.transaksi.status = 'SELESAI' AND td.beratFinal IS NOT NULL " +
+           "AND FUNCTION('YEAR', td.transaksi.tanggalTransaksi) = :year " +
+           "AND (:wargaId IS NULL OR td.transaksi.warga.idWarga = :wargaId) " +
+           "AND (:kategoriId IS NULL OR td.kategoriSampah.idKategori = :kategoriId) " +
+           "GROUP BY FUNCTION('MONTH', td.transaksi.tanggalTransaksi) ORDER BY FUNCTION('MONTH', td.transaksi.tanggalTransaksi)")
+    List<Object[]> getMonthlyBeratFiltered(@Param("year") int year,
+                                           @Param("wargaId") Long wargaId,
+                                           @Param("kategoriId") Long kategoriId);
 }
