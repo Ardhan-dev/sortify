@@ -27,7 +27,7 @@ public class StaffWebController {
 
     @GetMapping
     public String halamanStaff(Model model) {
-        List<Staff> daftarStaff = staffRepo.findAll();
+        List<User> daftarStaff = userRepo.findByRole(User.Role.PETUGAS);
         model.addAttribute("daftarStaff", daftarStaff);
         return "staff-view";
     }

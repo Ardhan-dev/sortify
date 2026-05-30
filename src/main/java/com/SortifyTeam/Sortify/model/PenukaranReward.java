@@ -27,6 +27,11 @@ public class PenukaranReward {
 
     private String fotoBukti;
 
+    private String lokasi;
+
+    @Column(unique = true)
+    private String kodePenukaran;
+
     @Column(nullable = false)
     private LocalDateTime tanggalPenukaran;
 

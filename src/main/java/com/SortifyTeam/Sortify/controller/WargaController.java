@@ -1,6 +1,7 @@
 package com.SortifyTeam.Sortify.controller;
 
 import com.SortifyTeam.Sortify.model.*;
+import com.SortifyTeam.Sortify.repository.DropPointRepository;
 import com.SortifyTeam.Sortify.repository.UserRepository;
 import com.SortifyTeam.Sortify.repository.WargaRepository;
 import com.SortifyTeam.Sortify.service.*;
@@ -28,6 +29,7 @@ public class WargaController {
     private final NotifikasiService notifService;
     private final KategoriSampahService kategoriSampahService;
     private final FileStorageService fileStorageService;
+    private final DropPointRepository dropPointRepo;
 
     public WargaController(UserRepository userRepo,
                            RewardService rewardService,
@@ -36,7 +38,8 @@ public class WargaController {
                            WargaRepository wargaRepo,
                            NotifikasiService notifService,
                            KategoriSampahService kategoriSampahService,
-                           FileStorageService fileStorageService) {
+                           FileStorageService fileStorageService,
+                           DropPointRepository dropPointRepo) {
         this.userRepo = userRepo;
         this.rewardService = rewardService;
         this.pointService = pointService;
@@ -45,6 +48,7 @@ public class WargaController {
         this.notifService = notifService;
         this.kategoriSampahService = kategoriSampahService;
         this.fileStorageService = fileStorageService;
+        this.dropPointRepo = dropPointRepo;
     }
 
     private User getCurrentUser(Authentication auth) {
@@ -90,6 +94,7 @@ public class WargaController {
     @GetMapping("/transaksi/tambah")
     public String formTambahTransaksi(Model model) {
         model.addAttribute("kategoriList", kategoriSampahService.getSemua());
+        model.addAttribute("dropPointList", dropPointRepo.findByAktifTrueOrderByNamaAsc());
         return "warga-form-transaksi";
     }
 
@@ -136,18 +141,21 @@ public class WargaController {
         model.addAttribute("rewardList", rewardService.getRewardTersedia());
         model.addAttribute("riwayatPenukaran", rewardService.getRiwayatPenukaran(warga));
         model.addAttribute("riwayatPoint", pointService.getRiwayatPoint(warga));
+        model.addAttribute("dropPointList", dropPointRepo.findByAktifTrueOrderByNamaAsc());
         return "warga-reward";
     }
 
-    @PostMapping("/reward/tukar/{id}")
-    public String tukarReward(Authentication auth, @PathVariable Long id,
+    @PostMapping("/reward/tukar")
+    public String tukarReward(Authentication auth,
+                              @RequestParam("rewardId") Long rewardId,
+                              @RequestParam("lokasi") String lokasi,
                               RedirectAttributes redirectAttributes) {
         User warga = getCurrentUser(auth);
         try {
-            rewardService.tukarReward(warga, id);
-            redirectAttributes.addFlashAttribute("success", "Reward berhasil ditukar!");
+            rewardService.tukarReward(warga, rewardId, lokasi);
+            redirectAttributes.addFlashAttribute("success", "Reward berhasil ditukar! Silakan ambil di " + lokasi + ".");
         } catch (RuntimeException e) {
-            log.error("[ERROR] Gagal menukar reward #{}: {}", id, e.getMessage());
+            log.error("[ERROR] Gagal menukar reward #{}: {}", rewardId, e.getMessage());
             redirectAttributes.addFlashAttribute("error", "Gagal menukar reward: " + e.getMessage());
         }
         return "redirect:/warga/reward";

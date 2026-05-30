@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sortify — Profil Saya</title>
+  <title>Sortify — Dashboard Saya</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
   <style>
@@ -13,13 +13,14 @@
       --border: rgba(134, 187, 76, 0.12); --border-hover: rgba(134, 187, 76, 0.28);
       --accent: #86bb4c; --accent-dim: rgba(134, 187, 76, 0.08);
       --text-primary: #e8ede2; --text-secondary: #8a9480; --text-muted: #4e5749;
+      --teal: #2a9c7a; --amber: #c8891a; --amber-dim: rgba(200, 137, 26, 0.08);
       --mono: 'Space Mono', monospace; --sans: 'DM Sans', sans-serif;
       --red: #e05454; --red-dim: rgba(224, 84, 84, 0.08);
       --yellow: #d4a843; --yellow-dim: rgba(212, 168, 67, 0.08);
     }
     body { background: var(--bg); color: var(--text-primary); font-family: var(--sans); font-size: 15px; min-height: 100vh; }
     body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(134,187,76,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(134,187,76,0.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; }
-    .wrapper { position: relative; z-index: 1; max-width: 700px; margin: 0 auto; padding: 0 2rem 4rem; }
+    .wrapper { position: relative; z-index: 1; max-width: 720px; margin: 0 auto; padding: 0 2rem 4rem; }
 
     header { padding: 2rem 0 0; }
     .topbar { display: flex; align-items: center; justify-content: space-between; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
@@ -29,8 +30,8 @@
     .brand-name { font-family: var(--mono); font-size: 18px; font-weight: 700; color: var(--accent); }
     .brand-version { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; }
 
-    .logout-btn { display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 11px; color: var(--text-muted); text-decoration: none; border: 1px solid var(--border); border-radius: 7px; padding: 0.45rem 0.9rem; transition: all 0.15s; }
-    .logout-btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .logout-btn { display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 11px; color: var(--text-muted); text-decoration: none; border: 1px solid var(--border); border-radius: 7px; padding: 0.45rem 0.9rem; background: transparent; cursor: pointer; }
+    .logout-btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; }
     .logout-btn:hover { border-color: var(--border-hover); color: var(--text-primary); }
 
     .page-head { padding: 3rem 0 2rem; }
@@ -39,16 +40,15 @@
     .page-title { font-size: 2rem; font-weight: 300; letter-spacing: -1px; }
     .page-title strong { font-weight: 500; color: var(--accent); }
 
-    /* Profile Card */
-    .profile-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; animation: fadeUp 0.45s ease both; }
     @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    .animate { animation: fadeUp 0.45s ease both; }
 
+    .profile-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
     .profile-card-header { padding: 1.5rem 1.75rem; background: var(--surface-raised); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; }
     .avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--accent-dim); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .avatar svg { width: 24px; height: 24px; stroke: var(--accent); fill: none; stroke-width: 2; }
     .profile-name { font-size: 1.1rem; font-weight: 500; color: var(--text-primary); }
-    .profile-badge { display: inline-flex; align-items: center; gap: 5px; margin-top: 4px; padding: 2px 8px; background: var(--accent-dim); border: 1px solid rgba(134,187,76,0.2); border-radius: 20px; font-family: var(--mono); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); }
-
+    .profile-badge { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; background: var(--accent-dim); border: 1px solid rgba(134,187,76,0.2); border-radius: 20px; font-family: var(--mono); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); margin-top: 4px; }
     .profile-body { padding: 1.75rem; }
     .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
     .info-item { display: flex; flex-direction: column; gap: 4px; }
@@ -56,63 +56,50 @@
     .info-value { font-size: 14px; color: var(--text-primary); }
     .info-value.mono { font-family: var(--mono); font-size: 13px; }
 
-    /* Section header shared */
+    .action-bar { display:flex; gap:10px; margin: 1.5rem 0; flex-wrap:wrap; }
+    .action-bar a { display:inline-flex; align-items:center; gap:7px; padding:0.55rem 1.1rem; font-family:var(--mono); font-size:11px; letter-spacing:0.5px; text-transform:uppercase; text-decoration:none; border-radius:7px; }
+    .btn-primary { background:var(--accent); color:var(--bg); border:1px solid var(--accent); }
+    .btn-primary:hover { background:#97cc5a; }
+    .btn-outline { background:transparent; color:var(--text-secondary); border:1px solid var(--border); }
+    .btn-outline:hover { border-color:var(--border-hover); color:var(--text-primary); }
+
     .section-head { display: flex; align-items: center; justify-content: space-between; margin: 2.5rem 0 1rem; }
     .section-label { font-family: var(--mono); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); display: flex; align-items: center; gap: 8px; }
     .section-label::before { content: ''; display: block; width: 16px; height: 1px; background: var(--accent); }
     .section-count { font-family: var(--mono); font-size: 10px; color: var(--text-muted); background: var(--surface-raised); border: 1px solid var(--border); border-radius: 20px; padding: 2px 10px; }
 
-    /* Transaction list */
     .tx-list { display: flex; flex-direction: column; gap: 0.6rem; }
-
     .tx-item {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 1rem 1.25rem;
-      display: grid;
-      grid-template-columns: auto 1fr auto;
-      align-items: center;
-      gap: 1rem;
-      animation: fadeUp 0.4s ease both;
-      transition: border-color 0.15s;
-      cursor: default;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem;
+      display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 1rem;
+      cursor: pointer; transition: border-color 0.15s, background 0.15s;
     }
-    .tx-item:hover { border-color: var(--border-hover); }
-
-    /* stagger */
+    .tx-item:hover { border-color: var(--border-hover); background: var(--surface-raised); }
     .tx-item:nth-child(1) { animation-delay: 0.05s; }
     .tx-item:nth-child(2) { animation-delay: 0.10s; }
     .tx-item:nth-child(3) { animation-delay: 0.15s; }
     .tx-item:nth-child(4) { animation-delay: 0.20s; }
-    .tx-item:nth-child(5) { animation-delay: 0.25s; }
 
-    .tx-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .tx-icon svg { width: 16px; height: 16px; fill: none; stroke-width: 2; }
-    .tx-icon.organik  { background: var(--accent-dim);  }  .tx-icon.organik  svg { stroke: var(--accent); }
-    .tx-icon.anorganik{ background: var(--yellow-dim);  }  .tx-icon.anorganik svg { stroke: var(--yellow); }
-    .tx-icon.b3       { background: var(--red-dim);     }  .tx-icon.b3       svg { stroke: var(--red); }
+    .tx-thumb { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border); display: block; }
+    .tx-thumb-empty { width: 40px; height: 40px; border-radius: 8px; background: var(--surface-raised); border: 1px dashed var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .tx-thumb-empty svg { width: 16px; height: 16px; stroke: var(--text-muted); fill: none; stroke-width: 1.5; }
 
     .tx-meta { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-    .tx-jenis { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .tx-jenis.organik   { color: var(--accent); }
-    .tx-jenis.anorganik { color: var(--yellow); }
-    .tx-jenis.b3        { color: var(--red); }
-
+    .tx-jenis { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--accent); }
     .tx-sub { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .tx-id { font-family: var(--mono); font-size: 9px; color: var(--text-muted); }
+    .tx-rec { font-family: var(--mono); font-size: 8px; letter-spacing: 0.5px; padding: 1px 6px; border-radius: 4px; background: var(--surface-raised); border: 1px solid var(--border); color: var(--text-muted); }
     .tx-dot { width: 2px; height: 2px; border-radius: 50%; background: var(--text-muted); }
     .tx-date { font-family: var(--mono); font-size: 9px; color: var(--text-muted); }
 
     .tx-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
     .tx-berat { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--text-primary); }
+    .tx-poin { font-family: var(--mono); font-size: 10px; color: var(--accent); }
     .tx-status { display: inline-flex; align-items: center; gap: 4px; font-family: var(--mono); font-size: 9px; letter-spacing: 0.5px; padding: 2px 7px; border-radius: 20px; }
-    .tx-status.selesai  { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(134,187,76,0.18); }
-    .tx-status.proses   { background: var(--yellow-dim); color: var(--yellow); border: 1px solid rgba(212,168,67,0.18); }
-    .tx-status.ditolak  { background: var(--red-dim);    color: var(--red);    border: 1px solid rgba(224,84,84,0.18); }
-    .tx-status::before  { content: ''; display: block; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+    .tx-status.selesai { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(134,187,76,0.18); }
+    .tx-status.proses { background: var(--yellow-dim); color: var(--yellow); border: 1px solid rgba(212,168,67,0.18); }
+    .tx-status.pending { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(200,137,26,0.18); }
+    .tx-status::before { content: ''; display: block; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
 
-    /* Empty state */
     .tx-empty { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 2.5rem 1.5rem; text-align: center; }
     .tx-empty-icon { width: 44px; height: 44px; border-radius: 50%; background: var(--surface-raised); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; }
     .tx-empty-icon svg { width: 20px; height: 20px; stroke: var(--text-muted); fill: none; stroke-width: 2; }
@@ -121,184 +108,283 @@
     footer { border-top: 1px solid var(--border); padding: 1.5rem 0; margin-top: 3rem; display: flex; justify-content: space-between; }
     .footer-id { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 1px; }
 
+    .modal-overlay { position: fixed; inset: 0; z-index: 999; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
+    .modal-overlay.active { display: flex; }
+    .modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 2rem 2.5rem; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; animation: fadeUp 0.25s ease both; }
+    .modal-title { font-family: var(--mono); font-size: 13px; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); margin-bottom: 0.25rem; }
+    .modal-rec { font-family: var(--mono); font-size: 10px; color: var(--text-muted); margin-bottom: 1rem; letter-spacing: 0.5px; }
+    .modal-info { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem 1.5rem; margin-bottom: 1.25rem; padding: 1rem; background: var(--surface-raised); border: 1px solid var(--border); border-radius: 8px; }
+    .modal-info-item { display: flex; flex-direction: column; }
+    .modal-info-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-muted); }
+    .modal-info-value { font-size: 14px; color: var(--text-primary); font-weight: 500; }
+    .modal-photos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.25rem; }
+    .modal-photo-item { text-align: center; padding: 0.75rem; background: var(--surface-raised); border: 1px solid var(--border); border-radius: 8px; }
+    .modal-photo-label { display: block; font-family: var(--mono); font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; }
+    .modal-photo-item img { max-width: 100%; max-height: 140px; border-radius: 6px; cursor: pointer; border: 1px solid var(--border); }
+    .modal-photo-item img:hover { border-color: var(--border-hover); }
+    .modal-detail-row { display: flex; justify-content: space-between; align-items: center; padding: 0.65rem 1rem; background: var(--surface-raised); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 0.4rem; }
+    .modal-detail-name { font-size: 13px; font-weight: 500; }
+    .modal-detail-nums { font-family: var(--mono); font-size: 11px; color: var(--text-muted); text-align: right; }
+    .modal-detail-nums .green { color: var(--accent); }
+    .modal-total { font-family: var(--mono); font-size: 12px; color: var(--text-muted); text-align: right; padding: 0.5rem 1rem; background: var(--accent-dim); border: 1px solid rgba(134,187,76,0.2); border-radius: 8px; margin-top: 0.5rem; }
+    .modal-total strong { color: var(--accent); font-size: 14px; }
+    .btn-modal-tutup { display: inline-flex; align-items: center; gap: 5px; padding: 0.5rem 1.2rem; font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); cursor: pointer; margin-top: 1.25rem; }
+    .btn-modal-tutup:hover { border-color: var(--border-hover); color: var(--text-secondary); }
+
     .badge-pangkat { display:inline-flex; align-items:center; gap:4px; font-family:var(--mono); font-size:9px; letter-spacing:0.5px; padding:2px 10px; border-radius:20px; white-space:nowrap; }
     .badge-pangkat.secondary { background:rgba(142,148,128,0.15); color:var(--text-secondary); border:1px solid rgba(142,148,128,0.25); }
-    .badge-pangkat.info    { background:rgba(42,156,122,0.12); color:#2a9c7a; border:1px solid rgba(42,156,122,0.25); }
-    .badge-pangkat.warning { background:rgba(200,137,26,0.12);  color:#c8891a; border:1px solid rgba(200,137,26,0.25); }
-    .badge-pangkat.success { background:rgba(134,187,76,0.15);  color:var(--accent); border:1px solid rgba(134,187,76,0.3); }
+    .badge-pangkat.info { background:rgba(42,156,122,0.12); color:#2a9c7a; border:1px solid rgba(42,156,122,0.25); }
+    .badge-pangkat.warning { background:rgba(200,137,26,0.12); color:var(--amber); border:1px solid rgba(200,137,26,0.25); }
+    .badge-pangkat.success { background:rgba(134,187,76,0.15); color:var(--accent); border:1px solid rgba(134,187,76,0.3); }
+
     @media (max-width: 480px) {
       .info-grid { grid-template-columns: 1fr; }
       .tx-item { grid-template-columns: auto 1fr; }
       .tx-right { display: none; }
+      .modal-box { padding: 1.5rem; }
+      .modal-photos { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 <div class="wrapper">
-
   <header>
     <div class="topbar">
       <a href="/" class="brand">
-        <div class="brand-icon">
-          <svg viewBox="0 0 24 24"><path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.35C16.5 22.15 20 17.25 20 12V6L12 2zm-1 13l-3-3 1.4-1.4 1.6 1.6 4.6-4.6 1.4 1.4L11 15z"/></svg>
-        </div>
-        <div>
-          <div class="brand-name">Sortify</div>
-          <div class="brand-version">v1.0 · OOP Waste System</div>
-        </div>
+        <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.35C16.5 22.15 20 17.25 20 12V6L12 2z"/></svg></div>
+        <div><div class="brand-name">Sortify</div><div class="brand-version">v1.0 · OOP Waste System</div></div>
       </a>
       <form action="/logout" method="post" style="margin:0;">
-        <button type="submit" class="logout-btn" style="border:1px solid var(--border); background:transparent; cursor:pointer; display:inline-flex; align-items:center; gap:7px; font-family:var(--mono); font-size:11px; color:var(--text-muted); text-decoration:none; border-radius:7px; padding:0.45rem 0.9rem; transition:all 0.15s;">
-          <svg viewBox="0 0 24 24" width="13" height="13"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <button type="submit" class="logout-btn">
+          <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
           Keluar
         </button>
       </form>
     </div>
   </header>
 
-  <!-- Flash Messages -->
-  <div th:if="${success}" style="background:var(--accent-dim); border:1px solid rgba(134,187,76,0.3); border-radius:10px; padding:0.85rem 1.25rem; margin-bottom:1rem; font-family:var(--mono); font-size:11px; color:var(--accent); display:flex; align-items:center; gap:8px;">
-    <span th:text="${success}">✓ Berhasil!</span>
+  <div th:if="${success}" style="background:var(--accent-dim); border:1px solid rgba(134,187,76,0.3); border-radius:10px; padding:0.85rem 1.25rem; margin-bottom:1rem; font-family:var(--mono); font-size:11px; color:var(--accent); display:flex; align-items:center; gap:8px;" class="animate">
+    <span th:text="${success}">Berhasil!</span>
   </div>
-  <div th:if="${error}" style="background:var(--red-dim); border:1px solid rgba(224,84,84,0.3); border-radius:10px; padding:0.85rem 1.25rem; margin-bottom:1rem; font-family:var(--mono); font-size:11px; color:var(--red); display:flex; align-items:center; gap:8px;">
-    <span th:text="${error}">✗ Error</span>
+  <div th:if="${error}" style="background:var(--red-dim); border:1px solid rgba(224,84,84,0.3); border-radius:10px; padding:0.85rem 1.25rem; margin-bottom:1rem; font-family:var(--mono); font-size:11px; color:var(--red); display:flex; align-items:center; gap:8px;" class="animate">
+    <span th:text="${error}">Error</span>
   </div>
 
-  <!-- Notifikasi Alert -->
-  <div th:if="${notifikasiList != null and !notifikasiList.isEmpty()}" style="margin-bottom:1.25rem; display:flex; flex-direction:column; gap:8px;">
+  <div th:if="${notifikasiList != null and !notifikasiList.isEmpty()}" style="margin-bottom:1.25rem; display:flex; flex-direction:column; gap:8px;" class="animate">
     <div th:each="notif : ${notifikasiList}"
-         style="background:var(--accent-dim); border:1px solid rgba(134,187,76,0.25); border-radius:10px; padding:0.85rem 1.25rem; display:flex; align-items:flex-start; justify-content:space-between; gap:12px; animation:fadeUp 0.3s ease both;">
+         style="background:var(--accent-dim); border:1px solid rgba(134,187,76,0.25); border-radius:10px; padding:0.85rem 1.25rem; display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
       <div style="display:flex; align-items:flex-start; gap:10px; flex:1; min-width:0;">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--accent)" stroke-width="2" style="flex-shrink:0; margin-top:2px;">
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-        </svg>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--accent)" stroke-width="2" style="flex-shrink:0; margin-top:2px;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         <div style="font-size:13px; color:var(--text-primary); line-height:1.5; word-break:break-word;" th:text="${notif.pesan}">Pesan notifikasi</div>
       </div>
       <form th:action="@{/warga/notifikasi/baca/{id}(id=${notif.id})}" method="post" style="flex-shrink:0; margin:0;">
-        <button type="submit" style="background:none; border:none; cursor:pointer; color:var(--text-muted); padding:2px; display:flex; align-items:center; transition:color 0.15s;"
+        <button type="submit" style="background:none; border:none; cursor:pointer; color:var(--text-muted); padding:2px; display:flex; align-items:center;"
                 onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color=''">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </form>
     </div>
     <form th:action="@{/warga/notifikasi/baca-semua}" method="post" style="margin:0;">
-      <button type="submit" style="display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10px; letter-spacing:0.5px; color:var(--text-muted); background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:6px 12px; cursor:pointer; transition:all 0.15s;">
+      <button type="submit" style="display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10px; letter-spacing:0.5px; color:var(--text-muted); background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:6px 12px; cursor:pointer;">
         Tandai semua sudah dibaca
       </button>
     </form>
   </div>
 
-  <div class="page-head">
-    <div class="page-label">Modul 03 · Profil</div>
+  <div class="page-head animate">
+    <div class="page-label">Dashboard</div>
     <h1 class="page-title">Profil <strong>Saya</strong></h1>
   </div>
 
-  <!-- Profile Card -->
-  <div class="profile-card">
+  <div class="profile-card animate">
     <div class="profile-card-header">
-      <div class="avatar">
-        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      </div>
+      <div class="avatar"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
       <div>
         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
           <div class="profile-name" th:text="${warga.fullName}">Nama Warga</div>
-          <span th:if="${warga.pangkat}"
-                th:text="${warga.pangkat}"
-                th:classappend="'badge-pangkat ' + ${warga.badgePangkat}"
-                style="font-family:var(--mono); font-size:9px; letter-spacing:0.5px; padding:2px 10px; border-radius:20px; white-space:nowrap;">
-            Bronze
-          </span>
+          <span th:if="${warga.pangkat}" th:text="${warga.pangkat}" th:classappend="'badge-pangkat ' + ${warga.badgePangkat}" style="font-family:var(--mono); font-size:9px; letter-spacing:0.5px; padding:2px 10px; border-radius:20px; white-space:nowrap;">Bronze</span>
         </div>
-        <div class="profile-badge">
-          <svg viewBox="0 0 24 24" width="9" height="9"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          Warga
-        </div>
+        <div class="profile-badge"><svg viewBox="0 0 24 24" width="9" height="9"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Warga</div>
       </div>
     </div>
-
     <div class="profile-body">
       <div class="info-grid">
-        <div class="info-item">
-          <div class="info-label">ID Warga</div>
-          <div class="info-value mono" th:text="'#' + ${warga.id}">—</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Username</div>
-          <div class="info-value mono" th:text="${warga.username}">—</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Nama Lengkap</div>
-          <div class="info-value" th:text="${warga.fullName}">—</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Total Poin</div>
-          <div class="info-value mono" th:text="${warga.totalPoints} + ' poin'">—</div>
-        </div>
+        <div class="info-item"><div class="info-label">ID Warga</div><div class="info-value mono" th:text="'#' + ${warga.id}">—</div></div>
+        <div class="info-item"><div class="info-label">Username</div><div class="info-value mono" th:text="${warga.username}">—</div></div>
+        <div class="info-item"><div class="info-label">Nama Lengkap</div><div class="info-value" th:text="${warga.fullName}">—</div></div>
+        <div class="info-item"><div class="info-label">Total Poin</div><div class="info-value mono" th:text="${warga.totalPoints} + ' poin'">—</div></div>
       </div>
     </div>
   </div>
 
-  <!-- Action Buttons -->
-  <div style="display:flex; gap:10px; margin: 1.5rem 0; flex-wrap:wrap;">
-    <a href="/warga/transaksi/tambah" style="display:inline-flex; align-items:center; gap:7px; padding:0.55rem 1.1rem; font-family:var(--mono); font-size:11px; letter-spacing:0.5px; text-transform:uppercase; text-decoration:none; border-radius:7px; background:var(--accent); color:var(--bg); border:1px solid var(--accent); transition:background 0.18s;">
+  <div class="action-bar animate">
+    <a href="/warga/transaksi/tambah" class="btn-primary">
       <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       + Drop Point
     </a>
-    <a href="/warga/reward" style="display:inline-flex; align-items:center; gap:7px; padding:0.55rem 1.1rem; font-family:var(--mono); font-size:11px; letter-spacing:0.5px; text-transform:uppercase; text-decoration:none; border-radius:7px; background:transparent; color:var(--text-secondary); border:1px solid var(--border); transition:all 0.18s;">
+    <a href="/warga/reward" class="btn-outline">
       <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
       Reward
     </a>
-    <a href="/kamus-sampah" style="display:inline-flex; align-items:center; gap:7px; padding:0.55rem 1.1rem; font-family:var(--mono); font-size:11px; letter-spacing:0.5px; text-transform:uppercase; text-decoration:none; border-radius:7px; background:transparent; color:var(--text-secondary); border:1px solid var(--border); transition:all 0.18s;">
+    <a href="/kamus-sampah" class="btn-outline">
       <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
       Kamus Sampah
     </a>
   </div>
 
-  <!-- Transaksi Drop Point History -->
-  <div class="section-head">
+  <div class="section-head animate">
     <div class="section-label">History Drop Point</div>
     <span class="section-count" th:text="${transaksiList != null ? #lists.size(transaksiList) + ' transaksi' : '0 transaksi'}">0 transaksi</span>
   </div>
 
   <div class="tx-list" th:if="${transaksiList != null and !transaksiList.isEmpty()}">
-    <div class="tx-item" th:each="t : ${transaksiList}">
-      <div class="tx-icon" style="background:var(--accent-dim);">
-        <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2">
-          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-        </svg>
-      </div>
+    <div class="tx-item animate" th:each="t : ${transaksiList}"
+         th:attr="data-id=${t.idTransaksi},
+                  data-tanggal=${#temporals.format(t.tanggalTransaksi, 'dd MMM yyyy HH:mm')},
+                  data-lokasi=${t.lokasi ?: '-'},
+                  data-status=${t.status},
+                  data-berat=${t.totalBerat != null ? t.totalBerat : 0},
+                  data-poin=${t.totalPoin != null ? t.totalPoin : 0},
+                  data-foto-warga=${t.fotoLaporanWarga != null ? '/uploads/' + t.fotoLaporanWarga : ''},
+                  data-foto-bukti=${t.fotoBuktiTimbangan != null ? '/uploads/' + t.fotoBuktiTimbangan : ''},
+                  data-details=${#strings.listJoin(t.details.![kategoriSampah?.namaKategori + '|' + (beratEstimasi ?: 0) + '|' + (beratFinal ?: 0) + '|' + (subTotalPoin ?: 0)], ',')}"
+         onclick="openDetail(this)">
+
+      <img th:if="${t.fotoLaporanWarga != null}" th:src="@{'/uploads/' + ${t.fotoLaporanWarga}}" class="tx-thumb" alt="foto">
+      <div th:if="${t.fotoLaporanWarga == null}" class="tx-thumb-empty"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
       <div class="tx-meta">
-        <div class="tx-jenis" style="color:var(--accent); font-size:12px;" th:text="${t.details != null and !t.details.isEmpty()} ? ${#strings.listJoin(t.details.![kategoriSampah.namaKategori + ' ' + (beratFinal != null ? beratFinal : beratEstimasi) + 'kg'], ', ')} : 'Drop Point'">Drop Point</div>
+        <div class="tx-jenis" th:if="${t.details != null and !t.details.isEmpty()}" th:text="${#strings.listJoin(t.details.![kategoriSampah.namaKategori], ', ')}">Drop Point</div>
+        <div class="tx-jenis" th:if="${t.details == null or t.details.isEmpty()}">Drop Point</div>
         <div class="tx-sub">
-          <span class="tx-id" th:text="'#DP-' + ${t.idTransaksi}">—</span>
+          <span class="tx-rec"><span th:text="'REC-' + ${#strings.substring(#strings.replace(#temporals.format(t.tanggalTransaksi, 'yyyyMMdd'), '-', ''), 0, 8)} + '-' + ${t.idTransaksi}">REC-20260530-001</span></span>
           <span class="tx-dot"></span>
           <span class="tx-date" th:text="${#temporals.format(t.tanggalTransaksi, 'dd MMM yyyy')}">—</span>
         </div>
       </div>
       <div class="tx-right">
-        <div class="tx-berat" th:text="${t.totalBerat != null ? t.totalBerat + ' kg' : '— kg'}">— kg</div>
+        <div class="tx-berat" th:if="${t.totalBerat != null}" th:text="${t.totalBerat} + ' kg'"><!-- --></div>
+        <div class="tx-berat" th:if="${t.totalBerat == null}">— kg</div>
+        <div class="tx-poin" th:if="${t.totalPoin != null}" th:text="'+' + ${t.totalPoin} + ' poin'">+0 poin</div>
         <div class="tx-status"
-             th:classappend="${t.status.name() == 'SELESAI'} ? 'selesai' : (${t.status.name() == 'DIPROSES'} ? 'proses' : 'proses')"
-             th:text="${t.status != null ? t.status.name() : 'PENDING'}">Status</div>
+             th:classappend="${t.status.name() == 'SELESAI'} ? 'selesai' : (${t.status.name() == 'DIPROSES'} ? 'proses' : 'pending')"
+             th:text="${t.status == 'SELESAI'} ? 'SELESAI' : (${t.status == 'DIPROSES'} ? 'DIPROSES' : 'PENDING')">Status</div>
       </div>
     </div>
   </div>
 
-  <div class="tx-empty" th:if="${transaksiList == null or transaksiList.isEmpty()}">
-    <div class="tx-empty-icon">
-      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-    </div>
+  <div class="tx-empty animate" th:if="${transaksiList == null or transaksiList.isEmpty()}">
+    <div class="tx-empty-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg></div>
     <div class="tx-empty-text">Belum ada transaksi drop point</div>
   </div>
 
   <footer>
-    <span class="footer-id">MODULE · 03 / PROFIL · WARGA</span>
+    <span class="footer-id">WARGA · DASHBOARD</span>
     <span class="footer-id">SORTIFY v1.0</span>
   </footer>
-
 </div>
+
+<div id="modalDetail" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title">Detail Transaksi</div>
+    <div class="modal-rec" id="recNo">—</div>
+    <div class="modal-info">
+      <div class="modal-info-item"><span class="modal-info-label">ID</span><span class="modal-info-value" id="detId">—</span></div>
+      <div class="modal-info-item"><span class="modal-info-label">Status</span><span class="modal-info-value" id="detStatus">—</span></div>
+      <div class="modal-info-item"><span class="modal-info-label">Tanggal</span><span class="modal-info-value" id="detTanggal">—</span></div>
+      <div class="modal-info-item"><span class="modal-info-label">Lokasi</span><span class="modal-info-value" id="detLokasi">—</span></div>
+    </div>
+    <div class="modal-photos">
+      <div class="modal-photo-item">
+        <span class="modal-photo-label">Foto Laporan</span>
+        <img id="detFotoWarga" src="" alt="foto" onclick="bukaFoto(this.src)" style="display:none;">
+        <span id="detFotoWargaEmpty" style="font-family:var(--mono); font-size:10px; color:var(--text-muted);">Tidak ada foto</span>
+      </div>
+      <div class="modal-photo-item">
+        <span class="modal-photo-label">Foto Bukti Timbangan</span>
+        <img id="detFotoBukti" src="" alt="foto" onclick="bukaFoto(this.src)" style="display:none;">
+        <span id="detFotoBuktiEmpty" style="font-family:var(--mono); font-size:10px; color:var(--text-muted);">Tidak ada foto</span>
+      </div>
+    </div>
+    <div id="detItemsContainer"></div>
+    <div id="detTotalContainer" class="modal-total"></div>
+    <button class="btn-modal-tutup" onclick="document.getElementById('modalDetail').classList.remove('active')">Tutup</button>
+  </div>
+</div>
+
+<div id="modalFoto" class="modal-overlay" onclick="this.classList.remove('active')" style="cursor:pointer;">
+  <div style="max-width:90vw; max-height:90vh; padding:1rem; text-align:center;" onclick="event.stopPropagation()">
+    <img id="fotoFull" src="" style="max-width:100%; max-height:80vh; border-radius:10px; border:1px solid var(--border);">
+  </div>
+</div>
+
+<script>
+  function openDetail(row) {
+    var id = row.getAttribute('data-id');
+    var tanggal = row.getAttribute('data-tanggal') || '—';
+    var lokasi = row.getAttribute('data-lokasi') || '—';
+    var status = row.getAttribute('data-status') || 'PENDING';
+    var berat = parseFloat(row.getAttribute('data-berat')) || 0;
+    var poin = parseFloat(row.getAttribute('data-poin')) || 0;
+    var fotoWarga = row.getAttribute('data-foto-warga') || '';
+    var fotoBukti = row.getAttribute('data-foto-bukti') || '';
+    var detailsStr = row.getAttribute('data-details') || '';
+
+    var rec = 'REC-' + tanggal.replace(/[^0-9]/g, '').substring(0,8) + '-' + id;
+
+    document.getElementById('detId').textContent = '#' + id;
+    document.getElementById('recNo').textContent = rec;
+    document.getElementById('detTanggal').textContent = tanggal;
+    document.getElementById('detLokasi').textContent = lokasi;
+
+    var statusEl = document.getElementById('detStatus');
+    statusEl.textContent = status;
+    statusEl.style.color = status === 'SELESAI' ? 'var(--accent)' : (status === 'DIPROSES' ? 'var(--teal)' : 'var(--amber)');
+
+    var fw = document.getElementById('detFotoWarga');
+    var fwe = document.getElementById('detFotoWargaEmpty');
+    if (fotoWarga) { fw.src = fotoWarga; fw.style.display = 'inline'; fwe.style.display = 'none'; }
+    else { fw.style.display = 'none'; fwe.style.display = 'inline'; }
+
+    var fb = document.getElementById('detFotoBukti');
+    var fbe = document.getElementById('detFotoBuktiEmpty');
+    if (fotoBukti) { fb.src = fotoBukti; fb.style.display = 'inline'; fbe.style.display = 'none'; }
+    else { fb.style.display = 'none'; fbe.style.display = 'inline'; }
+
+    var container = document.getElementById('detItemsContainer');
+    container.innerHTML = '';
+    if (detailsStr) {
+      var items = detailsStr.split(',');
+      items.forEach(function(item) {
+        var parts = item.split('|');
+        if (parts.length >= 4) {
+          var kat = parts[0], est = parseFloat(parts[1]) || 0, fin = parseFloat(parts[2]) || 0, sub = parseFloat(parts[3]) || 0;
+          var row = document.createElement('div');
+          row.className = 'modal-detail-row';
+          row.innerHTML = '<div><div class="modal-detail-name">' + kat + '</div><div style="font-family:var(--mono);font-size:10px;color:var(--text-muted);">Estimasi: ' + est.toFixed(1) + ' kg</div></div><div class="modal-detail-nums"><div>' + fin.toFixed(1) + ' kg</div><div class="green">+' + sub + ' poin</div></div>';
+          container.appendChild(row);
+        }
+      });
+    }
+
+    var totalEl = document.getElementById('detTotalContainer');
+    if (status === 'SELESAI') {
+      totalEl.innerHTML = 'Total: <strong>' + berat.toFixed(1) + ' kg</strong> · <strong>' + poin + ' poin</strong>';
+    } else {
+      totalEl.innerHTML = 'Menunggu verifikasi petugas';
+    }
+
+    document.getElementById('modalDetail').classList.add('active');
+  }
+
+  function bukaFoto(src) {
+    if (!src) return;
+    document.getElementById('fotoFull').src = src;
+    document.getElementById('modalFoto').classList.add('active');
+  }
+
+  document.getElementById('modalDetail').addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('active');
+  });
+</script>
 </body>
 </html>

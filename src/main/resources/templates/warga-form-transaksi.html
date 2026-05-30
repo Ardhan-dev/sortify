@@ -191,7 +191,10 @@
 
         <div class="form-group" style="margin-top:1.5rem;">
           <label class="form-label" for="lokasi">Lokasi Drop Point <span class="required">*</span></label>
-          <input type="text" id="lokasi" name="lokasi" class="form-input" placeholder="Contoh: Jl. Merdeka No. 10, RT 02/RW 03" required>
+          <select id="lokasi" name="lokasi" class="form-select" required>
+            <option value="">— Pilih Drop Point —</option>
+            <option th:each="dp : ${dropPointList}" th:value="${dp.nama}" th:text="${dp.nama} + ' — ' + ${dp.alamat}">Drop Point</option>
+          </select>
         </div>
 
         <div class="form-group">

@@ -1,7 +1,9 @@
 package com.SortifyTeam.Sortify.controller;
 
 import com.SortifyTeam.Sortify.model.*;
+import com.SortifyTeam.Sortify.repository.TransaksiRepository;
 import com.SortifyTeam.Sortify.service.FileStorageService;
+import com.SortifyTeam.Sortify.service.RewardService;
 import com.SortifyTeam.Sortify.service.TransaksiService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -20,12 +22,18 @@ import java.util.List;
 public class PetugasController {
 
     private final TransaksiService transaksiService;
+    private final TransaksiRepository transaksiRepo;
     private final FileStorageService fileStorageService;
+    private final RewardService rewardService;
 
     public PetugasController(TransaksiService transaksiService,
-                             FileStorageService fileStorageService) {
+                             TransaksiRepository transaksiRepo,
+                             FileStorageService fileStorageService,
+                             RewardService rewardService) {
         this.transaksiService = transaksiService;
+        this.transaksiRepo = transaksiRepo;
         this.fileStorageService = fileStorageService;
+        this.rewardService = rewardService;
     }
 
     @GetMapping("/dashboard")
@@ -33,8 +41,15 @@ public class PetugasController {
         log.info("[ACCESS] Petugas {} sedang membuka halaman Dashboard Petugas", auth.getName());
         List<Transaksi> transaksiPending = transaksiService.getTransaksiByStatus(Transaksi.StatusTransaksi.PENDING);
         List<Transaksi> transaksiDiproses = transaksiService.getTransaksiByStatus(Transaksi.StatusTransaksi.DIPROSES);
+        List<Transaksi> transaksiSelesai = transaksiRepo.findByStatusOrderByTanggalTransaksiDesc(Transaksi.StatusTransaksi.SELESAI);
         model.addAttribute("transaksiPending", transaksiPending);
         model.addAttribute("transaksiDiproses", transaksiDiproses);
+        model.addAttribute("transaksiSelesai", transaksiSelesai);
+        model.addAttribute("totalPending", transaksiPending.size());
+        model.addAttribute("totalDiproses", transaksiDiproses.size());
+        model.addAttribute("totalSelesai", transaksiSelesai.size());
+        model.addAttribute("penukaranPending", rewardService.getAllPenukaran().stream().filter(
+                p -> p.getStatus() == PenukaranReward.StatusPenukaran.PENDING).count());
         return "petugas-dashboard";
     }
 
@@ -48,6 +63,32 @@ public class PetugasController {
         } catch (Exception e) {
             log.error("[ERROR] Gagal memproses transaksi #{}: {}", id, e.getMessage(), e);
             redirectAttributes.addFlashAttribute("error", "Gagal memproses: " + e.getMessage());
+        }
+        return "redirect:/petugas/dashboard";
+    }
+
+    @GetMapping("/reward/verifikasi")
+    public String halamanVerifikasiReward(Model model) {
+        model.addAttribute("penukaranPending", rewardService.getAllPenukaran().stream().filter(
+                p -> p.getStatus() == PenukaranReward.StatusPenukaran.PENDING).count());
+        return "petugas-verifikasi-reward";
+    }
+
+    @PostMapping("/reward/verifikasi")
+    public String verifikasiReward(@RequestParam("kode") String kode,
+                                    @RequestParam(value = "fotoBukti", required = false) MultipartFile fotoBukti,
+                                    RedirectAttributes redirectAttributes) {
+        kode = kode.trim().toUpperCase();
+        try {
+            String namaFoto = null;
+            if (fotoBukti != null && !fotoBukti.isEmpty()) {
+                namaFoto = fileStorageService.storeFile(fotoBukti, null);
+            }
+            rewardService.verifikasiPenukaran(kode, namaFoto);
+            redirectAttributes.addFlashAttribute("success", "Penukaran dengan kode " + kode + " berhasil diverifikasi!");
+        } catch (RuntimeException e) {
+            log.error("[ERROR] Gagal verifikasi reward {}: {}", kode, e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Gagal: " + e.getMessage());
         }
         return "redirect:/petugas/dashboard";
     }

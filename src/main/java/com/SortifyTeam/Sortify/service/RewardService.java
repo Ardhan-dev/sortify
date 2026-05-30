@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class RewardService {
@@ -39,7 +41,7 @@ public class RewardService {
     }
 
     @Transactional
-    public void tukarReward(User warga, Long rewardItemId) {
+    public void tukarReward(User warga, Long rewardItemId, String lokasi) {
         RewardItem item = rewardItemRepo.findById(rewardItemId)
                 .orElseThrow(() -> new RuntimeException("Reward tidak ditemukan"));
 
@@ -57,9 +59,14 @@ public class RewardService {
         PenukaranReward penukaran = new PenukaranReward();
         penukaran.setWarga(warga);
         penukaran.setRewardItem(item);
+        penukaran.setLokasi(lokasi);
 
         userRepo.save(warga);
         rewardItemRepo.save(item);
+        penukaranRepo.save(penukaran);
+
+        String kode = "RDM-" + penukaran.getId() + "-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        penukaran.setKodePenukaran(kode);
         penukaranRepo.save(penukaran);
         pointService.tambahPointHistory(warga, item.getPointNeeded(),
                 PointHistory.PointType.SPEND,
@@ -68,12 +75,47 @@ public class RewardService {
             warga.getUsername(),
             warga.getRole().name(),
             "TUKAR_REWARD",
-            "Menukar " + item.getNamaBarang() + " (" + item.getPointNeeded() + " poin) — sisa poin: " + warga.getTotalPoints()
+            "Menukar " + item.getNamaBarang() + " (" + item.getPointNeeded() + " poin) di " + lokasi + " — sisa poin: " + warga.getTotalPoints()
         );
     }
 
     public long countTotalPenukaran() {
         return penukaranRepo.count();
+    }
+
+    public List<PenukaranReward> getAllPenukaran() {
+        return penukaranRepo.findAllByOrderByTanggalPenukaranDesc();
+    }
+
+    public PenukaranReward getPenukaranById(Long id) {
+        return penukaranRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Penukaran tidak ditemukan: " + id));
+    }
+
+    public Optional<PenukaranReward> getPenukaranByKode(String kode) {
+        return penukaranRepo.findByKodePenukaran(kode);
+    }
+
+    @Transactional
+    public void selesaikanPenukaran(Long penukaranId, String fotoBukti) {
+        PenukaranReward p = getPenukaranById(penukaranId);
+        p.setStatus(PenukaranReward.StatusPenukaran.SUDAH_DIAMBIL);
+        p.setFotoBukti(fotoBukti);
+        penukaranRepo.save(p);
+    }
+
+    @Transactional
+    public PenukaranReward verifikasiPenukaran(String kode, String fotoBukti) {
+        PenukaranReward p = penukaranRepo.findByKodePenukaran(kode)
+                .orElseThrow(() -> new RuntimeException("Kode penukaran tidak valid: " + kode));
+        if (p.getStatus() == PenukaranReward.StatusPenukaran.SUDAH_DIAMBIL) {
+            throw new RuntimeException("Penukaran dengan kode " + kode + " sudah diambil sebelumnya.");
+        }
+        p.setStatus(PenukaranReward.StatusPenukaran.SUDAH_DIAMBIL);
+        if (fotoBukti != null && !fotoBukti.isBlank()) {
+            p.setFotoBukti(fotoBukti);
+        }
+        return penukaranRepo.save(p);
     }
 
     // ── CRUD untuk Admin ──
