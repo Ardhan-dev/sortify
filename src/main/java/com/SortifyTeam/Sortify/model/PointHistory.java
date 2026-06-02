@@ -13,9 +13,9 @@ public class PointHistory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "warga_id", nullable = false)
-    private User warga;
+    private User user;
 
     @Column(nullable = false)
     private int amount;

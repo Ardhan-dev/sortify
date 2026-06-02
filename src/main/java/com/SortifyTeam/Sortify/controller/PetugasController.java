@@ -2,13 +2,15 @@ package com.SortifyTeam.Sortify.controller;
 
 import com.SortifyTeam.Sortify.model.*;
 import com.SortifyTeam.Sortify.repository.PenukaranRewardRepository;
+import com.SortifyTeam.Sortify.repository.UserRepository;
 import com.SortifyTeam.Sortify.service.FileStorageService;
 import com.SortifyTeam.Sortify.service.NotifikasiService;
 import com.SortifyTeam.Sortify.service.TransaksiService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,20 +27,27 @@ public class PetugasController {
     private final FileStorageService fileStorageService;
     private final PenukaranRewardRepository penukaranRepo;
     private final NotifikasiService notifikasiService;
+    private final UserRepository userRepo;
 
     public PetugasController(TransaksiService transaksiService,
                              FileStorageService fileStorageService,
                              PenukaranRewardRepository penukaranRepo,
-                             NotifikasiService notifikasiService) {
+                             NotifikasiService notifikasiService,
+                             UserRepository userRepo) {
         this.transaksiService = transaksiService;
         this.fileStorageService = fileStorageService;
         this.penukaranRepo = penukaranRepo;
         this.notifikasiService = notifikasiService;
+        this.userRepo = userRepo;
     }
 
     @GetMapping("/dashboard")
-    public String dashboard(Authentication auth, Model model) {
+    public String dashboard(Authentication auth, Model model,
+                            @RequestParam(defaultValue = "0") int pageT,
+                            @RequestParam(defaultValue = "0") int pageR) {
         log.info("[ACCESS] Petugas {} sedang membuka halaman Dashboard Petugas", auth.getName());
+        User petugas = userRepo.findByUsername(auth.getName())
+                .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
         List<Transaksi> transaksiPending = transaksiService.getTransaksiByStatus(Transaksi.StatusTransaksi.PENDING);
         List<Transaksi> transaksiDiproses = transaksiService.getTransaksiByStatus(Transaksi.StatusTransaksi.DIPROSES);
         List<PenukaranReward> penukaranPending = penukaranRepo.findAllByOrderByTanggalPenukaranDesc().stream()
@@ -47,11 +56,41 @@ public class PetugasController {
         model.addAttribute("transaksiPending", transaksiPending);
         model.addAttribute("transaksiDiproses", transaksiDiproses);
         model.addAttribute("penukaranPending", penukaranPending);
+
+        Page<Transaksi> transaksiHistoryPage = transaksiService.getTransaksiHistory(pageT, 10);
+        Page<PenukaranReward> penukaranSelesaiPage = penukaranRepo
+                .findByStatusOrderByTanggalPenukaranDesc(PenukaranReward.StatusPenukaran.SUDAH_DIAMBIL,
+                        PageRequest.of(pageR, 10));
+        model.addAttribute("transaksiHistory", transaksiHistoryPage.getContent());
+        model.addAttribute("transaksiHistoryPage", transaksiHistoryPage);
+        model.addAttribute("penukaranSelesai", penukaranSelesaiPage.getContent());
+        model.addAttribute("penukaranSelesaiPage", penukaranSelesaiPage);
+
+        long countNotif = notifikasiService.countBelumDibaca(petugas);
+        List<Notifikasi> notifikasiList = notifikasiService.getNotifikasiBelumDibaca(petugas);
+        model.addAttribute("notifikasiList", notifikasiList);
+        model.addAttribute("countNotif", countNotif);
+        if (!notifikasiList.isEmpty()) {
+            notifikasiService.tandaiDibaca(notifikasiList);
+        }
         return "petugas-dashboard";
     }
 
+    @PostMapping("/notifikasi/baca/{id}")
+    public String tandaiDibaca(@PathVariable Long id) {
+        notifikasiService.tandaiDibaca(id);
+        return "redirect:/petugas/dashboard";
+    }
+
+    @PostMapping("/notifikasi/baca-semua")
+    public String tandaiSemuaDibaca(Authentication auth) {
+        User petugas = userRepo.findByUsername(auth.getName())
+                .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
+        notifikasiService.tandaiSemuaDibaca(petugas);
+        return "redirect:/petugas/dashboard";
+    }
+
     @PostMapping("/transaksi/proses/{id}")
-    @Transactional
     public String prosesTransaksi(@PathVariable Long id,
                                    RedirectAttributes redirectAttributes) {
         try {
@@ -65,7 +104,6 @@ public class PetugasController {
     }
 
     @PostMapping("/transaksi/tolak/{id}")
-    @Transactional
     public String tolakTransaksi(@PathVariable Long id,
                                   @RequestParam("alasan") String alasan,
                                   RedirectAttributes redirectAttributes) {
@@ -84,7 +122,6 @@ public class PetugasController {
     }
 
     @PostMapping("/reward/konfirmasi/{id}")
-    @Transactional
     public String konfirmasiReward(@PathVariable Long id,
                                     @RequestParam("fotoBukti") MultipartFile fotoBukti,
                                     @RequestParam(value = "kodeVerifikasiKetik", required = false) String kodeVerifikasiKetik,
@@ -114,10 +151,12 @@ public class PetugasController {
         penukaran.setStatus(PenukaranReward.StatusPenukaran.SUDAH_DIAMBIL);
         penukaranRepo.save(penukaran);
 
-        User warga = penukaran.getWarga();
+        User warga = penukaran.getUser();
+        String namaReward = penukaran.getRewardItem() != null
+                ? penukaran.getRewardItem().getNamaBarang() : "Reward";
         if (warga != null) {
             notifikasiService.buatNotifikasi(warga,
-                    "Reward " + penukaran.getRewardItem().getNamaBarang() + " sudah dikonfirmasi dan bisa diambil di Kantor Sortify.");
+                    "Reward " + namaReward + " sudah dikonfirmasi dan bisa diambil di Kantor Sortify.");
         }
 
         redirectAttributes.addFlashAttribute("success", "Reward #" + id + " berhasil dikonfirmasi.");
@@ -125,7 +164,6 @@ public class PetugasController {
     }
 
     @PostMapping("/transaksi/selesai/{id}")
-    @Transactional
     public String selesaikanTransaksi(@PathVariable Long id,
                                        @RequestParam("detailId") List<Long> detailIds,
                                        @RequestParam("beratFinal") List<Double> beratFinal,

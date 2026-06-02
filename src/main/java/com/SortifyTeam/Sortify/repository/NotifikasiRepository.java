@@ -9,7 +9,7 @@ import java.util.List;
 
 @Repository
 public interface NotifikasiRepository extends JpaRepository<Notifikasi, Long> {
-    List<Notifikasi> findByWargaAndIsReadOrderByCreatedAtDesc(User warga, boolean isRead);
-    List<Notifikasi> findByWargaOrderByCreatedAtDesc(User warga);
-    long countByWargaAndIsRead(User warga, boolean isRead);
+    List<Notifikasi> findByUserAndIsReadOrderByCreatedAtDesc(User user, boolean isRead);
+    List<Notifikasi> findByUserOrderByCreatedAtDesc(User user);
+    long countByUserAndIsRead(User user, boolean isRead);
 }

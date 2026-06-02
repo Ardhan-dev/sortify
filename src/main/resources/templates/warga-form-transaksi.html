@@ -214,6 +214,7 @@
           </div>
           <input type="file" id="fotoLaporanWarga" name="fotoLaporanWarga" class="form-input" accept="image/*" required style="display:none;" onchange="previewUpload(this)">
           <div class="upload-preview" id="uploadPreview">
+            <img id="previewImage" src="" alt="Preview" style="max-width:100%; max-height:200px; border-radius:8px; display:none; margin-bottom:8px;">
             <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
             <span id="uploadFileName">Tidak ada file dipilih</span>
           </div>
@@ -256,10 +257,19 @@
   function previewUpload(input) {
     var preview = document.getElementById('uploadPreview');
     var fileName = document.getElementById('uploadFileName');
+    var previewImg = document.getElementById('previewImage');
     if (input.files && input.files.length > 0) {
       fileName.textContent = input.files[0].name;
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        previewImg.src = e.target.result;
+        previewImg.style.display = 'block';
+      };
+      reader.readAsDataURL(input.files[0]);
       preview.classList.add('visible');
     } else {
+      previewImg.src = '';
+      previewImg.style.display = 'none';
       preview.classList.remove('visible');
     }
   }

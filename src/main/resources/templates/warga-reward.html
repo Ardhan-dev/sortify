@@ -74,6 +74,13 @@
     .hist-amount.earn { color: var(--accent); }
     .hist-amount.spend { color: var(--amber); }
 
+    .status-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px; border: 1px solid; }
+    .status-badge .dot { width: 5px; height: 5px; border-radius: 50%; }
+    .badge-pending { background: var(--amber-dim); border-color: rgba(200,137,26,0.25); color: var(--amber); }
+    .badge-pending .dot { background: var(--amber); }
+    .badge-ambil { background: var(--accent-dim); border-color: rgba(134,187,76,0.25); color: var(--accent); }
+    .badge-ambil .dot { background: var(--accent); }
+
     .empty-state { text-align: center; padding: 2rem; }
     .empty-text { font-family: var(--mono); font-size: 11px; color: var(--text-muted); letter-spacing: 1px; }
 
@@ -145,7 +152,7 @@
         <div class="reward-points" th:text="${r.pointNeeded} + ' poin'">1000 poin</div>
         <div class="reward-stock" th:text="'Stok: ' + ${r.stock}">Stok: 50</div>
       </div>
-      <form th:action="@{/warga/reward/tukar/{id}(id=${r.id})}" method="post">
+      <form th:action="@{/warga/reward/tukar/{id}(id=${r.id})}" method="post" onsubmit="return confirm('Tukar ' + ${r.pointNeeded} + ' poin untuk ' + '${r.namaBarang}' + '?')">
         <button type="submit" class="btn-tukar" th:disabled="${warga.totalPoints < r.pointNeeded or r.stock <= 0}">
           <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" fill="none" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
           Tukar
@@ -187,6 +194,12 @@
       <div class="hist-desc" th:text="'Tukar ' + ${p.rewardItem?.namaBarang ?: 'Reward tidak tersedia'}">Tukar Beras</div>
       <div class="hist-date" th:text="${#temporals.format(p.tanggalPenukaran, 'dd MMM yyyy, HH:mm')}">—</div>
       <div class="hist-date" th:if="${p.kodePenukaran != null}" style="margin-top:4px; color:var(--accent);" th:text="'Kode: ' + ${p.kodePenukaran}">Kode: 7A3F2B</div>
+      <div style="margin-top:6px;">
+        <span class="status-badge" th:classappend="${p.status.name() == 'SUDAH_DIAMBIL'} ? 'badge-ambil' : 'badge-pending'">
+          <span class="dot"></span>
+          <span th:text="${p.status.name() == 'SUDAH_DIAMBIL'} ? 'Sudah Diterima' : 'Menunggu Konfirmasi'">PENDING</span>
+        </span>
+      </div>
     </div>
     <div class="hist-amount spend" th:text="'-' + ${p.rewardItem?.pointNeeded ?: '0'} + ' poin'">-1000</div>
   </div>

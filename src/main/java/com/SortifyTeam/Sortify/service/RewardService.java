@@ -39,44 +39,53 @@ public class RewardService {
     }
 
     public List<PenukaranReward> getRiwayatPenukaran(User warga) {
-        return penukaranRepo.findByWargaOrderByTanggalPenukaranDesc(warga);
+        return penukaranRepo.findByUserOrderByTanggalPenukaranDesc(warga);
     }
 
     @Transactional
     public PenukaranReward tukarReward(User warga, Long rewardItemId) {
-        RewardItem item = rewardItemRepo.findById(rewardItemId)
+        RewardItem item = rewardItemRepo.findByIdWithLock(rewardItemId)
                 .orElseThrow(() -> new RuntimeException("Reward tidak ditemukan"));
 
         if (item.getStock() <= 0) {
             throw new RuntimeException("Stok reward habis");
         }
 
-        if (warga.getTotalPoints() < item.getPointNeeded()) {
+        User lockedWarga = userRepo.findByIdWithLock(warga.getId())
+                .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
+
+        if (lockedWarga.getTotalPoints() < item.getPointNeeded()) {
             throw new RuntimeException("Poin tidak mencukupi");
         }
 
-        warga.setTotalPoints(warga.getTotalPoints() - item.getPointNeeded());
+        lockedWarga.setTotalPoints(lockedWarga.getTotalPoints() - item.getPointNeeded());
         item.setStock(item.getStock() - 1);
 
         PenukaranReward penukaran = new PenukaranReward();
-        penukaran.setWarga(warga);
+        penukaran.setUser(lockedWarga);
         penukaran.setRewardItem(item);
         penukaran.setKodePenukaran(generateUniqueKode());
 
-        userRepo.save(warga);
+        userRepo.save(lockedWarga);
         rewardItemRepo.save(item);
         penukaran = penukaranRepo.save(penukaran);
-        pointService.tambahPointHistory(warga, item.getPointNeeded(),
+        pointService.tambahPointHistory(lockedWarga, item.getPointNeeded(),
                 PointHistory.PointType.SPEND,
                 "Penukaran " + item.getNamaBarang());
         logAktivitasService.catatAktivitas(
-            warga.getUsername(),
-            warga.getRole().name(),
+            lockedWarga.getUsername(),
+            lockedWarga.getRole().name(),
             "TUKAR_REWARD",
-            "Menukar " + item.getNamaBarang() + " (" + item.getPointNeeded() + " poin) — sisa poin: " + warga.getTotalPoints()
+            "Menukar " + item.getNamaBarang() + " (" + item.getPointNeeded() + " poin) — sisa poin: " + lockedWarga.getTotalPoints()
         );
-        notifikasiService.buatNotifikasi(warga,
+        notifikasiService.buatNotifikasi(lockedWarga,
                 "Penukaran berhasil! Kode AMDAL Anda: " + penukaran.getKodePenukaran() + ". Silakan ambil reward " + item.getNamaBarang() + " di Kantor Sortify pada jam kerja.");
+        List<User> petugasList = userRepo.findByRole(User.Role.PETUGAS);
+        for (User petugas : petugasList) {
+            notifikasiService.buatNotifikasi(petugas,
+                    "Penukaran reward " + item.getNamaBarang() + " oleh " + lockedWarga.getFullName()
+                    + " (" + item.getPointNeeded() + " poin) — segera konfirmasi serah terima.");
+        }
         return penukaran;
     }
 
@@ -113,6 +122,15 @@ public class RewardService {
 
     @Transactional
     public RewardItem simpanReward(String namaBarang, int pointNeeded, int stock) {
+        if (namaBarang == null || namaBarang.isBlank()) {
+            throw new IllegalArgumentException("Nama barang tidak boleh kosong");
+        }
+        if (pointNeeded < 1) {
+            throw new IllegalArgumentException("Poin minimal 1");
+        }
+        if (stock < 0) {
+            throw new IllegalArgumentException("Stok minimal 0");
+        }
         RewardItem item = new RewardItem();
         item.setNamaBarang(namaBarang);
         item.setPointNeeded(pointNeeded);
@@ -122,6 +140,15 @@ public class RewardService {
 
     @Transactional
     public RewardItem updateReward(Long id, String namaBarang, int pointNeeded, int stock) {
+        if (namaBarang == null || namaBarang.isBlank()) {
+            throw new IllegalArgumentException("Nama barang tidak boleh kosong");
+        }
+        if (pointNeeded < 1) {
+            throw new IllegalArgumentException("Poin minimal 1");
+        }
+        if (stock < 0) {
+            throw new IllegalArgumentException("Stok minimal 0");
+        }
         RewardItem item = getRewardById(id);
         item.setNamaBarang(namaBarang);
         item.setPointNeeded(pointNeeded);
@@ -131,6 +158,11 @@ public class RewardService {
 
     @Transactional
     public void hapusReward(Long id) {
+        RewardItem item = getRewardById(id);
+        if (penukaranRepo.existsByRewardItem(item)) {
+            throw new IllegalStateException(
+                    "Reward '" + item.getNamaBarang() + "' sudah pernah ditukar dan tidak dapat dihapus.");
+        }
         rewardItemRepo.deleteById(id);
     }
 }

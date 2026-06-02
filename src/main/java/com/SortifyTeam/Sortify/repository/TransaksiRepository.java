@@ -1,7 +1,10 @@
 package com.SortifyTeam.Sortify.repository;
 
+import com.SortifyTeam.Sortify.model.Staff;
 import com.SortifyTeam.Sortify.model.Transaksi;
 import com.SortifyTeam.Sortify.model.Warga;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,9 +16,19 @@ import java.util.List;
 public interface TransaksiRepository extends JpaRepository<Transaksi, Long> {
     List<Transaksi> findByStatusOrderByTanggalTransaksiDesc(Transaksi.StatusTransaksi status);
     List<Transaksi> findByStatusInOrderByTanggalTransaksiDesc(List<Transaksi.StatusTransaksi> statuses);
+    Page<Transaksi> findByStatusIn(List<Transaksi.StatusTransaksi> statuses, Pageable pageable);
     List<Transaksi> findByWargaOrderByTanggalTransaksiDesc(Warga warga);
     List<Transaksi> findByWargaAndStatusOrderByTanggalTransaksiDesc(Warga warga, Transaksi.StatusTransaksi status);
     List<Transaksi> findByStatus(Transaksi.StatusTransaksi status);
+    List<Transaksi> findByStaff(Staff staff);
+
+    long countByStatus(Transaksi.StatusTransaksi status);
+
+    @Query("SELECT COALESCE(SUM(t.totalBerat), 0) FROM Transaksi t")
+    double sumTotalBerat();
+
+    @Query("SELECT COALESCE(SUM(t.totalBerat), 0) FROM Transaksi t WHERE t.warga.idWarga = :wargaId AND t.status = 'SELESAI'")
+    double sumTotalBeratByWarga(@Param("wargaId") Long wargaId);
 
     @Query("SELECT FUNCTION('MONTH', t.tanggalTransaksi), COALESCE(SUM(t.totalBerat), 0) " +
            "FROM Transaksi t WHERE t.status = 'SELESAI' AND FUNCTION('YEAR', t.tanggalTransaksi) = :year " +

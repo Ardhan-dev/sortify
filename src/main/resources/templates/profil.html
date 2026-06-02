@@ -147,12 +147,21 @@
           <div class="brand-version">v1.0 · OOP Waste System</div>
         </div>
       </a>
-      <form action="/logout" method="post" style="margin:0;">
-        <button type="submit" class="logout-btn" style="border:1px solid var(--border); background:transparent; cursor:pointer; display:inline-flex; align-items:center; gap:7px; font-family:var(--mono); font-size:11px; color:var(--text-muted); text-decoration:none; border-radius:7px; padding:0.45rem 0.9rem; transition:all 0.15s;">
-          <svg viewBox="0 0 24 24" width="13" height="13"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-          Keluar
-        </button>
-      </form>
+      <div class="topbar-right" style="display:flex; align-items:center; gap:12px;">
+        <div th:if="${countNotif != null and countNotif > 0}" style="position:relative; display:flex; align-items:center;">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--accent)" stroke-width="2">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          <span style="position:absolute; top:-6px; right:-8px; min-width:18px; height:18px; border-radius:9px; background:var(--accent); color:var(--bg); font-family:var(--mono); font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; padding:0 4px;" th:text="${countNotif}">0</span>
+        </div>
+        <form action="/logout" method="post" style="margin:0;">
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+          <button type="submit" class="logout-btn" style="border:1px solid var(--border); background:transparent; cursor:pointer; display:inline-flex; align-items:center; gap:7px; font-family:var(--mono); font-size:11px; color:var(--text-muted); text-decoration:none; border-radius:7px; padding:0.45rem 0.9rem; transition:all 0.15s;">
+            <svg viewBox="0 0 24 24" width="13" height="13"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Keluar
+          </button>
+        </form>
+      </div>
     </div>
   </header>
 
@@ -176,6 +185,7 @@
         <div style="font-size:13px; color:var(--text-primary); line-height:1.5; word-break:break-word;" th:text="${notif.pesan}">Pesan notifikasi</div>
       </div>
       <form th:action="@{/warga/notifikasi/baca/{id}(id=${notif.id})}" method="post" style="flex-shrink:0; margin:0;">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
         <button type="submit" style="background:none; border:none; cursor:pointer; color:var(--text-muted); padding:2px; display:flex; align-items:center; transition:color 0.15s;"
                 onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color=''">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
@@ -185,6 +195,7 @@
       </form>
     </div>
     <form th:action="@{/warga/notifikasi/baca-semua}" method="post" style="margin:0;">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
       <button type="submit" style="display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10px; letter-spacing:0.5px; color:var(--text-muted); background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:6px 12px; cursor:pointer; transition:all 0.15s;">
         Tandai semua sudah dibaca
       </button>

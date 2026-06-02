@@ -106,10 +106,11 @@ public class TransaksiWebController {
 
         if (idKategori != null) {
             for (int i = 0; i < idKategori.size(); i++) {
-                if (beratKategori.get(i) == null || beratKategori.get(i) <= 0) continue;
+                Double b = beratKategori.get(i);
+                if (b == null || b <= 0 || b > TransaksiService.MAX_WEIGHT_KG) continue;
                 KategoriSampah kategori = kategoriRepo.findById(idKategori.get(i))
                         .orElseThrow(() -> new IllegalArgumentException("Kategori tidak ditemukan"));
-                double berat = beratKategori.get(i);
+                double berat = b;
                 int subtotal = (int) (berat * kategori.getPoinPerKg());
 
                 TransaksiDetail td = new TransaksiDetail();
@@ -155,6 +156,12 @@ public class TransaksiWebController {
         Transaksi transaksi = transaksiService.getTransaksiById(id);
         Transaksi.StatusTransaksi oldStatus = transaksi.getStatus();
 
+        if (!isValidTransition(oldStatus, status)) {
+            redirectAttributes.addFlashAttribute("error",
+                    "Transaksi #" + id + " tidak bisa berubah dari " + oldStatus + " ke " + status + ".");
+            return "redirect:/admin/transaksi";
+        }
+
         transaksi.setWarga(wargaRepo.findById(idWarga)
                 .orElseThrow(() -> new IllegalArgumentException("Warga tidak ditemukan")));
         transaksi.setStaff(staffRepo.findById(idStaff)
@@ -167,7 +174,7 @@ public class TransaksiWebController {
 
         for (int i = 0; i < transaksi.getDetails().size(); i++) {
             TransaksiDetail td = transaksi.getDetails().get(i);
-            Double bf = (beratFinal != null && i < beratFinal.size() && beratFinal.get(i) != null && beratFinal.get(i) > 0)
+            Double bf = (beratFinal != null && i < beratFinal.size() && beratFinal.get(i) != null && beratFinal.get(i) > 0 && beratFinal.get(i) <= TransaksiService.MAX_WEIGHT_KG)
                     ? beratFinal.get(i) : td.getBeratEstimasi();
             td.setBeratFinal(bf);
 
@@ -204,5 +211,14 @@ public class TransaksiWebController {
     public String hapus(@PathVariable Long id) {
         transaksiRepo.deleteById(id);
         return "redirect:/admin/transaksi";
+    }
+
+    private boolean isValidTransition(Transaksi.StatusTransaksi oldStatus, Transaksi.StatusTransaksi newStatus) {
+        if (oldStatus == newStatus) return true;
+        return switch (oldStatus) {
+            case PENDING -> newStatus == Transaksi.StatusTransaksi.DIPROSES || newStatus == Transaksi.StatusTransaksi.DITOLAK;
+            case DIPROSES -> newStatus == Transaksi.StatusTransaksi.SELESAI || newStatus == Transaksi.StatusTransaksi.PENDING;
+            case SELESAI, DITOLAK -> false;
+        };
     }
 }

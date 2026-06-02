@@ -13,9 +13,9 @@ public class Notifikasi {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "warga_id", nullable = false)
-    private User warga;
+    private User user;
 
     @Column(nullable = false, length = 500)
     private String pesan;

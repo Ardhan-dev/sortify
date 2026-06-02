@@ -8,6 +8,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.header.writers.CacheControlHeadersWriter;
 
 @Configuration
@@ -31,15 +32,16 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/logout", "/login")
-            )
             .userDetailsService(userDetailsService)
+            .csrf(csrf -> csrf
+                .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+            )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/login", "/register", "/kamus-sampah", "/css/**", "/js/**", "/images/**", "/fonts/**", "/uploads/**").permitAll()
                 .requestMatchers("/warga/**").hasRole("WARGA")
                 .requestMatchers("/petugas/**").hasRole("PETUGAS")
                 .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/dashboard/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form

@@ -3,6 +3,7 @@ package com.SortifyTeam.Sortify.service;
 import com.SortifyTeam.Sortify.model.LogAktivitas;
 import com.SortifyTeam.Sortify.repository.LogAktivitasRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,6 +17,7 @@ public class LogAktivitasService {
         this.logRepo = logRepo;
     }
 
+    @Transactional
     public void catatAktivitas(String username, String role, String aksi, String deskripsi) {
         LogAktivitas log = new LogAktivitas();
         log.setUsername(username);

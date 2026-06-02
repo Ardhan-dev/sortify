@@ -9,7 +9,7 @@ import java.util.List;
 
 @Repository
 public interface PointHistoryRepository extends JpaRepository<PointHistory, Long> {
-    List<PointHistory> findByWargaOrderByCreatedAtDesc(User warga);
+    List<PointHistory> findByUserOrderByCreatedAtDesc(User user);
 }
 
 

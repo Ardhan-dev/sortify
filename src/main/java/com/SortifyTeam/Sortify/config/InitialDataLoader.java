@@ -12,10 +12,14 @@ import com.SortifyTeam.Sortify.repository.RewardItemRepository;
 import com.SortifyTeam.Sortify.repository.StaffRepository;
 import com.SortifyTeam.Sortify.repository.UserRepository;
 import com.SortifyTeam.Sortify.repository.WargaRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.security.SecureRandom;
+
+@Slf4j
 @Component
 public class InitialDataLoader implements CommandLineRunner {
 
@@ -26,6 +30,7 @@ public class InitialDataLoader implements CommandLineRunner {
     private final WargaRepository wargaRepo;
     private final StaffRepository staffRepo;
     private final PasswordEncoder passwordEncoder;
+    private final SecureRandom random = new SecureRandom();
 
     public InitialDataLoader(UserRepository userRepo,
                              RewardItemRepository rewardItemRepo,
@@ -43,7 +48,18 @@ public class InitialDataLoader implements CommandLineRunner {
         this.passwordEncoder = passwordEncoder;
     }
 
-    private User buatUser(String username, String rawPassword, String fullName, User.Role role, int points) {
+    private String generateStrongPassword() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*";
+        StringBuilder sb = new StringBuilder(14);
+        for (int i = 0; i < 14; i++) {
+            sb.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return sb.toString();
+    }
+
+    private User buatUser(String username, String fullName, User.Role role, int points) {
+        String rawPassword = generateStrongPassword();
+        log.info("===== AKUN SEEDER: username={}, password={}, role={} =====", username, rawPassword, role);
         User user = new User();
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(rawPassword));
@@ -56,26 +72,25 @@ public class InitialDataLoader implements CommandLineRunner {
     @Override
     public void run(String... args) {
         if (!userRepo.existsByUsername("admin")) {
-            buatUser("admin", "password", "Admin Sistem", User.Role.ADMIN, 0);
+            buatUser("admin", "Admin Sistem", User.Role.ADMIN, 0);
         }
         if (!userRepo.existsByUsername("adminku")) {
-            buatUser("adminku", "1234578", "Admin Utama Sortify", User.Role.ADMIN, 0);
+            buatUser("adminku", "Admin Utama Sortify", User.Role.ADMIN, 0);
         }
         if (!userRepo.existsByUsername("petugas")) {
-            buatUser("petugas", "password", "Petugas Lapangan", User.Role.PETUGAS, 0);
+            buatUser("petugas", "Petugas Lapangan", User.Role.PETUGAS, 0);
         }
         if (!userRepo.existsByUsername("petugas0")) {
-            buatUser("petugas0", "12345678", "Petugas Nol", User.Role.PETUGAS, 0);
+            buatUser("petugas0", "Petugas Nol", User.Role.PETUGAS, 0);
         }
         if (!userRepo.existsByUsername("warga")) {
-            buatUser("warga", "password", "Warga Biasa", User.Role.WARGA, 5000);
+            buatUser("warga", "Warga Biasa", User.Role.WARGA, 5000);
         }
 
         if (!wargaRepo.findByUsername("warga").isPresent()) {
             Warga warga = new Warga();
             warga.setNama("Warga Biasa");
             warga.setUsername("warga");
-            warga.setPassword(passwordEncoder.encode("password"));
             warga.setAlamat("Jl. Contoh No. 123, Kota");
             warga.setNoHp("081234567890");
             warga.setUser(userRepo.findByUsername("warga").orElse(null));
@@ -99,7 +114,6 @@ public class InitialDataLoader implements CommandLineRunner {
                     Warga w = new Warga();
                     w.setNama(u.getFullName());
                     w.setUsername(u.getUsername());
-                    w.setPassword(u.getPassword());
                     w.setAlamat("-");
                     w.setNoHp("-");
                     w.setUser(u);
@@ -112,7 +126,6 @@ public class InitialDataLoader implements CommandLineRunner {
             Staff staff = new Staff();
             staff.setNama("Petugas Lapangan");
             staff.setUsername("petugas");
-            staff.setPassword(passwordEncoder.encode("password"));
             staff.setNip("199001012015041001");
             staff.setJabatan("Staff Lapangan");
             staff.setUser(userRepo.findByUsername("petugas").orElse(null));
@@ -130,7 +143,6 @@ public class InitialDataLoader implements CommandLineRunner {
             Staff staff = new Staff();
             staff.setNama("Petugas Nol");
             staff.setUsername("petugas0");
-            staff.setPassword(passwordEncoder.encode("12345678"));
             staff.setNip("199501012020042002");
             staff.setJabatan("Koordinator");
             staff.setUser(userRepo.findByUsername("petugas0").orElse(null));
@@ -154,7 +166,6 @@ public class InitialDataLoader implements CommandLineRunner {
                     Staff s = new Staff();
                     s.setNama(u.getFullName());
                     s.setUsername(u.getUsername());
-                    s.setPassword(u.getPassword());
                     s.setNip("-");
                     s.setJabatan("-");
                     s.setUser(u);

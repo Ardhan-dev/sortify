@@ -2,6 +2,9 @@ package com.SortifyTeam.Sortify.service;
 
 import com.SortifyTeam.Sortify.model.*;
 import com.SortifyTeam.Sortify.repository.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,18 +19,18 @@ public class TransaksiService {
     private final PointService pointService;
     private final KategoriSampahRepository kategoriRepo;
     private final NotifikasiService notifikasiService;
-    private final WargaRepository wargaRepo;
+    private final UserRepository userRepo;
 
     public TransaksiService(TransaksiRepository transaksiRepo,
                             PointService pointService,
                             KategoriSampahRepository kategoriRepo,
                             NotifikasiService notifikasiService,
-                            WargaRepository wargaRepo) {
+                            UserRepository userRepo) {
         this.transaksiRepo = transaksiRepo;
         this.pointService = pointService;
         this.kategoriRepo = kategoriRepo;
         this.notifikasiService = notifikasiService;
-        this.wargaRepo = wargaRepo;
+        this.userRepo = userRepo;
     }
 
     public List<Transaksi> getTransaksiByStatus(Transaksi.StatusTransaksi status) {
@@ -47,6 +50,14 @@ public class TransaksiService {
                 .orElseThrow(() -> new RuntimeException("Transaksi tidak ditemukan: " + id));
     }
 
+    public Page<Transaksi> getTransaksiHistory(int page, int size) {
+        PageRequest pageable = PageRequest.of(page, size, Sort.by("tanggalTransaksi").descending());
+        return transaksiRepo.findByStatusIn(
+                List.of(Transaksi.StatusTransaksi.SELESAI, Transaksi.StatusTransaksi.DITOLAK), pageable);
+    }
+
+    public static final double MAX_WEIGHT_KG = 10000.0;
+
     @Transactional
     public void buatLaporanDropPoint(Warga warga, String namaFoto, String lokasi, String detail,
                                       List<Long> idKategoriList, List<Double> beratEstimasiList) {
@@ -65,7 +76,7 @@ public class TransaksiService {
                 Long idKategori = idKategoriList.get(i);
                 Double beratEstimasi = (beratEstimasiList != null && i < beratEstimasiList.size())
                         ? beratEstimasiList.get(i) : 0;
-                if (idKategori == null || beratEstimasi == null || beratEstimasi <= 0) continue;
+                if (idKategori == null || beratEstimasi == null || beratEstimasi <= 0 || beratEstimasi > MAX_WEIGHT_KG) continue;
 
                 KategoriSampah kategori = kategoriRepo.findById(idKategori).orElse(null);
                 if (kategori == null) continue;
@@ -81,6 +92,13 @@ public class TransaksiService {
         transaksi.setDetails(details);
         transaksi.setTotalBerat(totalBerat);
         transaksiRepo.save(transaksi);
+
+        List<User> petugasList = userRepo.findByRole(User.Role.PETUGAS);
+        String wargaNama = (warga != null && warga.getUser() != null) ? warga.getUser().getFullName() : "Warga";
+        for (User petugas : petugasList) {
+            notifikasiService.buatNotifikasi(petugas,
+                    "Drop point baru dari " + wargaNama + " (" + String.format("%.1f", totalBerat) + " kg) — segera proses.");
+        }
     }
 
     @Transactional
@@ -132,7 +150,7 @@ public class TransaksiService {
             Double beratFinal = (detailIds != null && i < detailIds.size())
                     ? (beratFinalList != null && i < beratFinalList.size() ? beratFinalList.get(i) : 0)
                     : 0;
-            if (beratFinal == null || beratFinal <= 0) continue;
+            if (beratFinal == null || beratFinal <= 0 || beratFinal > MAX_WEIGHT_KG) continue;
 
             td.setBeratFinal(beratFinal);
             int poinPerKg = (td.getKategoriSampah() != null && td.getKategoriSampah().getPoinPerKg() != null)

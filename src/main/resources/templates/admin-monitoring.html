@@ -244,7 +244,7 @@
       <tbody>
         <tr th:each="p : ${penukaranList}">
           <td class="cell-id" th:text="'#' + ${p.id}">001</td>
-          <td class="cell-nama" th:text="${p.warga?.fullName ?: '—'}">Nama Warga</td>
+          <td class="cell-nama" th:text="${p.user?.fullName ?: '—'}">Nama Warga</td>
           <td th:text="${p.rewardItem?.namaBarang ?: '—'}">Nama Barang</td>
           <td class="cell-poin" th:text="${p.rewardItem?.pointNeeded ?: '—'} + ' poin'">100 poin</td>
           <td class="cell-tanggal" th:text="${p.tanggalPenukaran != null} ? ${#temporals.format(p.tanggalPenukaran, 'dd MMM yyyy HH:mm')} : '—'">—</td>

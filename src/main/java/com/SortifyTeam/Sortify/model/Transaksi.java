@@ -2,6 +2,8 @@ package com.SortifyTeam.Sortify.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,11 +16,11 @@ public class Transaksi {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idTransaksi;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_warga")
     private Warga warga;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_staff")
     private Staff staff;
 
@@ -35,6 +37,8 @@ public class Transaksi {
     private String detail;
 
     @OneToMany(mappedBy = "transaksi", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private List<TransaksiDetail> details = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)

@@ -70,6 +70,7 @@ public class WargaController {
 
         Warga entitasWarga = getCurrentWargaEntity(warga);
         List<Transaksi> transaksiList = transaksiService.getTransaksiByWarga(entitasWarga);
+        if (transaksiList.size() > 20) transaksiList = transaksiList.subList(0, 20);
         model.addAttribute("transaksiList", transaksiList);
 
         // Leaderboard: Top 5 warga by total points
@@ -81,8 +82,13 @@ public class WargaController {
         model.addAttribute("leaderboard", leaderboard);
 
         // Notifikasi
+        long countNotif = notifService.countBelumDibaca(warga);
         List<Notifikasi> notifikasiList = notifService.getNotifikasiBelumDibaca(warga);
         model.addAttribute("notifikasiList", notifikasiList);
+        model.addAttribute("countNotif", countNotif);
+        if (!notifikasiList.isEmpty()) {
+            notifService.tandaiDibaca(notifikasiList);
+        }
 
         return "profil";
     }
@@ -148,7 +154,7 @@ public class WargaController {
             redirectAttributes.addFlashAttribute("kodePenukaran", penukaran.getKodePenukaran());
             redirectAttributes.addFlashAttribute("success", "Penukaran berhasil! Silakan ambil reward Anda di Kantor Sortify pada jam kerja.");
         } catch (RuntimeException e) {
-            log.error("[ERROR] Gagal menukar reward #{}: {}", id, e.getMessage());
+            log.error("[ERROR] Gagal menukar reward #{}: {}", id, e.getMessage(), e);
             redirectAttributes.addFlashAttribute("error", "Gagal menukar reward: " + e.getMessage());
         }
         return "redirect:/warga/reward";
