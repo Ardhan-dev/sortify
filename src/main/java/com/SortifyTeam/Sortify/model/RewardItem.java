@@ -21,7 +21,6 @@ public class RewardItem {
     @Column(nullable = false)
     private int stock;
 
-    @Version
     private Integer version;
 }
 

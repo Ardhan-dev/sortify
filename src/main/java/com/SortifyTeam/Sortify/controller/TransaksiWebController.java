@@ -184,7 +184,7 @@ public class TransaksiWebController {
         transaksi.setTotalPoin(totalPoin);
         transaksiRepo.save(transaksi);
 
-        if (status == Transaksi.StatusTransaksi.SELESAI && oldStatus != Transaksi.StatusTransaksi.SELESAI) {
+        if (Transaksi.StatusTransaksi.SELESAI.equals(status) && !Transaksi.StatusTransaksi.SELESAI.equals(oldStatus)) {
             int poinBulat = (int) Math.round(totalPoin);
             Warga entitasWarga = transaksi.getWarga();
             if (entitasWarga != null && entitasWarga.getUser() != null) {

@@ -12,4 +12,6 @@ public interface PenukaranRewardRepository extends JpaRepository<PenukaranReward
     List<PenukaranReward> findByWargaOrderByTanggalPenukaranDesc(User warga);
     long countByStatus(PenukaranReward.StatusPenukaran status);
     List<PenukaranReward> findAllByOrderByTanggalPenukaranDesc();
+    java.util.Optional<PenukaranReward> findByKodePenukaran(String kodePenukaran);
+    boolean existsByKodePenukaran(String kodePenukaran);
 }

@@ -144,8 +144,9 @@ public class WargaController {
                               RedirectAttributes redirectAttributes) {
         User warga = getCurrentUser(auth);
         try {
-            rewardService.tukarReward(warga, id);
-            redirectAttributes.addFlashAttribute("success", "Reward berhasil ditukar!");
+            PenukaranReward penukaran = rewardService.tukarReward(warga, id);
+            redirectAttributes.addFlashAttribute("kodePenukaran", penukaran.getKodePenukaran());
+            redirectAttributes.addFlashAttribute("success", "Penukaran berhasil! Silakan ambil reward Anda di Kantor Sortify pada jam kerja.");
         } catch (RuntimeException e) {
             log.error("[ERROR] Gagal menukar reward #{}: {}", id, e.getMessage());
             redirectAttributes.addFlashAttribute("error", "Gagal menukar reward: " + e.getMessage());

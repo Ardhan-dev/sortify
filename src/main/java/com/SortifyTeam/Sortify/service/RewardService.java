@@ -7,6 +7,7 @@ import com.SortifyTeam.Sortify.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.util.List;
 
 @Service
@@ -17,17 +18,20 @@ public class RewardService {
     private final PointService pointService;
     private final UserRepository userRepo;
     private final LogAktivitasService logAktivitasService;
+    private final NotifikasiService notifikasiService;
 
     public RewardService(RewardItemRepository rewardItemRepo,
                          PenukaranRewardRepository penukaranRepo,
                          PointService pointService,
                          UserRepository userRepo,
-                         LogAktivitasService logAktivitasService) {
+                         LogAktivitasService logAktivitasService,
+                         NotifikasiService notifikasiService) {
         this.rewardItemRepo = rewardItemRepo;
         this.penukaranRepo = penukaranRepo;
         this.pointService = pointService;
         this.userRepo = userRepo;
         this.logAktivitasService = logAktivitasService;
+        this.notifikasiService = notifikasiService;
     }
 
     public List<RewardItem> getRewardTersedia() {
@@ -39,7 +43,7 @@ public class RewardService {
     }
 
     @Transactional
-    public void tukarReward(User warga, Long rewardItemId) {
+    public PenukaranReward tukarReward(User warga, Long rewardItemId) {
         RewardItem item = rewardItemRepo.findById(rewardItemId)
                 .orElseThrow(() -> new RuntimeException("Reward tidak ditemukan"));
 
@@ -57,10 +61,11 @@ public class RewardService {
         PenukaranReward penukaran = new PenukaranReward();
         penukaran.setWarga(warga);
         penukaran.setRewardItem(item);
+        penukaran.setKodePenukaran(generateUniqueKode());
 
         userRepo.save(warga);
         rewardItemRepo.save(item);
-        penukaranRepo.save(penukaran);
+        penukaran = penukaranRepo.save(penukaran);
         pointService.tambahPointHistory(warga, item.getPointNeeded(),
                 PointHistory.PointType.SPEND,
                 "Penukaran " + item.getNamaBarang());
@@ -70,10 +75,29 @@ public class RewardService {
             "TUKAR_REWARD",
             "Menukar " + item.getNamaBarang() + " (" + item.getPointNeeded() + " poin) — sisa poin: " + warga.getTotalPoints()
         );
+        notifikasiService.buatNotifikasi(warga,
+                "Penukaran berhasil! Kode AMDAL Anda: " + penukaran.getKodePenukaran() + ". Silakan ambil reward " + item.getNamaBarang() + " di Kantor Sortify pada jam kerja.");
+        return penukaran;
     }
 
     public long countTotalPenukaran() {
         return penukaranRepo.count();
+    }
+
+    private String generateUniqueKode() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        SecureRandom random = new SecureRandom();
+        for (int attempt = 0; attempt < 100; attempt++) {
+            StringBuilder sb = new StringBuilder(6);
+            for (int i = 0; i < 6; i++) {
+                sb.append(chars.charAt(random.nextInt(chars.length())));
+            }
+            String kode = sb.toString();
+            if (!penukaranRepo.existsByKodePenukaran(kode)) {
+                return kode;
+            }
+        }
+        throw new RuntimeException("Gagal generate kode unik — coba lagi.");
     }
 
     // ── CRUD untuk Admin ──

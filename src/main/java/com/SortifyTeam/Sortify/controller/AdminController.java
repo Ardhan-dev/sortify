@@ -63,10 +63,10 @@ public class AdminController {
         log.info("[ACCESS] Admin {} sedang membuka halaman Dashboard Admin", auth.getName());
         List<Transaksi> semuaTransaksi = transaksiRepo.findAll();
         long transaksiSelesai = semuaTransaksi.stream()
-                .filter(t -> t.getStatus() == Transaksi.StatusTransaksi.SELESAI)
+                .filter(t -> Transaksi.StatusTransaksi.SELESAI.equals(t.getStatus()))
                 .count();
         long transaksiPending = semuaTransaksi.stream()
-                .filter(t -> t.getStatus() == Transaksi.StatusTransaksi.PENDING)
+                .filter(t -> Transaksi.StatusTransaksi.PENDING.equals(t.getStatus()))
                 .count();
         double totalBerat = semuaTransaksi.stream()
                 .filter(t -> t.getTotalBerat() != null)
@@ -119,44 +119,16 @@ public class AdminController {
 
         long totalPenukaran = semuaPenukaran.size();
         long menungguDiproses = semuaPenukaran.stream()
-                .filter(p -> p.getStatus() == PenukaranReward.StatusPenukaran.PENDING)
+                .filter(p -> PenukaranReward.StatusPenukaran.PENDING.equals(p.getStatus()))
                 .count();
         long rewardKeluar = semuaPenukaran.stream()
-                .filter(p -> p.getStatus() == PenukaranReward.StatusPenukaran.SUDAH_DIAMBIL)
+                .filter(p -> PenukaranReward.StatusPenukaran.SUDAH_DIAMBIL.equals(p.getStatus()))
                 .count();
 
         model.addAttribute("totalPenukaran", totalPenukaran);
         model.addAttribute("menungguDiproses", menungguDiproses);
         model.addAttribute("rewardKeluar", rewardKeluar);
         return "admin-monitoring";
-    }
-
-    @Transactional
-    @PostMapping("/reward/konfirmasi/{id}")
-    public String konfirmasiReward(@PathVariable Long id,
-                                    @RequestParam("fotoBukti") MultipartFile fotoBukti,
-                                    RedirectAttributes redirectAttributes) {
-        log.info("[PROSES] Admin mengkonfirmasi penukaran reward #{}", id);
-
-        if (fotoBukti.isEmpty()) {
-            redirectAttributes.addFlashAttribute("error", "Foto bukti penyerahan harus diupload.");
-            return "redirect:/admin/monitoring";
-        }
-
-        PenukaranReward penukaran = penukaranRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Penukaran reward tidak ditemukan: " + id));
-
-        if (penukaran.getStatus() == PenukaranReward.StatusPenukaran.SUDAH_DIAMBIL) {
-            redirectAttributes.addFlashAttribute("error", "Reward #" + id + " sudah diserahkan sebelumnya.");
-            return "redirect:/admin/monitoring";
-        }
-
-        String namaFoto = fileStorageService.storeFile(fotoBukti, "reward");
-        penukaran.setFotoBukti(namaFoto);
-        penukaran.setStatus(PenukaranReward.StatusPenukaran.SUDAH_DIAMBIL);
-        penukaranRepo.save(penukaran);
-        redirectAttributes.addFlashAttribute("success", "Reward berhasil diserahkan ke warga.");
-        return "redirect:/admin/monitoring";
     }
 
     @GetMapping("/transaksi/export")

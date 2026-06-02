@@ -16,15 +16,18 @@ public class TransaksiService {
     private final PointService pointService;
     private final KategoriSampahRepository kategoriRepo;
     private final NotifikasiService notifikasiService;
+    private final WargaRepository wargaRepo;
 
     public TransaksiService(TransaksiRepository transaksiRepo,
                             PointService pointService,
                             KategoriSampahRepository kategoriRepo,
-                            NotifikasiService notifikasiService) {
+                            NotifikasiService notifikasiService,
+                            WargaRepository wargaRepo) {
         this.transaksiRepo = transaksiRepo;
         this.pointService = pointService;
         this.kategoriRepo = kategoriRepo;
         this.notifikasiService = notifikasiService;
+        this.wargaRepo = wargaRepo;
     }
 
     public List<Transaksi> getTransaksiByStatus(Transaksi.StatusTransaksi status) {
@@ -83,7 +86,7 @@ public class TransaksiService {
     @Transactional
     public Transaksi prosesTransaksi(Long transaksiId) {
         Transaksi transaksi = getTransaksiById(transaksiId);
-        if (transaksi.getStatus() != Transaksi.StatusTransaksi.PENDING) {
+        if (!Transaksi.StatusTransaksi.PENDING.equals(transaksi.getStatus())) {
             throw new RuntimeException("Transaksi #" + transaksiId + " sudah diproses sebelumnya.");
         }
         transaksi.setStatus(Transaksi.StatusTransaksi.DIPROSES);
@@ -91,9 +94,27 @@ public class TransaksiService {
     }
 
     @Transactional
+    public Transaksi tolakTransaksi(Long transaksiId, String alasan) {
+        Transaksi transaksi = getTransaksiById(transaksiId);
+        if (!Transaksi.StatusTransaksi.PENDING.equals(transaksi.getStatus())) {
+            throw new RuntimeException("Transaksi #" + transaksiId + " tidak bisa ditolak karena sudah diproses.");
+        }
+        transaksi.setStatus(Transaksi.StatusTransaksi.DITOLAK);
+        transaksi.setAlasanPenolakan(alasan);
+        transaksiRepo.save(transaksi);
+
+        Warga warga = transaksi.getWarga();
+        if (warga != null && warga.getUser() != null) {
+            notifikasiService.buatNotifikasi(warga.getUser(),
+                "Laporan drop point #" + transaksiId + " ditolak. Alasan: " + alasan);
+        }
+        return transaksi;
+    }
+
+    @Transactional
     public Transaksi selesaikanTransaksi(Long transaksiId, List<Long> detailIds, List<Double> beratFinalList, String fotoBuktiTimbangan) {
         Transaksi transaksi = getTransaksiById(transaksiId);
-        if (transaksi.getStatus() != Transaksi.StatusTransaksi.DIPROSES) {
+        if (!Transaksi.StatusTransaksi.DIPROSES.equals(transaksi.getStatus())) {
             throw new RuntimeException("Transaksi #" + transaksiId + " harus dalam status DIPROSES terlebih dahulu.");
         }
         if (fotoBuktiTimbangan == null || fotoBuktiTimbangan.isBlank()) {

@@ -40,7 +40,10 @@ public class Transaksi {
     @Enumerated(EnumType.STRING)
     private StatusTransaksi status;
 
+    @Column(columnDefinition = "TEXT")
+    private String alasanPenolakan;
+
     public enum StatusTransaksi {
-        PENDING, DIPROSES, SELESAI
+        PENDING, DIPROSES, SELESAI, DITOLAK
     }
 }

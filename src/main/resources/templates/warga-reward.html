@@ -109,10 +109,17 @@
   </div>
 
   <!-- Success / Error Alert -->
-  <div class="poin-card" th:if="${success}" style="border-color:rgba(134,187,76,0.4); margin-bottom:1rem;">
+  <div class="poin-card" th:if="${kodePenukaran != null}" style="border-color:rgba(134,187,76,0.4); margin-bottom:1rem; flex-direction:column; gap:16px; padding:2rem; text-align:center;">
+    <div style="font-family:var(--mono); font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--accent);">🎉 Penukaran Berhasil!</div>
+    <div style="font-size:13px; color:var(--text-secondary);" th:text="${success}">✓ Penukaran berhasil!</div>
+    <div style="font-family:var(--mono); font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-muted); margin-top:4px;">KODE AMDAL ANDA</div>
+    <div style="font-family:var(--mono); font-size:2.2rem; font-weight:700; letter-spacing:12px; color:var(--accent); background:var(--accent-dim); border:1px solid rgba(134,187,76,0.25); border-radius:12px; padding:0.75rem 1.5rem; display:inline-block;" th:text="${kodePenukaran}">7A3F2B</div>
+    <div style="font-size:12px; color:var(--text-secondary);">Tunjukkan kode ini ke petugas saat ambil reward.</div>
+  </div>
+  <div class="poin-card" th:if="${success != null and kodePenukaran == null}" style="border-color:rgba(134,187,76,0.4); margin-bottom:1rem;">
     <span style="color:var(--accent); font-size:13px;" th:text="${success}">✓ Penukaran berhasil!</span>
   </div>
-  <div class="poin-card" th:if="${error}" style="border-color:rgba(184,84,84,0.4); margin-bottom:1rem;">
+  <div class="poin-card" th:if="${error != null}" style="border-color:rgba(184,84,84,0.4); margin-bottom:1rem;">
     <span style="color:var(--danger); font-size:13px;" th:text="${error}">✗ Error</span>
   </div>
 
@@ -153,16 +160,16 @@
     <div class="empty-state"><div class="empty-text">Belum ada riwayat point</div></div>
   </div>
   <div th:each="h : ${riwayatPoint}" class="hist-item animate">
-    <div class="hist-icon" th:classappend="${h.type.name() == 'EARN'} ? 'earn' : 'spend'">
-      <svg th:if="${h.type.name() == 'EARN'}" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-      <svg th:if="${h.type.name() == 'SPEND'}" viewBox="0 0 24 24"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+    <div class="hist-icon" th:classappend="${h.type?.name() == 'EARN'} ? 'earn' : 'spend'">
+      <svg th:if="${h.type?.name() == 'EARN'}" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      <svg th:if="${h.type?.name() == 'SPEND'}" viewBox="0 0 24 24"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
     </div>
     <div class="hist-info">
       <div class="hist-desc" th:text="${h.description}">Deskripsi</div>
       <div class="hist-date" th:text="${#temporals.format(h.createdAt, 'dd MMM yyyy, HH:mm')}">—</div>
     </div>
-    <div class="hist-amount" th:classappend="${h.type.name() == 'EARN'} ? 'earn' : 'spend'"
-         th:text="${h.type.name() == 'EARN'} ? '+' + ${h.amount} : '-' + ${h.amount}">
+    <div class="hist-amount" th:classappend="${h.type?.name() == 'EARN'} ? 'earn' : 'spend'"
+         th:text="${h.type?.name() == 'EARN'} ? '+' + ${h.amount} : '-' + ${h.amount}">
       +0
     </div>
   </div>
@@ -177,10 +184,11 @@
       <svg viewBox="0 0 24 24" stroke="var(--accent)"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
     </div>
     <div class="hist-info">
-      <div class="hist-desc" th:text="'Tukar ' + ${p.rewardItem.namaBarang}">Tukar Beras</div>
+      <div class="hist-desc" th:text="'Tukar ' + ${p.rewardItem?.namaBarang ?: 'Reward tidak tersedia'}">Tukar Beras</div>
       <div class="hist-date" th:text="${#temporals.format(p.tanggalPenukaran, 'dd MMM yyyy, HH:mm')}">—</div>
+      <div class="hist-date" th:if="${p.kodePenukaran != null}" style="margin-top:4px; color:var(--accent);" th:text="'Kode: ' + ${p.kodePenukaran}">Kode: 7A3F2B</div>
     </div>
-    <div class="hist-amount spend" th:text="'-' + ${p.rewardItem.pointNeeded} + ' poin'">-1000</div>
+    <div class="hist-amount spend" th:text="'-' + ${p.rewardItem?.pointNeeded ?: '0'} + ' poin'">-1000</div>
   </div>
 
   <footer>

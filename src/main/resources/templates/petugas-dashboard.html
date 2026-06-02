@@ -260,6 +260,11 @@
                   Proses
                 </button>
               </form>
+              <button type="button" class="btn-sm btn-tolak btn-tolak-trigger"
+                      th:attr="data-id=${t.idTransaksi}, data-warga=${t.warga?.nama ?: 'Warga'}">
+                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                Tolak
+              </button>
             </div>
           </td>
         </tr>
@@ -330,12 +335,116 @@
     </table>
   </div>
 
+  <!-- SECTION: PENUKARAN REWARD PENDING -->
+  <div class="section-head animate delay-3">
+    Penukaran Reward Menunggu Konfirmasi
+    <span class="section-count" th:text="${#lists.size(penukaranPending)} + ' klaim'">0 klaim</span>
+  </div>
+
+  <div class="table-wrap animate delay-3">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Warga</th>
+          <th>Kode</th>
+          <th>Barang</th>
+          <th>Poin</th>
+          <th>Tanggal</th>
+          <th class="col-actions">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="p : ${penukaranPending}">
+          <td class="cell-id" th:text="'#' + ${p.id}">001</td>
+          <td class="cell-nama" th:text="${p.warga?.fullName ?: '—'}">Nama Warga</td>
+          <td style="font-family:var(--mono); font-size:14px; font-weight:700; color:var(--accent); letter-spacing:3px;" th:text="${p.kodePenukaran ?: '—'}">7A3F2B</td>
+          <td th:text="${p.rewardItem?.namaBarang ?: '—'}">Nama Barang</td>
+          <td class="cell-berat" th:text="${p.rewardItem?.pointNeeded ?: '—'} + ' poin'">100 poin</td>
+          <td class="cell-tanggal" th:text="${p.tanggalPenukaran != null} ? ${#temporals.format(p.tanggalPenukaran, 'dd MMM HH:mm')} : '—'">—</td>
+          <td>
+            <div class="cell-actions">
+              <button type="button" class="btn-sm btn-acc btn-reward-konfirm-trigger"
+                      th:attr="data-id=${p.id}, data-warga=${p.warga?.fullName ?: 'Warga'}, data-barang=${p.rewardItem?.namaBarang ?: 'Reward'}, data-poin=${p.rewardItem?.pointNeeded ?: '0'}, data-kode=${p.kodePenukaran ?: ''}">
+                <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                Konfirmasi Serah Terima
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(penukaranPending)}">
+          <td colspan="7">
+            <div class="empty-state">
+              <div class="empty-icon">
+                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              </div>
+              <div class="empty-title">Tidak ada klaim reward</div>
+              <div class="empty-desc">Semua reward sudah dikonfirmasi.</div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
   <!-- FOOTER -->
   <footer class="animate delay-3">
     <span class="footer-id">PETUGAS · OPERASIONAL</span>
     <span class="footer-id">SORTIFY v1.0</span>
   </footer>
 
+</div>
+
+<!-- MODAL KONFIRMASI REWARD -->
+<div id="modalRewardKonfirm" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title" style="color:var(--green);">Konfirmasi Serah Terima Reward</div>
+    <div class="modal-desc">Upload foto bukti serah terima reward ke warga.</div>
+
+    <div class="laporan-info">
+      <div class="laporan-info-item">
+        <span class="laporan-info-label">ID Klaim</span>
+        <span class="laporan-info-value" id="rewardKonfirmId">—</span>
+      </div>
+      <div class="laporan-info-item">
+        <span class="laporan-info-label">Warga</span>
+        <span class="laporan-info-value" id="rewardKonfirmWarga">—</span>
+      </div>
+      <div class="laporan-info-item">
+        <span class="laporan-info-label">Barang</span>
+        <span class="laporan-info-value" id="rewardKonfirmBarang">—</span>
+      </div>
+      <div class="laporan-info-item">
+        <span class="laporan-info-label">Poin</span>
+        <span class="laporan-info-value" id="rewardKonfirmPoin">—</span>
+      </div>
+      <div class="laporan-info-item">
+        <span class="laporan-info-label">Kode AMDAL</span>
+        <span class="laporan-info-value" id="rewardKonfirmKode" style="font-family:var(--mono); font-weight:700; letter-spacing:3px; color:var(--accent);">—</span>
+      </div>
+    </div>
+
+    <form id="formRewardKonfirm" method="post" enctype="multipart/form-data" style="margin:0;">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+      <input type="hidden" name="kodePenukaran" id="inputKodePenukaran" value="">
+      <div class="form-group" style="margin-bottom: 1.5rem;">
+        <label class="form-label" for="inputKetikPetugas">Ketik Ulang Kode AMDAL Warga <span style="color:var(--danger);">*</span></label>
+        <input type="text" id="inputKetikPetugas" name="kodeVerifikasiKetik" class="form-input" style="text-transform:uppercase; font-weight:bold; letter-spacing:2px;" placeholder="Contoh: 7A3F2B" required>
+        <small id="errorKodeMismatched" style="color:var(--danger); display:none; margin-top:5px;">⚠️ Kode tidak cocok dengan sistem!</small>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="fotoBuktiReward">Foto Bukti Penyerahan <span style="color:var(--green);">*</span></label>
+        <input type="file" id="fotoBuktiReward" name="fotoBukti" class="form-input" accept="image/*" required>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-modal-batal" id="btnRewardKonfirmBatal">Batal</button>
+        <button type="submit" class="btn-sm btn-acc" style="padding:0.5rem 1.2rem;font-size:10px;letter-spacing:0.5px;text-transform:uppercase;">
+          <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" fill="none" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Konfirmasi
+        </button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <!-- MODAL SELESAI TRANSAKSI -->
@@ -378,6 +487,42 @@
       <div class="modal-actions">
         <button type="button" class="btn-modal-batal" id="btnTransaksiBatal">Batal</button>
         <button type="submit" class="btn-modal-konfirm">Konfirmasi Selesai</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL TOLAK TRANSAKSI -->
+<div id="modalTransaksiTolak" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title" style="color:var(--danger);">Tolak Transaksi</div>
+    <div class="modal-desc">Anda akan menolak laporan drop point berikut. Berikan alasan yang jelas agar warga bisa memperbaiki.</div>
+
+    <div class="laporan-info">
+      <div class="laporan-info-item">
+        <span class="laporan-info-label">ID Transaksi</span>
+        <span class="laporan-info-value" id="modalTolakId">—</span>
+      </div>
+      <div class="laporan-info-item">
+        <span class="laporan-info-label">Warga</span>
+        <span class="laporan-info-value" id="modalTolakWarga">—</span>
+      </div>
+    </div>
+
+    <form id="formTransaksiTolak" method="post" style="margin:0;">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+      <div class="form-group">
+        <label class="form-label" for="alasanTolak">Alasan Penolakan <span style="color:var(--danger);">*</span></label>
+        <textarea id="alasanTolak" name="alasan" class="form-input" rows="4"
+                  placeholder="Contoh: Foto tidak jelas, lokasi tidak sesuai, sampah tidak sesuai ketentuan..."
+                  style="resize:vertical;" required></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-modal-batal" id="btnTolakBatal">Batal</button>
+        <button type="submit" class="btn-sm btn-tolak" style="padding:0.5rem 1.2rem;font-size:10px;letter-spacing:0.5px;text-transform:uppercase;">
+          <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" fill="none" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          Konfirmasi Tolak
+        </button>
       </div>
     </form>
   </div>
@@ -492,6 +637,72 @@
   });
 
   document.getElementById('modalTransaksiSelesai').addEventListener('click', function(e) {
+    if (e.target === this) {
+      this.classList.remove('active');
+    }
+  });
+
+  // ── Modal Tolak ──
+  document.querySelectorAll('.btn-tolak-trigger').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var id = this.getAttribute('data-id');
+      var warga = this.getAttribute('data-warga');
+      document.getElementById('modalTolakId').textContent = '#' + id;
+      document.getElementById('modalTolakWarga').textContent = warga;
+      document.getElementById('formTransaksiTolak').action = '/petugas/transaksi/tolak/' + id;
+      document.getElementById('alasanTolak').value = '';
+      document.getElementById('modalTransaksiTolak').classList.add('active');
+    });
+  });
+
+  document.getElementById('btnTolakBatal').addEventListener('click', function() {
+    document.getElementById('modalTransaksiTolak').classList.remove('active');
+  });
+
+  document.getElementById('modalTransaksiTolak').addEventListener('click', function(e) {
+    if (e.target === this) {
+      this.classList.remove('active');
+    }
+  });
+
+  // ── Modal Reward Konfirmasi ──
+  document.querySelectorAll('.btn-reward-konfirm-trigger').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var id = this.getAttribute('data-id');
+      var warga = this.getAttribute('data-warga');
+      var barang = this.getAttribute('data-barang');
+      var poin = this.getAttribute('data-poin');
+      var kode = this.getAttribute('data-kode') || '';
+      document.getElementById('rewardKonfirmId').textContent = '#' + id;
+      document.getElementById('rewardKonfirmWarga').textContent = warga;
+      document.getElementById('rewardKonfirmBarang').textContent = barang;
+      document.getElementById('rewardKonfirmPoin').textContent = poin + ' poin';
+      document.getElementById('rewardKonfirmKode').textContent = kode || '—';
+      document.getElementById('inputKodePenukaran').value = kode;
+      document.getElementById('inputKetikPetugas').value = '';
+      document.getElementById('inputKetikPetugas').style.borderColor = '';
+      document.getElementById('errorKodeMismatched').style.display = 'none';
+      document.getElementById('formRewardKonfirm').action = '/petugas/reward/konfirmasi/' + id;
+      document.getElementById('fotoBuktiReward').value = '';
+      document.getElementById('modalRewardKonfirm').classList.add('active');
+    });
+  });
+
+  document.getElementById('formRewardKonfirm').addEventListener('submit', function(e) {
+    var kodeSistem = document.getElementById('inputKodePenukaran').value;
+    var kodeDiketok = document.getElementById('inputKetikPetugas').value.trim().toUpperCase();
+    if (kodeSistem !== kodeDiketok) {
+      e.preventDefault();
+      document.getElementById('errorKodeMismatched').style.display = 'block';
+      return false;
+    }
+  });
+
+  document.getElementById('btnRewardKonfirmBatal').addEventListener('click', function() {
+    document.getElementById('modalRewardKonfirm').classList.remove('active');
+  });
+
+  document.getElementById('modalRewardKonfirm').addEventListener('click', function(e) {
     if (e.target === this) {
       this.classList.remove('active');
     }

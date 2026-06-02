@@ -281,8 +281,10 @@
       <div class="tx-right">
         <div class="tx-berat" th:text="${t.totalBerat != null ? t.totalBerat + ' kg' : '— kg'}">— kg</div>
         <div class="tx-status"
-             th:classappend="${t.status.name() == 'SELESAI'} ? 'selesai' : (${t.status.name() == 'DIPROSES'} ? 'proses' : 'proses')"
+             th:classappend="${t.status.name() == 'SELESAI'} ? 'selesai' : (${t.status.name() == 'DIPROSES'} ? 'proses' : (${t.status.name() == 'DITOLAK'} ? 'ditolak' : 'proses'))"
              th:text="${t.status != null ? t.status.name() : 'PENDING'}">Status</div>
+        <div class="tx-alasan" th:if="${t.status.name() == 'DITOLAK' and t.alasanPenolakan != null}"
+             th:text="${t.alasanPenolakan}" style="font-size:11px;color:var(--danger);margin-top:4px;"></div>
       </div>
     </div>
   </div>
