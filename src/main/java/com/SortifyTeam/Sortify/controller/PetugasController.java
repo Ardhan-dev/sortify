@@ -2,6 +2,7 @@ package com.SortifyTeam.Sortify.controller;
 
 import com.SortifyTeam.Sortify.model.*;
 import com.SortifyTeam.Sortify.repository.PenukaranRewardRepository;
+import com.SortifyTeam.Sortify.repository.StaffRepository;
 import com.SortifyTeam.Sortify.repository.TransaksiRepository;
 import com.SortifyTeam.Sortify.repository.UserRepository;
 import com.SortifyTeam.Sortify.service.FileStorageService;
@@ -32,6 +33,7 @@ public class PetugasController {
     private final NotifikasiService notifikasiService;
     private final UserRepository userRepo;
     private final RewardService rewardService;
+    private final StaffRepository staffRepo;
 
     public PetugasController(TransaksiService transaksiService,
                              TransaksiRepository transaksiRepo,
@@ -39,7 +41,8 @@ public class PetugasController {
                              PenukaranRewardRepository penukaranRepo,
                              NotifikasiService notifikasiService,
                              UserRepository userRepo,
-                             RewardService rewardService) {
+                             RewardService rewardService,
+                             StaffRepository staffRepo) {
         this.transaksiService = transaksiService;
         this.transaksiRepo = transaksiRepo;
         this.fileStorageService = fileStorageService;
@@ -47,6 +50,14 @@ public class PetugasController {
         this.notifikasiService = notifikasiService;
         this.userRepo = userRepo;
         this.rewardService = rewardService;
+        this.staffRepo = staffRepo;
+    }
+
+    private Staff getCurrentStaff(Authentication auth) {
+        User user = userRepo.findByUsername(auth.getName())
+                .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
+        return staffRepo.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("Staff tidak ditemukan untuk user: " + auth.getName()));
     }
 
     @GetMapping("/dashboard")
@@ -102,10 +113,11 @@ public class PetugasController {
     }
 
     @PostMapping("/transaksi/proses/{id}")
-    public String prosesTransaksi(@PathVariable Long id,
+    public String prosesTransaksi(Authentication auth, @PathVariable Long id,
                                    RedirectAttributes redirectAttributes) {
         try {
-            transaksiService.prosesTransaksi(id);
+            Staff staff = getCurrentStaff(auth);
+            transaksiService.prosesTransaksi(id, staff);
             redirectAttributes.addFlashAttribute("success", "Drop point #" + id + " sedang diproses.");
         } catch (Exception e) {
             log.error("[ERROR] Gagal memproses transaksi #{}: {}", id, e.getMessage(), e);
@@ -115,15 +127,16 @@ public class PetugasController {
     }
 
     @PostMapping("/transaksi/tolak/{id}")
-    public String tolakTransaksi(@PathVariable Long id,
-                                  @RequestParam("alasan") String alasan,
-                                  RedirectAttributes redirectAttributes) {
+    public String tolakTransaksi(Authentication auth, @PathVariable Long id,
+                                   @RequestParam("alasan") String alasan,
+                                   RedirectAttributes redirectAttributes) {
         if (alasan == null || alasan.isBlank()) {
             redirectAttributes.addFlashAttribute("error", "Alasan penolakan harus diisi.");
             return "redirect:/petugas/dashboard";
         }
         try {
-            transaksiService.tolakTransaksi(id, alasan);
+            Staff staff = getCurrentStaff(auth);
+            transaksiService.tolakTransaksi(id, alasan, staff);
             redirectAttributes.addFlashAttribute("success", "Drop point #" + id + " telah ditolak.");
         } catch (Exception e) {
             log.error("[ERROR] Gagal menolak transaksi #{}: {}", id, e.getMessage(), e);
@@ -187,11 +200,11 @@ public class PetugasController {
     }
 
     @PostMapping("/transaksi/selesai/{id}")
-    public String selesaikanTransaksi(@PathVariable Long id,
-                                       @RequestParam("detailId") List<Long> detailIds,
-                                       @RequestParam("beratFinal") List<Double> beratFinal,
-                                       @RequestParam("fotoBuktiTimbangan") MultipartFile fotoBuktiTimbangan,
-                                       RedirectAttributes redirectAttributes) {
+    public String selesaikanTransaksi(Authentication auth, @PathVariable Long id,
+                                        @RequestParam("detailId") List<Long> detailIds,
+                                        @RequestParam("beratFinal") List<Double> beratFinal,
+                                        @RequestParam("fotoBuktiTimbangan") MultipartFile fotoBuktiTimbangan,
+                                        RedirectAttributes redirectAttributes) {
         if (fotoBuktiTimbangan.isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "Foto bukti timbangan harus diupload.");
             return "redirect:/petugas/dashboard";
@@ -202,8 +215,9 @@ public class PetugasController {
         }
 
         try {
+            Staff staff = getCurrentStaff(auth);
             String filename = fileStorageService.storeFile(fotoBuktiTimbangan, null);
-            transaksiService.selesaikanTransaksi(id, detailIds, beratFinal, filename);
+            transaksiService.selesaikanTransaksi(id, detailIds, beratFinal, filename, staff);
             redirectAttributes.addFlashAttribute("success", "Drop point #" + id + " berhasil diselesaikan.");
         } catch (Exception e) {
             log.error("[ERROR] Gagal menyelesaikan transaksi #{}: {}", id, e.getMessage(), e);

@@ -108,11 +108,12 @@ public class TransaksiService {
     }
 
     @Transactional
-    public Transaksi prosesTransaksi(Long transaksiId) {
+    public Transaksi prosesTransaksi(Long transaksiId, Staff staff) {
         Transaksi transaksi = getTransaksiById(transaksiId);
         if (!Transaksi.StatusTransaksi.PENDING.equals(transaksi.getStatus())) {
             throw new RuntimeException("Transaksi #" + transaksiId + " sudah diproses sebelumnya.");
         }
+        transaksi.setStaff(staff);
         transaksi.setStatus(Transaksi.StatusTransaksi.DIPROSES);
         return transaksiRepo.save(transaksi);
     }
@@ -141,11 +142,12 @@ public class TransaksiService {
     }
 
     @Transactional
-    public Transaksi tolakTransaksi(Long transaksiId, String alasan) {
+    public Transaksi tolakTransaksi(Long transaksiId, String alasan, Staff staff) {
         Transaksi transaksi = getTransaksiById(transaksiId);
         if (!Transaksi.StatusTransaksi.PENDING.equals(transaksi.getStatus())) {
             throw new RuntimeException("Transaksi #" + transaksiId + " tidak bisa ditolak karena sudah diproses.");
         }
+        transaksi.setStaff(staff);
         transaksi.setStatus(Transaksi.StatusTransaksi.DITOLAK);
         transaksi.setAlasanPenolakan(alasan);
         transaksiRepo.save(transaksi);
@@ -159,7 +161,7 @@ public class TransaksiService {
     }
 
     @Transactional
-    public Transaksi selesaikanTransaksi(Long transaksiId, List<Long> detailIds, List<Double> beratFinalList, String fotoBuktiTimbangan) {
+    public Transaksi selesaikanTransaksi(Long transaksiId, List<Long> detailIds, List<Double> beratFinalList, String fotoBuktiTimbangan, Staff staff) {
         Transaksi transaksi = getTransaksiById(transaksiId);
         if (!Transaksi.StatusTransaksi.DIPROSES.equals(transaksi.getStatus())) {
             throw new RuntimeException("Transaksi #" + transaksiId + " harus dalam status DIPROSES terlebih dahulu.");
@@ -195,6 +197,7 @@ public class TransaksiService {
             detailDesc.append(namaKategori).append(" ").append(beratFinal).append("kg");
         }
 
+        transaksi.setStaff(staff);
         transaksi.setTotalBerat(totalBerat);
         transaksi.setTotalPoin(totalPoin);
         transaksi.setStatus(Transaksi.StatusTransaksi.SELESAI);

@@ -6,6 +6,7 @@
   <title>Sortify — Petugas Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -573,8 +574,15 @@
       <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
       <input type="hidden" name="kodePenukaran" id="inputKodePenukaran" value="">
       <div class="form-group" style="margin-bottom: 1.5rem;">
-        <label class="form-label" for="inputKetikPetugas">Ketik Ulang Kode AMDAL Warga <span style="color:var(--danger);">*</span></label>
-        <input type="text" id="inputKetikPetugas" name="kodeVerifikasiKetik" class="form-input" style="text-transform:uppercase; font-weight:bold; letter-spacing:2px;" placeholder="Contoh: 7A3F2B" required>
+        <label class="form-label" for="inputKetikPetugas">Ketik / Scan Kode AMDAL Warga <span style="color:var(--danger);">*</span></label>
+        <div style="display:flex; gap:8px; align-items:stretch;">
+          <input type="text" id="inputKetikPetugas" name="kodeVerifikasiKetik" class="form-input" style="text-transform:uppercase; font-weight:bold; letter-spacing:2px; flex:1;" placeholder="Contoh: 7A3F2B" required>
+          <button type="button" id="btnScanQR" class="btn-sm btn-detail" style="white-space:nowrap;">
+            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><path d="M1 1h6v6H1zM23 1h-6v6h6zM1 17h6v6H1zM23 17h-6v6h6z"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="12" y1="7" x2="12" y2="17"/></svg>
+            Scan
+          </button>
+        </div>
+        <div id="qrScannerContainer" style="display:none; margin-top:10px; max-width:320px; border-radius:10px; overflow:hidden; border:1px solid var(--border);"></div>
         <small id="errorKodeMismatched" style="color:var(--danger); display:none; margin-top:5px;">⚠️ Kode tidak cocok dengan sistem!</small>
       </div>
       <div class="form-group">
@@ -935,12 +943,71 @@
     }
   });
 
-  document.getElementById('btnRewardKonfirmBatal').addEventListener('click', function() {
-    document.getElementById('modalRewardKonfirm').classList.remove('active');
+
+
+  // ── QR Scanner ──
+  var html5QrCode = null;
+
+  document.getElementById('btnScanQR').addEventListener('click', function() {
+    var container = document.getElementById('qrScannerContainer');
+    if (container.style.display === 'block') {
+      stopScanner();
+      return;
+    }
+    container.style.display = 'block';
+    this.textContent = 'Stop';
+    this.style.borderColor = 'var(--danger)';
+    this.style.color = 'var(--danger)';
+
+    try {
+      html5QrCode = new Html5Qrcode("qrScannerContainer");
+      html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        function(decodedText) {
+          document.getElementById('inputKetikPetugas').value = decodedText;
+          stopScanner();
+          // Trigger submit validation check visually
+          var kodeSistem = document.getElementById('inputKodePenukaran').value;
+          if (kodeSistem === decodedText.trim().toUpperCase()) {
+            document.getElementById('inputKetikPetugas').style.borderColor = 'var(--green)';
+            document.getElementById('errorKodeMismatched').style.display = 'none';
+          } else {
+            document.getElementById('inputKetikPetugas').style.borderColor = 'var(--danger)';
+            document.getElementById('errorKodeMismatched').style.display = 'block';
+          }
+        },
+        function(err) { /* ignore continuous scan errors */ }
+      ).catch(function(err) {
+        container.innerHTML = '<div style="padding:1rem;text-align:center;font-family:var(--mono);font-size:11px;color:var(--danger);">Gagal akses kamera: ' + err + '</div>';
+      });
+    } catch(e) {
+      container.innerHTML = '<div style="padding:1rem;text-align:center;font-family:var(--mono);font-size:11px;color:var(--danger);">QR Scanner tidak tersedia.</div>';
+    }
   });
 
+  function stopScanner() {
+    if (html5QrCode) {
+      try { html5QrCode.stop(); html5QrCode.clear(); } catch(e) {}
+      html5QrCode = null;
+    }
+    var container = document.getElementById('qrScannerContainer');
+    container.style.display = 'none';
+    container.innerHTML = '';
+    var btn = document.getElementById('btnScanQR');
+    btn.textContent = 'Scan';
+    btn.style.borderColor = '';
+    btn.style.color = '';
+  }
+
+  // Stop scanner when modal is closed
+  document.getElementById('btnRewardKonfirmBatal').addEventListener('click', function() {
+    stopScanner();
+    document.getElementById('modalRewardKonfirm').classList.remove('active');
+  });
   document.getElementById('modalRewardKonfirm').addEventListener('click', function(e) {
     if (e.target === this) {
+      stopScanner();
       this.classList.remove('active');
     }
   });
