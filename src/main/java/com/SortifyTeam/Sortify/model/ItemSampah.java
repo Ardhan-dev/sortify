@@ -23,4 +23,7 @@ public class ItemSampah {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_kategori", nullable = false)
     private KategoriSampah kategoriSampah;
+
+    @Column(nullable = false)
+    private Boolean isActive = true;
 }

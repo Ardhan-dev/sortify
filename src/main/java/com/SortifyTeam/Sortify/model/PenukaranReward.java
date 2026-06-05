@@ -39,7 +39,7 @@ public class PenukaranReward {
     }
 
     public enum StatusPenukaran {
-        PENDING, SUDAH_DIAMBIL
+        PENDING, SUDAH_DIAMBIL, DIBATALKAN
     }
 }
 

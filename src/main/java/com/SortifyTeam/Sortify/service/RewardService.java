@@ -35,7 +35,7 @@ public class RewardService {
     }
 
     public List<RewardItem> getRewardTersedia() {
-        return rewardItemRepo.findByStockGreaterThan(0);
+        return rewardItemRepo.findByStockGreaterThanAndIsActiveTrue(0);
     }
 
     public List<PenukaranReward> getRiwayatPenukaran(User warga) {
@@ -112,7 +112,9 @@ public class RewardService {
     // ── CRUD untuk Admin ──
 
     public List<RewardItem> getAllRewardItems() {
-        return rewardItemRepo.findAll();
+        return rewardItemRepo.findAll().stream()
+                .filter(RewardItem::getIsActive)
+                .toList();
     }
 
     public RewardItem getRewardById(Long id) {
@@ -159,11 +161,45 @@ public class RewardService {
     @Transactional
     public void hapusReward(Long id) {
         RewardItem item = getRewardById(id);
-        if (penukaranRepo.existsByRewardItem(item)) {
-            throw new IllegalStateException(
-                    "Reward '" + item.getNamaBarang() + "' sudah pernah ditukar dan tidak dapat dihapus.");
+        item.setIsActive(false);
+        rewardItemRepo.save(item);
+    }
+
+    @Transactional
+    public PenukaranReward batalkanPenukaran(Long penukaranId) {
+        PenukaranReward penukaran = penukaranRepo.findById(penukaranId)
+                .orElseThrow(() -> new RuntimeException("Penukaran reward tidak ditemukan: " + penukaranId));
+
+        if (!PenukaranReward.StatusPenukaran.PENDING.equals(penukaran.getStatus())) {
+            throw new RuntimeException("Penukaran #" + penukaranId + " sudah diproses dan tidak dapat dibatalkan.");
         }
-        rewardItemRepo.deleteById(id);
+
+        penukaran.setStatus(PenukaranReward.StatusPenukaran.DIBATALKAN);
+        penukaranRepo.save(penukaran);
+
+        User warga = userRepo.findByIdWithLock(penukaran.getUser().getId())
+                .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
+        RewardItem item = penukaran.getRewardItem();
+
+        warga.setTotalPoints(warga.getTotalPoints() + item.getPointNeeded());
+        item.setStock(item.getStock() + 1);
+
+        userRepo.save(warga);
+        rewardItemRepo.save(item);
+
+        pointService.tambahPointHistory(warga, item.getPointNeeded(),
+                PointHistory.PointType.EARN,
+                "Refund poin pembatalan " + item.getNamaBarang());
+        logAktivitasService.catatAktivitas(
+            warga.getUsername(),
+            warga.getRole().name(),
+            "BATAL_REWARD",
+            "Penukaran " + item.getNamaBarang() + " dibatalkan — refund " + item.getPointNeeded() + " poin"
+        );
+        notifikasiService.buatNotifikasi(warga,
+                "Penukaran " + item.getNamaBarang() + " dibatalkan oleh petugas. " + item.getPointNeeded() + " poin telah dikembalikan.");
+
+        return penukaran;
     }
 }
 

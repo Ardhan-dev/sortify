@@ -25,7 +25,7 @@ public class KategoriSampahService {
     }
 
     public List<KategoriSampah> getSemua() {
-        return kategoriRepo.findAll();
+        return kategoriRepo.findByIsActiveTrue();
     }
 
     public KategoriSampah getById(Long id) {
@@ -54,15 +54,10 @@ public class KategoriSampahService {
     @Transactional
     public void hapus(Long id) {
         KategoriSampah kategori = getById(id);
-        if (transaksiDetailRepo.existsByKategoriSampah(kategori)) {
-            throw new IllegalStateException(
-                    "Kategori '" + kategori.getNamaKategori() + "' masih digunakan di detail transaksi dan tidak dapat dihapus.");
-        }
-        if (!itemSampahRepo.findByKategoriSampah(kategori).isEmpty()) {
-            throw new IllegalStateException(
-                    "Kategori '" + kategori.getNamaKategori() + "' masih memiliki item sampah dan tidak dapat dihapus.");
-        }
-        kategoriRepo.deleteById(id);
+        kategori.setIsActive(false);
+        itemSampahRepo.findByKategoriSampah(kategori)
+                .forEach(item -> item.setIsActive(false));
+        kategoriRepo.save(kategori);
     }
 
     public long count() {

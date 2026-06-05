@@ -28,5 +28,8 @@ public class RewardItem {
     @Min(value = 0, message = "Stok minimal 0")
     @Column(nullable = false)
     private int stock;
+
+    @Column(nullable = false)
+    private Boolean isActive = true;
 }
 

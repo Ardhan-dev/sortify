@@ -48,6 +48,6 @@ public class Transaksi {
     private String alasanPenolakan;
 
     public enum StatusTransaksi {
-        PENDING, DIPROSES, SELESAI, DITOLAK
+        PENDING, DIPROSES, SELESAI, DITOLAK, DIBATALKAN
     }
 }

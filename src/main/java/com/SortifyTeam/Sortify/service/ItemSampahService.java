@@ -18,7 +18,7 @@ public class ItemSampahService {
     }
 
     public List<ItemSampah> getAll() {
-        return itemSampahRepo.findAllByOrderByKategoriSampahNamaKategoriAscNamaItemAsc();
+        return itemSampahRepo.findByIsActiveTrueOrderByKategoriSampahNamaKategoriAscNamaItemAsc();
     }
 
     public ItemSampah getById(Long id) {
@@ -28,9 +28,9 @@ public class ItemSampahService {
 
     public List<ItemSampah> cari(String keyword) {
         if (keyword == null || keyword.isBlank()) {
-            return itemSampahRepo.findAllByOrderByKategoriSampahNamaKategoriAscNamaItemAsc();
+            return itemSampahRepo.findByIsActiveTrueOrderByKategoriSampahNamaKategoriAscNamaItemAsc();
         }
-        return itemSampahRepo.findByNamaItemContainingIgnoreCase(keyword.trim());
+        return itemSampahRepo.findByNamaItemContainingIgnoreCaseAndIsActiveTrue(keyword.trim());
     }
 
     @Transactional
@@ -55,10 +55,9 @@ public class ItemSampahService {
 
     @Transactional
     public void hapus(Long id) {
-        if (!itemSampahRepo.existsById(id)) {
-            throw new RuntimeException("Item tidak ditemukan: " + id);
-        }
-        itemSampahRepo.deleteById(id);
+        ItemSampah item = getById(id);
+        item.setIsActive(false);
+        itemSampahRepo.save(item);
     }
 
     public long count() {

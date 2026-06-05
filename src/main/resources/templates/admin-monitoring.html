@@ -93,6 +93,8 @@
     .badge-pending .dot { background: var(--amber); }
     .badge-ambil { background: var(--accent-dim); border-color: rgba(134,187,76,0.25); color: var(--accent); }
     .badge-ambil .dot { background: var(--accent); }
+    .badge-batal { background: rgba(184,84,84,0.1); border-color: rgba(184,84,84,0.25); color: var(--danger); }
+    .badge-batal .dot { background: var(--danger); }
 
     .cell-actions { display: flex; justify-content: center; gap: 6px; }
     .btn-sm { display: inline-flex; align-items: center; gap: 5px; padding: 0.4rem 0.9rem; font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase; text-decoration: none; border-radius: 6px; border: 1px solid; cursor: pointer; transition: all 0.15s; background: transparent; }
@@ -249,9 +251,10 @@
           <td class="cell-poin" th:text="${p.rewardItem?.pointNeeded ?: '—'} + ' poin'">100 poin</td>
           <td class="cell-tanggal" th:text="${p.tanggalPenukaran != null} ? ${#temporals.format(p.tanggalPenukaran, 'dd MMM yyyy HH:mm')} : '—'">—</td>
           <td>
-            <span class="status-badge" th:classappend="${p.status.name() == 'SUDAH_DIAMBIL'} ? 'badge-ambil' : 'badge-pending'">
+            <span class="status-badge"
+                  th:classappend="${p.status.name() == 'SUDAH_DIAMBIL'} ? 'badge-ambil' : (${p.status.name() == 'DIBATALKAN'} ? 'badge-batal' : 'badge-pending')">
               <span class="dot"></span>
-              <span th:text="${p.status.name() == 'SUDAH_DIAMBIL'} ? 'SUDAH DIAMBIL' : 'PENDING'">PENDING</span>
+              <span th:text="${p.status.name() == 'SUDAH_DIAMBIL'} ? 'SUDAH DIAMBIL' : (${p.status.name() == 'DIBATALKAN'} ? 'DIBATALKAN' : 'PENDING')">PENDING</span>
             </span>
           </td>
         </tr>

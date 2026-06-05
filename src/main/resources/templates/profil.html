@@ -71,7 +71,7 @@
       border-radius: 10px;
       padding: 1rem 1.25rem;
       display: grid;
-      grid-template-columns: auto 1fr auto;
+      grid-template-columns: auto 1fr auto auto;
       align-items: center;
       gap: 1rem;
       animation: fadeUp 0.4s ease both;
@@ -111,6 +111,23 @@
     .tx-status.proses   { background: var(--yellow-dim); color: var(--yellow); border: 1px solid rgba(212,168,67,0.18); }
     .tx-status.ditolak  { background: var(--red-dim);    color: var(--red);    border: 1px solid rgba(224,84,84,0.18); }
     .tx-status::before  { content: ''; display: block; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+    .tx-status.dibatalkan { background: var(--red-dim); color: var(--red); border: 1px solid rgba(224,84,84,0.18); }
+
+    .btn-batal {
+        background: transparent;
+        color: var(--red);
+        border: 1px solid rgba(224,84,84,0.25);
+        border-radius: 6px;
+        padding: 4px 12px;
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background 0.15s;
+    }
+    .btn-batal:hover { background: rgba(200,74,74,0.1); }
 
     /* Empty state */
     .tx-empty { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 2.5rem 1.5rem; text-align: center; }
@@ -126,6 +143,8 @@
     .badge-pangkat.info    { background:rgba(42,156,122,0.12); color:#2a9c7a; border:1px solid rgba(42,156,122,0.25); }
     .badge-pangkat.warning { background:rgba(200,137,26,0.12);  color:#c8891a; border:1px solid rgba(200,137,26,0.25); }
     .badge-pangkat.success { background:rgba(134,187,76,0.15);  color:var(--accent); border:1px solid rgba(134,187,76,0.3); }
+    .form-input { width:100%; padding:0.65rem 0.9rem; background:var(--surface-raised); border:1px solid var(--border); border-radius:8px; color:var(--text-primary); font-family:var(--sans); font-size:14px; outline:none; transition:border-color 0.2s; }
+    .form-input:focus { border-color: var(--accent); }
     @media (max-width: 480px) {
       .info-grid { grid-template-columns: 1fr; }
       .tx-item { grid-template-columns: auto 1fr; }
@@ -252,11 +271,31 @@
     </div>
   </div>
 
+  <!-- Ubah Password -->
+  <a href="/warga/ubah-password" style="text-decoration:none; display:block; margin-top:1.5rem;">
+    <div class="profile-card" style="cursor:pointer; transition:border-color 0.15s;">
+      <div class="profile-card-header">
+        <div class="avatar">
+          <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; flex:1;">
+          <div>
+            <div class="profile-name">Ubah Password</div>
+            <div class="profile-badge">KEAMANAN</div>
+          </div>
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--text-muted)" fill="none" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </a>
+
   <!-- Action Buttons -->
   <div style="display:flex; gap:10px; margin: 1.5rem 0; flex-wrap:wrap;">
     <a href="/warga/transaksi/tambah" style="display:inline-flex; align-items:center; gap:7px; padding:0.55rem 1.1rem; font-family:var(--mono); font-size:11px; letter-spacing:0.5px; text-transform:uppercase; text-decoration:none; border-radius:7px; background:var(--accent); color:var(--bg); border:1px solid var(--accent); transition:background 0.18s;">
       <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      + Drop Point
+      + Lapor Sampah
     </a>
     <a href="/warga/reward" style="display:inline-flex; align-items:center; gap:7px; padding:0.55rem 1.1rem; font-family:var(--mono); font-size:11px; letter-spacing:0.5px; text-transform:uppercase; text-decoration:none; border-radius:7px; background:transparent; color:var(--text-secondary); border:1px solid var(--border); transition:all 0.18s;">
       <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
@@ -268,9 +307,9 @@
     </a>
   </div>
 
-  <!-- Transaksi Drop Point History -->
+  <!-- Riwayat Lapor Sampah -->
   <div class="section-head">
-    <div class="section-label">History Drop Point</div>
+    <div class="section-label">Riwayat Lapor Sampah</div>
     <span class="section-count" th:text="${transaksiList != null ? #lists.size(transaksiList) + ' transaksi' : '0 transaksi'}">0 transaksi</span>
   </div>
 
@@ -282,9 +321,9 @@
         </svg>
       </div>
       <div class="tx-meta">
-        <div class="tx-jenis" style="color:var(--accent); font-size:12px;" th:text="${t.details != null and !t.details.isEmpty()} ? ${#strings.listJoin(t.details.![kategoriSampah.namaKategori + ' ' + (beratFinal != null ? beratFinal : beratEstimasi) + 'kg'], ', ')} : 'Drop Point'">Drop Point</div>
+        <div class="tx-jenis" style="color:var(--accent); font-size:12px;" th:text="${t.details != null and !t.details.isEmpty()} ? ${#strings.listJoin(t.details.![kategoriSampah.namaKategori + ' ' + (beratFinal != null ? beratFinal : beratEstimasi) + 'kg'], ', ')} : 'Lapor Sampah'">Lapor Sampah</div>
         <div class="tx-sub">
-          <span class="tx-id" th:text="'#DP-' + ${t.idTransaksi}">—</span>
+          <span class="tx-id" th:text="'#LS-' + ${t.idTransaksi}">—</span>
           <span class="tx-dot"></span>
           <span class="tx-date" th:text="${#temporals.format(t.tanggalTransaksi, 'dd MMM yyyy')}">—</span>
         </div>
@@ -292,10 +331,20 @@
       <div class="tx-right">
         <div class="tx-berat" th:text="${t.totalBerat != null ? t.totalBerat + ' kg' : '— kg'}">— kg</div>
         <div class="tx-status"
-             th:classappend="${t.status.name() == 'SELESAI'} ? 'selesai' : (${t.status.name() == 'DIPROSES'} ? 'proses' : (${t.status.name() == 'DITOLAK'} ? 'ditolak' : 'proses'))"
+             th:classappend="${t.status.name() == 'SELESAI'} ? 'selesai' : (${t.status.name() == 'DIPROSES'} ? 'proses' : (${t.status.name() == 'DITOLAK'} ? 'ditolak' : (${t.status.name() == 'DIBATALKAN'} ? 'dibatalkan' : 'proses')))"
              th:text="${t.status != null ? t.status.name() : 'PENDING'}">Status</div>
         <div class="tx-alasan" th:if="${t.status.name() == 'DITOLAK' and t.alasanPenolakan != null}"
              th:text="${t.alasanPenolakan}" style="font-size:11px;color:var(--danger);margin-top:4px;"></div>
+      </div>
+      <div style="display:flex; gap:6px; align-items:center;">
+        <a th:if="${t.status.name() == 'SELESAI'}" th:href="@{/warga/transaksi/struk/{id}(id=${t.idTransaksi})}"
+           class="btn-batal" style="color:var(--accent); border-color:var(--accent); text-decoration:none;"
+           target="_blank">PDF</a>
+        <form th:if="${t.status.name() == 'PENDING'}" th:action="@{/warga/transaksi/batal/{id}(id=${t.idTransaksi})}" method="post"
+              onsubmit="return confirm('Yakin ingin membatalkan laporan ini?')" style="display:flex;">
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+          <button type="submit" class="btn-batal">Batal</button>
+        </form>
       </div>
     </div>
   </div>
@@ -304,7 +353,7 @@
     <div class="tx-empty-icon">
       <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
     </div>
-    <div class="tx-empty-text">Belum ada transaksi drop point</div>
+    <div class="tx-empty-text">Belum ada laporan sampah</div>
   </div>
 
   <footer>

@@ -59,7 +59,7 @@ public class InitialDataLoader implements CommandLineRunner {
 
     private User buatUser(String username, String fullName, User.Role role, int points) {
         String rawPassword = generateStrongPassword();
-        log.info("===== AKUN SEEDER: username={}, password={}, role={} =====", username, rawPassword, role);
+        log.info("===== AKUN SEEDER: username={}, role={} =====", username, role);
         User user = new User();
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(rawPassword));

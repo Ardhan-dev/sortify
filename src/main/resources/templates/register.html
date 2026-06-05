@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sortify — Daftar Akun</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
   <style>
@@ -207,6 +208,12 @@
                th:value="${formData.noTelepon}">
       </div>
 
+      <div class="divider-text">Lokasi Bank Sampah</div>
+      <div id="map" style="height:180px; border-radius:8px; border:1px solid var(--sortify-border); margin-bottom:1rem;"></div>
+      <p style="font-size:11px;color:var(--sortify-muted-text);margin-bottom:1rem;">
+        Bank Sampah Sortify pusat — lokasi penyerahan sampah.
+      </p>
+
       <button type="submit" class="btn-submit mt-2">Daftar</button>
 
       <p class="mt-3 mb-0" style="font-size:11px;color:var(--sortify-muted);text-align:center;line-height:1.5;">
@@ -229,5 +236,15 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  var map = L.map('map').setView([-6.2088, 106.8456], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(map);
+  L.marker([-6.2088, 106.8456]).addTo(map)
+    .bindPopup('<strong>Bank Sampah Sortify Pusat</strong><br>Jl. Contoh No. 123, Jakarta')
+    .openPopup();
+</script>
 </body>
 </html>

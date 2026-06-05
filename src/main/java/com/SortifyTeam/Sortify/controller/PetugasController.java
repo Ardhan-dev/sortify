@@ -5,6 +5,7 @@ import com.SortifyTeam.Sortify.repository.PenukaranRewardRepository;
 import com.SortifyTeam.Sortify.repository.UserRepository;
 import com.SortifyTeam.Sortify.service.FileStorageService;
 import com.SortifyTeam.Sortify.service.NotifikasiService;
+import com.SortifyTeam.Sortify.service.RewardService;
 import com.SortifyTeam.Sortify.service.TransaksiService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -28,17 +29,20 @@ public class PetugasController {
     private final PenukaranRewardRepository penukaranRepo;
     private final NotifikasiService notifikasiService;
     private final UserRepository userRepo;
+    private final RewardService rewardService;
 
     public PetugasController(TransaksiService transaksiService,
                              FileStorageService fileStorageService,
                              PenukaranRewardRepository penukaranRepo,
                              NotifikasiService notifikasiService,
-                             UserRepository userRepo) {
+                             UserRepository userRepo,
+                             RewardService rewardService) {
         this.transaksiService = transaksiService;
         this.fileStorageService = fileStorageService;
         this.penukaranRepo = penukaranRepo;
         this.notifikasiService = notifikasiService;
         this.userRepo = userRepo;
+        this.rewardService = rewardService;
     }
 
     @GetMapping("/dashboard")
@@ -59,7 +63,8 @@ public class PetugasController {
 
         Page<Transaksi> transaksiHistoryPage = transaksiService.getTransaksiHistory(pageT, 10);
         Page<PenukaranReward> penukaranSelesaiPage = penukaranRepo
-                .findByStatusOrderByTanggalPenukaranDesc(PenukaranReward.StatusPenukaran.SUDAH_DIAMBIL,
+                .findByStatusInOrderByTanggalPenukaranDesc(
+                        List.of(PenukaranReward.StatusPenukaran.SUDAH_DIAMBIL, PenukaranReward.StatusPenukaran.DIBATALKAN),
                         PageRequest.of(pageR, 10));
         model.addAttribute("transaksiHistory", transaksiHistoryPage.getContent());
         model.addAttribute("transaksiHistoryPage", transaksiHistoryPage);
@@ -160,6 +165,18 @@ public class PetugasController {
         }
 
         redirectAttributes.addFlashAttribute("success", "Reward #" + id + " berhasil dikonfirmasi.");
+        return "redirect:/petugas/dashboard";
+    }
+
+    @PostMapping("/reward/batal/{id}")
+    public String batalReward(@PathVariable Long id,
+                               RedirectAttributes redirectAttributes) {
+        try {
+            rewardService.batalkanPenukaran(id);
+            redirectAttributes.addFlashAttribute("success", "Penukaran reward #" + id + " berhasil dibatalkan. Poin dan stok dikembalikan.");
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
         return "redirect:/petugas/dashboard";
     }
 

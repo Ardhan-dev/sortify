@@ -80,6 +80,8 @@
     .badge-pending .dot { background: var(--amber); }
     .badge-ambil { background: var(--accent-dim); border-color: rgba(134,187,76,0.25); color: var(--accent); }
     .badge-ambil .dot { background: var(--accent); }
+    .badge-batal { background: var(--danger-dim); border-color: rgba(184,84,84,0.25); color: var(--danger); }
+    .badge-batal .dot { background: var(--danger); }
 
     .empty-state { text-align: center; padding: 2rem; }
     .empty-text { font-family: var(--mono); font-size: 11px; color: var(--text-muted); letter-spacing: 1px; }
@@ -195,9 +197,10 @@
       <div class="hist-date" th:text="${#temporals.format(p.tanggalPenukaran, 'dd MMM yyyy, HH:mm')}">—</div>
       <div class="hist-date" th:if="${p.kodePenukaran != null}" style="margin-top:4px; color:var(--accent);" th:text="'Kode: ' + ${p.kodePenukaran}">Kode: 7A3F2B</div>
       <div style="margin-top:6px;">
-        <span class="status-badge" th:classappend="${p.status.name() == 'SUDAH_DIAMBIL'} ? 'badge-ambil' : 'badge-pending'">
+        <span class="status-badge"
+              th:classappend="${p.status.name() == 'SUDAH_DIAMBIL'} ? 'badge-ambil' : (${p.status.name() == 'DIBATALKAN'} ? 'badge-batal' : 'badge-pending')">
           <span class="dot"></span>
-          <span th:text="${p.status.name() == 'SUDAH_DIAMBIL'} ? 'Sudah Diterima' : 'Menunggu Konfirmasi'">PENDING</span>
+          <span th:text="${p.status.name() == 'SUDAH_DIAMBIL'} ? 'Sudah Diterima' : (${p.status.name() == 'DIBATALKAN'} ? 'Dibatalkan' : 'Menunggu Konfirmasi')">PENDING</span>
         </span>
       </div>
     </div>

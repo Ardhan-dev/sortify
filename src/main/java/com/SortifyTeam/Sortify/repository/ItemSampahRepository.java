@@ -12,4 +12,6 @@ public interface ItemSampahRepository extends JpaRepository<ItemSampah, Long> {
     List<ItemSampah> findByNamaItemContainingIgnoreCase(String namaItem);
     List<ItemSampah> findByKategoriSampah(KategoriSampah kategori);
     List<ItemSampah> findAllByOrderByKategoriSampahNamaKategoriAscNamaItemAsc();
+    List<ItemSampah> findByIsActiveTrueOrderByKategoriSampahNamaKategoriAscNamaItemAsc();
+    List<ItemSampah> findByNamaItemContainingIgnoreCaseAndIsActiveTrue(String namaItem);
 }

@@ -93,7 +93,7 @@ public class AdminController {
 
         // ── Data untuk filter dropdown ──
         model.addAttribute("daftarWarga", wargaRepo.findAll());
-        model.addAttribute("daftarKategori", kategoriRepo.findAll());
+        model.addAttribute("daftarKategori", kategoriRepo.findByIsActiveTrue());
 
         return "admin-dashboard";
     }

@@ -12,7 +12,7 @@ import java.util.Optional;
 
 @Repository
 public interface RewardItemRepository extends JpaRepository<RewardItem, Long> {
-    List<RewardItem> findByStockGreaterThan(int stock);
+    List<RewardItem> findByStockGreaterThanAndIsActiveTrue(int stock);
 
     @Query(value = "SELECT * FROM reward_item WHERE id = :id FOR UPDATE", nativeQuery = true)
     Optional<RewardItem> findByIdWithLock(@Param("id") Long id);

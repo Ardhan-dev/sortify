@@ -16,4 +16,7 @@ public class KategoriSampah {
 
     @Column(columnDefinition = "TEXT")
     private String instruksiPenanganan;
+
+    @Column(nullable = false)
+    private Boolean isActive = true;
 }

@@ -3,6 +3,7 @@ package com.SortifyTeam.Sortify.controller;
 import com.SortifyTeam.Sortify.model.*;
 import com.SortifyTeam.Sortify.repository.KategoriSampahRepository;
 import com.SortifyTeam.Sortify.repository.TransaksiRepository;
+import com.SortifyTeam.Sortify.repository.UserRepository;
 import com.SortifyTeam.Sortify.repository.WargaRepository;
 import com.SortifyTeam.Sortify.repository.StaffRepository;
 import com.SortifyTeam.Sortify.service.NotifikasiService;
@@ -12,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
@@ -32,6 +34,7 @@ public class TransaksiWebController {
     private final WargaRepository wargaRepo;
     private final StaffRepository staffRepo;
     private final KategoriSampahRepository kategoriRepo;
+    private final UserRepository userRepo;
     private final PointService pointService;
     private final NotifikasiService notifikasiService;
 
@@ -40,6 +43,7 @@ public class TransaksiWebController {
                                    WargaRepository wargaRepo,
                                    StaffRepository staffRepo,
                                    KategoriSampahRepository kategoriRepo,
+                                   UserRepository userRepo,
                                    PointService pointService,
                                    NotifikasiService notifikasiService) {
         this.transaksiRepo = transaksiRepo;
@@ -47,8 +51,16 @@ public class TransaksiWebController {
         this.wargaRepo = wargaRepo;
         this.staffRepo = staffRepo;
         this.kategoriRepo = kategoriRepo;
+        this.userRepo = userRepo;
         this.pointService = pointService;
         this.notifikasiService = notifikasiService;
+    }
+
+    private Staff getCurrentStaff(Authentication auth) {
+        User user = userRepo.findByUsername(auth.getName())
+                .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
+        return staffRepo.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("Staff tidak ditemukan untuk user: " + auth.getName()));
     }
 
     @GetMapping
@@ -75,26 +87,30 @@ public class TransaksiWebController {
     }
 
     @GetMapping("/tambah")
-    public String formTambah(Model model) {
+    public String formTambah(Authentication auth, Model model) {
         model.addAttribute("transaksi", new Transaksi());
         model.addAttribute("daftarWarga", wargaRepo.findAll());
         model.addAttribute("daftarStaff", staffRepo.findAll());
-        model.addAttribute("daftarKategori", kategoriRepo.findAll());
+        model.addAttribute("daftarKategori", kategoriRepo.findByIsActiveTrue());
+        try {
+            model.addAttribute("currentStaff", getCurrentStaff(auth));
+        } catch (Exception e) {
+            model.addAttribute("currentStaff", null);
+        }
         return "transaksi-form";
     }
 
     @PostMapping("/tambah")
     @Transactional
-    public String simpanTambah(@RequestParam Long idWarga,
-                                @RequestParam Long idStaff,
+    public String simpanTambah(Authentication auth,
+                                @RequestParam Long idWarga,
                                 @RequestParam(required = false) List<Long> idKategori,
                                 @RequestParam(required = false) List<Double> beratKategori,
                                 @RequestParam(required = false, defaultValue = "") String detail) {
         Transaksi transaksi = new Transaksi();
         transaksi.setWarga(wargaRepo.findById(idWarga)
                 .orElseThrow(() -> new IllegalArgumentException("Warga tidak ditemukan")));
-        transaksi.setStaff(staffRepo.findById(idStaff)
-                .orElseThrow(() -> new IllegalArgumentException("Staff tidak ditemukan")));
+        transaksi.setStaff(getCurrentStaff(auth));
         transaksi.setTanggalTransaksi(LocalDateTime.now());
         transaksi.setStatus(Transaksi.StatusTransaksi.PENDING);
         transaksi.setDetail(detail);
@@ -134,20 +150,24 @@ public class TransaksiWebController {
     }
 
     @GetMapping("/edit/{id}")
-    public String formEdit(@PathVariable Long id, Model model) {
+    public String formEdit(Authentication auth, @PathVariable Long id, Model model) {
         Transaksi transaksi = transaksiService.getTransaksiById(id);
         model.addAttribute("transaksi", transaksi);
         model.addAttribute("daftarWarga", wargaRepo.findAll());
         model.addAttribute("daftarStaff", staffRepo.findAll());
-        model.addAttribute("daftarKategori", kategoriRepo.findAll());
+        model.addAttribute("daftarKategori", kategoriRepo.findByIsActiveTrue());
+        try {
+            model.addAttribute("currentStaff", getCurrentStaff(auth));
+        } catch (Exception e) {
+            model.addAttribute("currentStaff", null);
+        }
         return "transaksi-form";
     }
 
     @PostMapping("/edit/{id}")
     @Transactional
-    public String simpanEdit(@PathVariable Long id,
+    public String simpanEdit(Authentication auth, @PathVariable Long id,
                               @RequestParam Long idWarga,
-                              @RequestParam Long idStaff,
                               @RequestParam(required = false, defaultValue = "") String detail,
                               @RequestParam Transaksi.StatusTransaksi status,
                               @RequestParam(required = false) List<Long> detailId,
@@ -164,8 +184,7 @@ public class TransaksiWebController {
 
         transaksi.setWarga(wargaRepo.findById(idWarga)
                 .orElseThrow(() -> new IllegalArgumentException("Warga tidak ditemukan")));
-        transaksi.setStaff(staffRepo.findById(idStaff)
-                .orElseThrow(() -> new IllegalArgumentException("Staff tidak ditemukan")));
+        transaksi.setStaff(getCurrentStaff(auth));
         transaksi.setDetail(detail);
         transaksi.setStatus(status);
 
@@ -216,9 +235,9 @@ public class TransaksiWebController {
     private boolean isValidTransition(Transaksi.StatusTransaksi oldStatus, Transaksi.StatusTransaksi newStatus) {
         if (oldStatus == newStatus) return true;
         return switch (oldStatus) {
-            case PENDING -> newStatus == Transaksi.StatusTransaksi.DIPROSES || newStatus == Transaksi.StatusTransaksi.DITOLAK;
+            case PENDING -> newStatus == Transaksi.StatusTransaksi.DIPROSES || newStatus == Transaksi.StatusTransaksi.DITOLAK || newStatus == Transaksi.StatusTransaksi.DIBATALKAN;
             case DIPROSES -> newStatus == Transaksi.StatusTransaksi.SELESAI || newStatus == Transaksi.StatusTransaksi.PENDING;
-            case SELESAI, DITOLAK -> false;
+            case SELESAI, DITOLAK, DIBATALKAN -> false;
         };
     }
 }

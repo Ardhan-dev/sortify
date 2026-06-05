@@ -2,6 +2,7 @@ package com.SortifyTeam.Sortify.service;
 
 import com.SortifyTeam.Sortify.model.*;
 import com.SortifyTeam.Sortify.repository.*;
+import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -20,17 +21,20 @@ public class TransaksiService {
     private final KategoriSampahRepository kategoriRepo;
     private final NotifikasiService notifikasiService;
     private final UserRepository userRepo;
+    private final LogAktivitasService logAktivitasService;
 
     public TransaksiService(TransaksiRepository transaksiRepo,
                             PointService pointService,
                             KategoriSampahRepository kategoriRepo,
                             NotifikasiService notifikasiService,
-                            UserRepository userRepo) {
+                            UserRepository userRepo,
+                            LogAktivitasService logAktivitasService) {
         this.transaksiRepo = transaksiRepo;
         this.pointService = pointService;
         this.kategoriRepo = kategoriRepo;
         this.notifikasiService = notifikasiService;
         this.userRepo = userRepo;
+        this.logAktivitasService = logAktivitasService;
     }
 
     public List<Transaksi> getTransaksiByStatus(Transaksi.StatusTransaksi status) {
@@ -53,7 +57,7 @@ public class TransaksiService {
     public Page<Transaksi> getTransaksiHistory(int page, int size) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by("tanggalTransaksi").descending());
         return transaksiRepo.findByStatusIn(
-                List.of(Transaksi.StatusTransaksi.SELESAI, Transaksi.StatusTransaksi.DITOLAK), pageable);
+                List.of(Transaksi.StatusTransaksi.SELESAI, Transaksi.StatusTransaksi.DITOLAK, Transaksi.StatusTransaksi.DIBATALKAN), pageable);
     }
 
     public static final double MAX_WEIGHT_KG = 10000.0;
@@ -72,13 +76,15 @@ public class TransaksiService {
         double totalBerat = 0;
         List<TransaksiDetail> details = new ArrayList<>();
         if (idKategoriList != null) {
+            List<KategoriSampah> kategoriList = kategoriRepo.findAllById(idKategoriList);
+            var kategoriMap = kategoriList.stream().collect(Collectors.toMap(KategoriSampah::getIdKategori, k -> k));
             for (int i = 0; i < idKategoriList.size(); i++) {
                 Long idKategori = idKategoriList.get(i);
                 Double beratEstimasi = (beratEstimasiList != null && i < beratEstimasiList.size())
                         ? beratEstimasiList.get(i) : 0;
                 if (idKategori == null || beratEstimasi == null || beratEstimasi <= 0 || beratEstimasi > MAX_WEIGHT_KG) continue;
 
-                KategoriSampah kategori = kategoriRepo.findById(idKategori).orElse(null);
+                KategoriSampah kategori = kategoriMap.get(idKategori);
                 if (kategori == null) continue;
 
                 TransaksiDetail td = new TransaksiDetail();
@@ -97,7 +103,7 @@ public class TransaksiService {
         String wargaNama = (warga != null && warga.getUser() != null) ? warga.getUser().getFullName() : "Warga";
         for (User petugas : petugasList) {
             notifikasiService.buatNotifikasi(petugas,
-                    "Drop point baru dari " + wargaNama + " (" + String.format("%.1f", totalBerat) + " kg) — segera proses.");
+                    "Laporan baru dari " + wargaNama + " (" + String.format("%.1f", totalBerat) + " kg) — segera proses.");
         }
     }
 
@@ -109,6 +115,29 @@ public class TransaksiService {
         }
         transaksi.setStatus(Transaksi.StatusTransaksi.DIPROSES);
         return transaksiRepo.save(transaksi);
+    }
+
+    @Transactional
+    public Transaksi batalTransaksi(Long transaksiId, User warga) {
+        Transaksi transaksi = getTransaksiById(transaksiId);
+        if (transaksi.getStatus() != Transaksi.StatusTransaksi.PENDING) {
+            throw new RuntimeException("Transaksi #" + transaksiId + " tidak dapat dibatalkan karena sudah diproses.");
+        }
+        if (transaksi.getWarga() == null || transaksi.getWarga().getUser() == null
+                || !transaksi.getWarga().getUser().getId().equals(warga.getId())) {
+            throw new RuntimeException("Anda tidak berhak membatalkan transaksi ini.");
+        }
+            transaksi.setStatus(Transaksi.StatusTransaksi.DIBATALKAN);
+        transaksiRepo.save(transaksi);
+
+        List<User> petugasList = userRepo.findByRole(User.Role.PETUGAS);
+        for (User petugas : petugasList) {
+            notifikasiService.buatNotifikasi(petugas,
+                    "Laporan #" + transaksiId + " dibatalkan oleh " + warga.getFullName());
+        }
+        logAktivitasService.catatAktivitas(warga.getUsername(), warga.getRole().name(),
+                "BATAL_TRANSAKSI", "Warga membatalkan laporan #" + transaksiId);
+        return transaksi;
     }
 
     @Transactional
@@ -124,7 +153,7 @@ public class TransaksiService {
         Warga warga = transaksi.getWarga();
         if (warga != null && warga.getUser() != null) {
             notifikasiService.buatNotifikasi(warga.getUser(),
-                "Laporan drop point #" + transaksiId + " ditolak. Alasan: " + alasan);
+                "Laporan #" + transaksiId + " ditolak. Alasan: " + alasan);
         }
         return transaksi;
     }
@@ -176,7 +205,7 @@ public class TransaksiService {
         if (entitasWarga != null && entitasWarga.getUser() != null) {
             User userWarga = entitasWarga.getUser();
             pointService.tambahPoint(userWarga, poinBulat,
-                    "Poin transaksi drop-point #" + transaksiId + " (" + detailDesc + ")");
+                    "Poin transaksi #" + transaksiId + " (" + detailDesc + ")");
             notifikasiService.buatNotifikasi(userWarga,
                     "Hore! Transaksi sampah (" + detailDesc + ") berhasil diproses. "
                     + poinBulat + " Poin telah ditambahkan ke saldo Anda!");

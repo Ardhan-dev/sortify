@@ -171,6 +171,8 @@
     .badge-selesai .dot { background: var(--green); }
     .badge-ditolak { background: rgba(184,84,84,0.1); border-color: rgba(184,84,84,0.25); color: var(--danger); }
     .badge-ditolak .dot { background: var(--danger); }
+    .badge-dibatalkan { background: rgba(142,148,128,0.1); border-color: rgba(142,148,128,0.25); color: var(--text-secondary); }
+    .badge-dibatalkan .dot { background: var(--text-secondary); }
 
     /* Animations */
     @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
@@ -416,8 +418,16 @@
               <button class="btn-sm btn-acc btn-reward-konfirm-trigger"
                       th:attr="data-id=${p.id}, data-warga=${p.user?.fullName ?: 'Warga'}, data-barang=${p.rewardItem?.namaBarang ?: 'Reward'}, data-poin=${p.rewardItem?.pointNeeded ?: '0'}, data-kode=${p.kodePenukaran ?: ''}">
                 <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                Konfirmasi Serah Terima
+                Konfirmasi
               </button>
+              <form th:action="@{/petugas/reward/batal/{id}(id=${p.id})}" method="post"
+                    onsubmit="return confirm('Batalkan penukaran reward ini? Poin akan dikembalikan ke warga.')" style="display:inline;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <button type="submit" class="btn-sm btn-tolak">
+                  <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  Batal
+                </button>
+              </form>
             </div>
           </td>
         </tr>
@@ -461,9 +471,10 @@
           <td class="cell-nama" th:text="${t.staff?.nama ?: '-'}">Staff</td>
           <td class="cell-berat"><span th:text="${t.totalBerat}">0</span> kg</td>
           <td>
-            <span class="status-badge" th:classappend="${t.status.name() == 'SELESAI'} ? 'badge-selesai' : 'badge-ditolak'">
+            <span class="status-badge"
+                  th:classappend="${t.status.name() == 'SELESAI'} ? 'badge-selesai' : (${t.status.name() == 'DITOLAK'} ? 'badge-ditolak' : 'badge-dibatalkan')">
               <span class="dot"></span>
-              <span th:text="${t.status.name() == 'SELESAI'} ? 'SELESAI' : 'DITOLAK'">SELESAI</span>
+              <span th:text="${t.status.name() == 'SELESAI'} ? 'SELESAI' : (${t.status.name() == 'DITOLAK'} ? 'DITOLAK' : 'DIBATALKAN')">SELESAI</span>
             </span>
           </td>
           <td class="cell-tanggal" th:text="${#temporals.format(t.tanggalTransaksi, 'dd MMM HH:mm')}">—</td>
@@ -515,9 +526,10 @@
           <td class="cell-nama" th:text="${p.rewardItem?.namaBarang ?: 'Reward'}">Gula</td>
           <td class="cell-berat"><span th:text="${p.rewardItem?.pointNeeded ?: '0'}">0</span> poin</td>
           <td>
-            <span class="status-badge badge-selesai">
+            <span class="status-badge"
+                  th:classappend="${p.status.name() == 'SUDAH_DIAMBIL'} ? 'badge-selesai' : 'badge-dibatalkan'">
               <span class="dot"></span>
-              SUDAH DIAMBIL
+              <span th:text="${p.status.name() == 'SUDAH_DIAMBIL'} ? 'SUDAH DIAMBIL' : 'DIBATALKAN'">SUDAH DIAMBIL</span>
             </span>
           </td>
           <td class="cell-tanggal" th:text="${#temporals.format(p.tanggalPenukaran, 'dd MMM HH:mm')}">—</td>
@@ -655,7 +667,7 @@
 <div id="modalTransaksiTolak" class="modal-overlay">
   <div class="modal-box">
     <div class="modal-title" style="color:var(--danger);">Tolak Transaksi</div>
-    <div class="modal-desc">Anda akan menolak laporan drop point berikut. Berikan alasan yang jelas agar warga bisa memperbaiki.</div>
+    <div class="modal-desc">Anda akan menolak laporan sampah berikut. Berikan alasan yang jelas agar warga bisa memperbaiki.</div>
 
     <div class="laporan-info">
       <div class="laporan-info-item">
