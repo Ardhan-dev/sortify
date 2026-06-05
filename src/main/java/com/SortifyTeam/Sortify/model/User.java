@@ -30,6 +30,8 @@ public class User {
     @Column(nullable = false)
     private int totalPoints = 0;
 
+    private String fotoProfil;
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     @ToString.Exclude
     @JsonIgnore

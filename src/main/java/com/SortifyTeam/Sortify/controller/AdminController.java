@@ -99,9 +99,23 @@ public class AdminController {
     }
 
     @GetMapping("/monitoring")
-    public String monitoringReward(Model model) {
-        log.info("[ACCESS] Admin membuka halaman Monitoring Tukar Reward");
-        List<PenukaranReward> semuaPenukaran = penukaranRepo.findAllByOrderByTanggalPenukaranDesc();
+    public String monitoringReward(Model model,
+                                    @RequestParam(required = false) String status,
+                                    @RequestParam(required = false) String namaWarga,
+                                    @RequestParam(required = false) String namaBarang) {
+        log.info("[ACCESS] Admin membuka halaman Monitoring Tukar Reward (filter: status={}, warga={}, barang={})", status, namaWarga, namaBarang);
+        boolean hasFilter = (status != null && !status.isBlank())
+                         || (namaWarga != null && !namaWarga.isBlank())
+                         || (namaBarang != null && !namaBarang.isBlank());
+
+        List<PenukaranReward> semuaPenukaran;
+        if (hasFilter) {
+            PenukaranReward.StatusPenukaran statusEnum = (status != null && !status.isBlank())
+                    ? PenukaranReward.StatusPenukaran.valueOf(status) : null;
+            semuaPenukaran = rewardService.getPenukaranByFilter(statusEnum, namaWarga, namaBarang);
+        } else {
+            semuaPenukaran = penukaranRepo.findAllByOrderByTanggalPenukaranDesc();
+        }
         model.addAttribute("penukaranList", semuaPenukaran);
 
         long totalPenukaran = semuaPenukaran.size();
@@ -115,6 +129,10 @@ public class AdminController {
         model.addAttribute("totalPenukaran", totalPenukaran);
         model.addAttribute("menungguDiproses", menungguDiproses);
         model.addAttribute("rewardKeluar", rewardKeluar);
+        model.addAttribute("filteredCount", semuaPenukaran.size());
+        model.addAttribute("selectedStatus", status);
+        model.addAttribute("selectedNamaWarga", namaWarga);
+        model.addAttribute("selectedNamaBarang", namaBarang);
         return "admin-monitoring";
     }
 
@@ -162,10 +180,29 @@ public class AdminController {
     }
 
     @GetMapping("/logs")
-    public String halamanLog(Model model) {
-        log.info("[ACCESS] Admin membuka Log Aktivitas");
-        model.addAttribute("logList", logAktivitasService.getSemuaLog());
+    public String halamanLog(Model model,
+                              @RequestParam(required = false) String username,
+                              @RequestParam(required = false) String role,
+                              @RequestParam(required = false) String aksi) {
+        log.info("[ACCESS] Admin membuka Log Aktivitas (filter: username={}, role={}, aksi={})", username, role, aksi);
+        boolean hasFilter = (username != null && !username.isBlank())
+                         || (role != null && !role.isBlank())
+                         || (aksi != null && !aksi.isBlank());
+        List<LogAktivitas> logList;
+        if (hasFilter) {
+            logList = logAktivitasService.getLogByFilter(username, role, aksi);
+        } else {
+            logList = logAktivitasService.getSemuaLog();
+        }
+        model.addAttribute("logList", logList);
         model.addAttribute("totalLog", logAktivitasService.countTotal());
+        model.addAttribute("filteredCount", logList.size());
+        model.addAttribute("daftarAksi", logAktivitasService.getDistinctAksi());
+        model.addAttribute("daftarRole", logAktivitasService.getDistinctRole());
+        model.addAttribute("daftarUsername", logAktivitasService.getDistinctUsername());
+        model.addAttribute("selectedUsername", username);
+        model.addAttribute("selectedRole", role);
+        model.addAttribute("selectedAksi", aksi);
         return "log-view";
     }
 

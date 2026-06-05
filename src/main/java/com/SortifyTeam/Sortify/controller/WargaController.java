@@ -250,6 +250,23 @@ public class WargaController {
         return "redirect:/warga/dashboard";
     }
 
+    @PostMapping("/foto-profil")
+    public String uploadFotoProfil(Authentication auth,
+                                    @RequestParam("fotoProfil") MultipartFile file,
+                                    RedirectAttributes ra) {
+        User user = getCurrentUser(auth);
+        try {
+            String filename = fileStorageService.storeFile(file, "profile");
+            user.setFotoProfil(filename);
+            userRepo.save(user);
+            ra.addFlashAttribute("success", "Foto profil berhasil diperbarui.");
+        } catch (Exception e) {
+            log.error("[ERROR] Gagal upload foto profil: {}", e.getMessage(), e);
+            ra.addFlashAttribute("error", "Gagal upload foto: " + e.getMessage());
+        }
+        return "redirect:/warga/dashboard";
+    }
+
     // ── Notifikasi endpoints ──
 
     @PostMapping("/notifikasi/baca/{id}")

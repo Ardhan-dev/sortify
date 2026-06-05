@@ -67,6 +67,17 @@
     .delay-1 { animation-delay: 0.05s; }
     .delay-2 { animation-delay: 0.12s; }
     .delay-3 { animation-delay: 0.2s; }
+    .filter-bar { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; padding: 1.25rem 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 1.5rem; }
+    .filter-group { display: flex; flex-direction: column; gap: 4px; }
+    .filter-group label { font-family: var(--mono); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); }
+    .filter-group select, .filter-group input { background: var(--surface-raised); border: 1px solid var(--border); border-radius: 6px; padding: 0.5rem 0.75rem; color: var(--text-primary); font-family: var(--sans); font-size: 13px; outline: none; min-width: 140px; }
+    .filter-group select:focus, .filter-group input:focus { border-color: var(--accent); }
+    .filter-actions { display: flex; gap: 8px; align-items: end; }
+    .btn-filter { background: var(--accent); border: none; border-radius: 6px; padding: 0.5rem 1rem; color: var(--bg); font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase; cursor: pointer; font-weight: 700; }
+    .btn-filter:hover { opacity: 0.85; }
+    .btn-reset { background: transparent; border: 1px solid var(--border); border-radius: 6px; padding: 0.5rem 1rem; color: var(--text-secondary); font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase; cursor: pointer; }
+    .btn-reset:hover { border-color: var(--border-hover); color: var(--text-primary); }
+    .filter-tag { display: inline-flex; align-items: center; gap: 5px; font-family: var(--mono); font-size: 10px; padding: 0.3rem 0.6rem; background: var(--accent-dim); border: 1px solid rgba(134,187,76,0.15); border-radius: 4px; color: var(--accent); }
     @media (max-width: 768px) {
       .page-head { flex-direction: column; align-items: flex-start; }
       thead th:nth-child(2), tbody td:nth-child(2),
@@ -107,8 +118,37 @@
     </div>
     <div class="count-badge">
       <span th:text="${totalLog ?: 0}">0</span> event tercatat
+      <span th:if="${filteredCount != totalLog}" th:text="'(' + ${filteredCount} + ' difilter)'" style="color:var(--accent);"></span>
     </div>
   </div>
+
+  <form class="filter-bar animate delay-2" method="get" action="/admin/logs">
+    <div class="filter-group">
+      <label>User</label>
+      <select name="username">
+        <option value="">Semua User</option>
+        <option th:each="u : ${daftarUsername}" th:value="${u}" th:selected="${#strings.equals(selectedUsername, u)}" th:text="${u}">user</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Role</label>
+      <select name="role">
+        <option value="">Semua Role</option>
+        <option th:each="r : ${daftarRole}" th:value="${r}" th:selected="${#strings.equals(selectedRole, r)}" th:text="${r}">ROLE</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Aksi</label>
+      <select name="aksi">
+        <option value="">Semua Aksi</option>
+        <option th:each="a : ${daftarAksi}" th:value="${a}" th:selected="${#strings.equals(selectedAksi, a)}" th:text="${a}">AKSI</option>
+      </select>
+    </div>
+    <div class="filter-actions">
+      <button type="submit" class="btn-filter">Terapkan</button>
+      <a href="/admin/logs" class="btn-reset">Reset</a>
+    </div>
+  </form>
 
   <div class="table-wrap animate delay-2">
     <table>

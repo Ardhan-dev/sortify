@@ -171,10 +171,34 @@
       .modal-box { padding: 1.5rem; }
       .modal-photos { grid-template-columns: 1fr; }
     }
+    .billboard { overflow: hidden; background: var(--surface-raised); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 1.5rem; padding: 0.65rem 0; position: relative; display: flex; align-items: center; }
+    .billboard-track { display: flex; gap: 3rem; animation: scroll 35s linear infinite; white-space: nowrap; }
+    .billboard-track:hover { animation-play-state: paused; }
+    .billboard-item { display: inline-flex; align-items: center; gap: 0.75rem; font-size: 13px; color: var(--text-secondary); }
+    .billboard-item .tag { font-family: var(--mono); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(134,187,76,0.2); }
+    .billboard-item .judul { font-weight: 500; color: var(--text-primary); }
+    .billboard-icon { flex-shrink: 0; width: 28px; height: 28px; border-radius: 6px; background: var(--accent-dim); border: 1px solid rgba(134,187,76,0.15); display: flex; align-items: center; justify-content: center; margin: 0 0.75rem; }
+    .billboard-icon svg { width: 14px; height: 14px; stroke: var(--accent); fill: none; stroke-width: 2; }
+    @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
   </style>
 </head>
 <body>
 <div class="wrapper">
+  <div class="billboard" th:if="${not #lists.isEmpty(pengumumanAktif)}">
+    <div class="billboard-icon">
+      <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 2 15 9 15 2 20 2"/><path d="M13 2H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-9"/></svg>
+    </div>
+    <div class="billboard-track">
+      <div th:each="p : ${pengumumanAktif}" class="billboard-item">
+        <span class="tag" th:text="${p.judul}">INFO</span>
+        <span class="judul" th:text="${p.konten}">Konten pengumuman</span>
+      </div>
+      <div th:each="p : ${pengumumanAktif}" class="billboard-item">
+        <span class="tag" th:text="${p.judul}">INFO</span>
+        <span class="judul" th:text="${p.konten}">Konten pengumuman</span>
+      </div>
+    </div>
+  </div>
   <header>
     <div class="topbar">
       <a href="/" class="brand">
@@ -236,7 +260,17 @@
 
   <div class="profile-card animate">
     <div class="profile-card-header">
-      <div class="avatar"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+      <div class="avatar" style="position:relative; overflow:hidden; cursor:pointer;" onclick="document.getElementById('fotoProfilInput').click()">
+        <img th:if="${warga.fotoProfil != null}" th:src="@{'/uploads/' + ${warga.fotoProfil}}" alt="Foto Profil" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">
+        <svg th:unless="${warga.fotoProfil != null}" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <div style="position:absolute; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity 0.2s; border-radius:12px;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="white" fill="none" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </div>
+        <form id="fotoProfilForm" method="post" enctype="multipart/form-data" th:action="@{/warga/foto-profil}" style="display:none;">
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+          <input type="file" id="fotoProfilInput" name="fotoProfil" accept="image/*" onchange="document.getElementById('fotoProfilForm').submit()">
+        </form>
+      </div>
       <div>
         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
           <div class="profile-name" th:text="${warga.fullName}">Nama Warga</div>

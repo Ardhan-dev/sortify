@@ -35,4 +35,20 @@ public class LogAktivitasService {
     public long countTotal() {
         return logRepo.count();
     }
+
+    public List<LogAktivitas> getLogByFilter(String username, String role, String aksi) {
+        return logRepo.findByFilters(username, role, aksi);
+    }
+
+    public List<String> getDistinctAksi() {
+        return logRepo.findDistinctAksi();
+    }
+
+    public List<String> getDistinctRole() {
+        return logRepo.findDistinctRole();
+    }
+
+    public List<String> getDistinctUsername() {
+        return logRepo.findDistinctUsername();
+    }
 }

@@ -32,7 +32,7 @@ public class StaffWebController {
 
     @GetMapping
     public String halamanStaff(Model model) {
-        List<User> daftarStaff = userRepo.findByRole(User.Role.PETUGAS);
+        List<Staff> daftarStaff = staffRepo.findAll();
         model.addAttribute("daftarStaff", daftarStaff);
         return "staff-view";
     }

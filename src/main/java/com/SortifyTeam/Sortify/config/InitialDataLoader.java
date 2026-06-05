@@ -17,8 +17,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.security.SecureRandom;
-
 @Slf4j
 @Component
 public class InitialDataLoader implements CommandLineRunner {
@@ -30,7 +28,6 @@ public class InitialDataLoader implements CommandLineRunner {
     private final WargaRepository wargaRepo;
     private final StaffRepository staffRepo;
     private final PasswordEncoder passwordEncoder;
-    private final SecureRandom random = new SecureRandom();
 
     public InitialDataLoader(UserRepository userRepo,
                              RewardItemRepository rewardItemRepo,
@@ -48,18 +45,9 @@ public class InitialDataLoader implements CommandLineRunner {
         this.passwordEncoder = passwordEncoder;
     }
 
-    private String generateStrongPassword() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*";
-        StringBuilder sb = new StringBuilder(14);
-        for (int i = 0; i < 14; i++) {
-            sb.append(chars.charAt(random.nextInt(chars.length())));
-        }
-        return sb.toString();
-    }
-
     private User buatUser(String username, String fullName, User.Role role, int points) {
-        String rawPassword = generateStrongPassword();
-        log.info("===== AKUN SEEDER: username={}, role={} =====", username, role);
+        String rawPassword = username + "123";
+        log.info("===== AKUN SEEDER: username={}, password={}, role={} =====", username, rawPassword, role);
         User user = new User();
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(rawPassword));

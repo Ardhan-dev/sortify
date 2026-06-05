@@ -73,6 +73,16 @@
     .section-head::after { content: ''; flex: 1; height: 1px; background: var(--border); }
     .section-count { font-family: var(--mono); font-size: 10px; color: var(--text-muted); background: var(--surface-raised); border: 1px solid var(--border); border-radius: 20px; padding: 2px 10px; }
 
+    .filter-bar { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; padding: 1.25rem 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 1.5rem; }
+    .filter-group { display: flex; flex-direction: column; gap: 4px; }
+    .filter-group label { font-family: var(--mono); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); }
+    .filter-group select, .filter-group input { background: var(--surface-raised); border: 1px solid var(--border); border-radius: 6px; padding: 0.5rem 0.75rem; color: var(--text-primary); font-family: var(--sans); font-size: 13px; outline: none; min-width: 140px; }
+    .filter-group select:focus, .filter-group input:focus { border-color: var(--accent); }
+    .filter-actions { display: flex; gap: 8px; align-items: end; }
+    .btn-filter { background: var(--accent); border: none; border-radius: 6px; padding: 0.5rem 1rem; color: var(--bg); font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase; cursor: pointer; font-weight: 700; }
+    .btn-filter:hover { opacity: 0.85; }
+    .btn-reset { background: transparent; border: 1px solid var(--border); border-radius: 6px; padding: 0.5rem 1rem; color: var(--text-secondary); font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
+    .btn-reset:hover { border-color: var(--border-hover); color: var(--text-primary); }
     .table-wrap { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--surface); }
     table { width: 100%; border-collapse: collapse; }
     thead { background: var(--surface-raised); border-bottom: 1px solid var(--border); }
@@ -225,9 +235,35 @@
     </div>
   </div>
 
+  <form class="filter-bar animate delay-2" method="get" action="/admin/monitoring">
+    <div class="filter-group">
+      <label>Status</label>
+      <select name="status">
+        <option value="">Semua Status</option>
+        <option value="PENDING" th:selected="${selectedStatus == 'PENDING'}">PENDING</option>
+        <option value="SUDAH_DIAMBIL" th:selected="${selectedStatus == 'SUDAH_DIAMBIL'}">SUDAH DIAMBIL</option>
+        <option value="DIBATALKAN" th:selected="${selectedStatus == 'DIBATALKAN'}">DIBATALKAN</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Nama Warga</label>
+      <input type="text" name="namaWarga" placeholder="Cari warga..." th:value="${selectedNamaWarga}">
+    </div>
+    <div class="filter-group">
+      <label>Nama Barang</label>
+      <input type="text" name="namaBarang" placeholder="Cari barang..." th:value="${selectedNamaBarang}">
+    </div>
+    <div class="filter-actions">
+      <button type="submit" class="btn-filter">Terapkan</button>
+      <a href="/admin/monitoring" class="btn-reset">Reset</a>
+    </div>
+  </form>
+
   <div class="section-head animate delay-2">
     Riwayat Penukaran Reward
     <span class="section-count" th:text="${#lists.size(penukaranList)} + ' klaim'">0 klaim</span>
+    <span th:if="${selectedStatus != null or selectedNamaWarga != null or selectedNamaBarang != null}"
+          class="section-count" style="color:var(--accent);" th:text="'difilter: ' + ${penukaranList.size()}">difilter: 0</span>
   </div>
 
   <div class="table-wrap animate delay-3">

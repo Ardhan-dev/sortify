@@ -225,6 +225,16 @@
       .menu-grid { grid-template-columns: 1fr; }
       .topbar-sep, .sys-status { display: none; }
     }
+    .billboard { overflow: hidden; background: var(--surface-raised); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 1.5rem; padding: 0.65rem 0; position: relative; display: flex; align-items: center; }
+    .billboard-track { display: flex; gap: 3rem; animation: scroll 35s linear infinite; white-space: nowrap; }
+    .billboard-track:hover { animation-play-state: paused; }
+    .billboard-item { display: inline-flex; align-items: center; gap: 0.75rem; font-size: 13px; color: var(--text-secondary); }
+    .billboard-item .tag { font-family: var(--mono); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(134,187,76,0.2); }
+    .billboard-item .judul { font-weight: 500; color: var(--text-primary); }
+    .billboard-empty { padding: 0.5rem 1rem; color: var(--text-muted); font-size: 12px; font-family: var(--mono); letter-spacing: 0.5px; }
+    .billboard-icon { flex-shrink: 0; width: 28px; height: 28px; border-radius: 6px; background: var(--accent-dim); border: 1px solid rgba(134,187,76,0.15); display: flex; align-items: center; justify-content: center; margin: 0 0.75rem; }
+    .billboard-icon svg { width: 14px; height: 14px; stroke: var(--accent); fill: none; stroke-width: 2; }
+    @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
   </style>
 </head>
 <body>
@@ -265,6 +275,22 @@
       </div>
     </div>
   </header>
+
+  <div class="billboard animate delay-1" th:if="${not #lists.isEmpty(pengumumanAktif)}">
+    <div class="billboard-icon">
+      <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 2 15 9 15 2 20 2"/><path d="M13 2H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-9"/></svg>
+    </div>
+    <div class="billboard-track">
+      <div th:each="p : ${pengumumanAktif}" class="billboard-item">
+        <span class="tag" th:text="${p.judul}">INFO</span>
+        <span class="judul" th:text="${p.konten}">Konten pengumuman</span>
+      </div>
+      <div th:each="p : ${pengumumanAktif}" class="billboard-item">
+        <span class="tag" th:text="${p.judul}">INFO</span>
+        <span class="judul" th:text="${p.konten}">Konten pengumuman</span>
+      </div>
+    </div>
+  </div>
 
   <div class="page-head animate delay-1">
     <div>
@@ -455,7 +481,7 @@
       <div class="card-desc">Input setoran sampah baru, kalkulasi bobot &amp; klasifikasi jenis, dan konversi otomatis ke poin reward.</div>
       <div class="card-cta">Mulai Transaksi <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
     </a>
-    <a href="/admin/kategori-sampah" class="menu-card card--kamus">
+    <a href="/admin/kamus" class="menu-card card--kamus">
       <div class="card-head">
         <div class="card-icon-wrap">
           <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -472,32 +498,10 @@
       </div>
       <div>
         <div class="card-index">04</div>
-        <div class="card-title">Kategori Sampah</div>
+        <div class="card-title">Kamus Sampah</div>
       </div>
-      <div class="card-desc">Kelola kategori sampah, poin per kg, dan instruksi penanganan untuk referensi warga.</div>
+      <div class="card-desc">Kelola kategori &amp; item sampah dalam satu halaman. Buat kategori, lalu tambahkan item di bawahnya.</div>
       <div class="card-cta">Kelola Data <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
-    </a>
-    <a href="/admin/item-sampah" class="menu-card card--kamus">
-      <div class="card-head">
-        <div class="card-icon-wrap">
-          <svg viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-            <line x1="12" y1="22.08" x2="12" y2="12"/>
-          </svg>
-        </div>
-        <div class="card-arrow">
-          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/>
-          </svg>
-        </div>
-      </div>
-      <div>
-        <div class="card-index">05</div>
-        <div class="card-title">Item Sampah</div>
-      </div>
-      <div class="card-desc">Kelola daftar item sampah per kategori, deskripsi, dan instruksi penanganan untuk referensi warga.</div>
-      <div class="card-cta">Kelola Item <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
     </a>
     <a href="/admin/monitoring" class="menu-card card--monitoring">
       <div class="card-head">
@@ -522,6 +526,26 @@
       </div>
       <div class="card-desc">Rekap seluruh transaksi sampah yang sudah selesai divalidasi, lengkap dengan bukti foto pengangkutan.</div>
       <div class="card-cta">Lihat Rekap <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+    </a>
+    <a href="/admin/pengumuman" class="menu-card card--kamus">
+      <div class="card-head">
+        <div class="card-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="22 2 15 9 15 2 20 2"/><path d="M13 2H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-9"/>
+          </svg>
+        </div>
+        <div class="card-arrow">
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/>
+          </svg>
+        </div>
+      </div>
+      <div>
+        <div class="card-index">07</div>
+        <div class="card-title">Pengumuman</div>
+      </div>
+      <div class="card-desc">Buat &amp; kelola pengumuman yang muncul sebagai billboard di halaman utama.</div>
+      <div class="card-cta">Kelola <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
     </a>
     <a href="/admin/reward" class="menu-card card--reward">
       <div class="card-head">
@@ -591,30 +615,6 @@
       </div>
       <div class="card-desc">Pantau peringkat kontribusi warga, akumulasi poin tertinggi, dan lencana pangkat eco-warrior secara real-time.</div>
       <div class="card-cta">Lihat Peringkat <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
-    </a>
-    <a href="/admin/item-sampah" class="menu-card card--kamus">
-      <div class="card-head">
-        <div class="card-icon-wrap">
-          <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
-            <polyline points="16 13 8 13"/>
-            <polyline points="16 17 8 17"/>
-            <polyline points="10 9 9 9 8 9"/>
-          </svg>
-        </div>
-        <div class="card-arrow">
-          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/>
-          </svg>
-        </div>
-      </div>
-      <div>
-        <div class="card-index">09</div>
-        <div class="card-title">Item Sampah</div>
-      </div>
-      <div class="card-desc">Kelola master data item sampah, deskripsi, dan instruksi penanganan per kategori.</div>
-      <div class="card-cta">Kelola Item <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
     </a>
   </div>
 

@@ -99,6 +99,11 @@ public class RewardService {
         return penukaranRepo.findAllByOrderByTanggalPenukaranDesc();
     }
 
+    public List<PenukaranReward> getPenukaranByFilter(PenukaranReward.StatusPenukaran status,
+                                                       String namaWarga, String namaBarang) {
+        return penukaranRepo.findByFilters(status, namaWarga, namaBarang);
+    }
+
     public PenukaranReward getPenukaranById(Long id) {
         return penukaranRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Penukaran tidak ditemukan: " + id));
