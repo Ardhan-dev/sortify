@@ -18,20 +18,23 @@ public class NotifikasiService {
     }
 
     @Transactional
-    public void buatNotifikasi(User warga, String pesan) {
+    public void buatNotifikasi(User user, String pesan) {
         Notifikasi notif = new Notifikasi();
-        notif.setWarga(warga);
+        notif.setUser(user);
         notif.setPesan(pesan);
         notif.setRead(false);
         notifRepo.save(notif);
     }
 
-    public List<Notifikasi> getNotifikasiBelumDibaca(User warga) {
-        return notifRepo.findByWargaAndIsReadOrderByCreatedAtDesc(warga, false);
+    public List<Notifikasi> getNotifikasiBelumDibaca(User user) {
+        return notifRepo.findByUserAndIsReadOrderByCreatedAtDesc(user, false)
+                .stream()
+                .limit(10)
+                .toList();
     }
 
-    public List<Notifikasi> getSemuaNotifikasi(User warga) {
-        return notifRepo.findByWargaOrderByCreatedAtDesc(warga);
+    public List<Notifikasi> getSemuaNotifikasi(User user) {
+        return notifRepo.findByUserOrderByCreatedAtDesc(user);
     }
 
     @Transactional
@@ -43,15 +46,23 @@ public class NotifikasiService {
     }
 
     @Transactional
-    public void tandaiSemuaDibaca(User warga) {
-        List<Notifikasi> daftar = notifRepo.findByWargaAndIsReadOrderByCreatedAtDesc(warga, false);
+    public void tandaiDibaca(List<Notifikasi> daftar) {
         for (Notifikasi n : daftar) {
             n.setRead(true);
         }
         notifRepo.saveAll(daftar);
     }
 
-    public long countBelumDibaca(User warga) {
-        return notifRepo.countByWargaAndIsRead(warga, false);
+    @Transactional
+    public void tandaiSemuaDibaca(User user) {
+        List<Notifikasi> daftar = notifRepo.findByUserAndIsReadOrderByCreatedAtDesc(user, false);
+        for (Notifikasi n : daftar) {
+            n.setRead(true);
+        }
+        notifRepo.saveAll(daftar);
+    }
+
+    public long countBelumDibaca(User user) {
+        return notifRepo.countByUserAndIsRead(user, false);
     }
 }

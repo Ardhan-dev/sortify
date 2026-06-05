@@ -88,29 +88,26 @@
         <div class="field-group">
           <label class="field-label" for="namaItem">Nama Item <span class="required">*</span></label>
           <input type="text" id="namaItem" name="namaItem" class="field-input"
-                 th:value="${item.namaItem}" placeholder="Contoh: Botol Plastik, Daun Kering" required>
+                 th:value="${item.namaItem}" placeholder="Contoh: Botol Plastik, Kardus Bekas" required>
         </div>
         <div class="field-group">
           <label class="field-label" for="idKategori">Kategori <span class="required">*</span></label>
           <select id="idKategori" name="idKategori" class="field-select" required>
-            <option value="">-- Pilih Kategori --</option>
-            <option th:each="k : ${daftarKategori}"
-                    th:value="${k.idKategori}"
-                    th:text="${k.namaKategori}"
-                    th:selected="${item.kategoriSampah?.idKategori == k.idKategori}">
-              ORGANIK
-            </option>
+            <option value="">— Pilih Kategori —</option>
+            <option th:each="k : ${daftarKategori}" th:value="${k.idKategori}"
+                    th:text="${k.namaKategori + ' (' + k.poinPerKg + ' poin/kg)'}"
+                    th:selected="${item.kategoriSampah?.idKategori == k.idKategori}">PLASTIK</option>
           </select>
         </div>
         <div class="field-group">
           <label class="field-label" for="deskripsi">Deskripsi</label>
           <textarea id="deskripsi" name="deskripsi" class="field-textarea"
-                    placeholder="Deskripsi atau tips tentang item sampah ini..." th:text="${item.deskripsi}"></textarea>
+                    placeholder="Deskripsi singkat tentang item sampah ini..." th:text="${item.deskripsi}"></textarea>
         </div>
         <div class="field-group">
           <label class="field-label" for="instruksiPenanganan">Instruksi Penanganan</label>
           <textarea id="instruksiPenanganan" name="instruksiPenanganan" class="field-textarea"
-                    placeholder="Petunjuk cara menangani sampah ini..." th:text="${item.instruksiPenanganan}"></textarea>
+                    placeholder="Cara menangani item sampah ini..." th:text="${item.instruksiPenanganan}"></textarea>
         </div>
       </div>
       <div class="form-actions">

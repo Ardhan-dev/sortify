@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sortify — Lapor Transaksi Drop Point</title>
+  <title>Sortify — Lapor Sampah</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
   <style>
@@ -132,7 +132,7 @@
   </header>
 
   <div class="page-head">
-    <div class="page-label">Drop Point · Laporan Baru</div>
+    <div class="page-label">Lapor Sampah</div>
     <h1 class="page-title">Laporan <strong>Baru</strong></h1>
   </div>
 
@@ -146,20 +146,20 @@
       <div class="form-card-header-icon">
         <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
       </div>
-      <span class="form-card-header-title">Laporan drop point sampah baru</span>
+      <span class="form-card-header-title">Laporan Sampah Baru</span>
     </div>
     <div class="form-body">
       <form method="post" enctype="multipart/form-data" th:action="@{/warga/transaksi/tambah}">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
         <div class="form-group">
-          <label class="form-label">Jenis &amp; Berat Sampah <span class="required">*</span></label>
+          <label class="form-label">Kategori &amp; Berat Sampah <span class="required">*</span></label>
           <div id="itemList">
             <div class="item-row">
               <div class="field-group">
-                <label class="form-label">Kategori Sampah</label>
+                <label class="form-label">Pilih Kategori</label>
                 <select name="idKategori" class="form-select kategori-select" required onchange="hitungTotal()">
-                  <option value="">— Pilih —</option>
+                  <option value="">— Pilih Kategori —</option>
                   <option th:each="k : ${kategoriList}"
                           th:value="${k.idKategori}"
                           th:text="${k.namaKategori} + ' (' + ${k.poinPerKg} + ' poin/kg)'"
@@ -190,11 +190,8 @@
         </div>
 
         <div class="form-group" style="margin-top:1.5rem;">
-          <label class="form-label" for="lokasi">Lokasi Drop Point <span class="required">*</span></label>
-          <select id="lokasi" name="lokasi" class="form-select" required>
-            <option value="">— Pilih Drop Point —</option>
-            <option th:each="dp : ${dropPointList}" th:value="${dp.nama}" th:text="${dp.nama} + ' — ' + ${dp.alamat}">Drop Point</option>
-          </select>
+          <label class="form-label" for="lokasi">Lokasi <span class="required">*</span></label>
+          <input type="text" id="lokasi" name="lokasi" class="form-input" placeholder="Contoh: Jl. Merdeka No. 10, RT 02/RW 03" required>
         </div>
 
         <div class="form-group">
@@ -212,11 +209,12 @@
             </div>
             <div class="upload-area-text">
               Klik untuk <strong>upload foto</strong><br>
-              Ambil foto sampah yang sudah ditempatkan di drop point
+              Ambil foto sampah yang akan dilaporkan
             </div>
           </div>
           <input type="file" id="fotoLaporanWarga" name="fotoLaporanWarga" class="form-input" accept="image/*" required style="display:none;" onchange="previewUpload(this)">
           <div class="upload-preview" id="uploadPreview">
+            <img id="previewImage" src="" alt="Preview" style="max-width:100%; max-height:200px; border-radius:8px; display:none; margin-bottom:8px;">
             <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
             <span id="uploadFileName">Tidak ada file dipilih</span>
           </div>
@@ -259,16 +257,25 @@
   function previewUpload(input) {
     var preview = document.getElementById('uploadPreview');
     var fileName = document.getElementById('uploadFileName');
+    var previewImg = document.getElementById('previewImage');
     if (input.files && input.files.length > 0) {
       fileName.textContent = input.files[0].name;
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        previewImg.src = e.target.result;
+        previewImg.style.display = 'block';
+      };
+      reader.readAsDataURL(input.files[0]);
       preview.classList.add('visible');
     } else {
+      previewImg.src = '';
+      previewImg.style.display = 'none';
       preview.classList.remove('visible');
     }
   }
 
   function getOptionsHtml() {
-    var html = '<option value="">— Pilih —</option>';
+    var html = '<option value="">— Pilih Kategori —</option>';
     for (var i = 0; i < kategoriList.length; i++) {
       var k = kategoriList[i];
       html += '<option value="' + k.idKategori + '" data-poin="' + k.poinPerKg + '">'
@@ -283,7 +290,7 @@
     div.className = 'item-row';
     div.innerHTML =
       '<div class="field-group">' +
-        '<label class="form-label">Kategori Sampah</label>' +
+        '<label class="form-label">Pilih Kategori</label>' +
         '<select name="idKategori" class="form-select kategori-select" required onchange="hitungTotal()">' +
           getOptionsHtml() +
         '</select>' +

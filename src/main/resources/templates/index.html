@@ -561,6 +561,7 @@
         <div class="topbar-sep"></div>
         <!-- LOGOUT BUTTON -->
         <form action="/logout" method="post" style="margin:0;">
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
           <button type="submit" class="btn-logout">
             <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
@@ -771,7 +772,7 @@
       <div class="stat-sub">Petugas aktif</div>
     </div>
     <div class="stat-item">
-      <div class="stat-label">Drop Point Selesai</div>
+      <div class="stat-label">Laporan Selesai</div>
       <div class="stat-val" th:text="${transaksiSelesai ?: '—'}">—</div>
       <div class="stat-sub">Transaksi valid</div>
     </div>

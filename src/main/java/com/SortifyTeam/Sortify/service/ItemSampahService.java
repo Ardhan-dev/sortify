@@ -24,11 +24,8 @@ public class ItemSampahService {
         return itemSampahRepo.findAllByOrderByKategoriSampahNamaKategoriAscNamaItemAsc();
     }
 
-    public List<ItemSampah> cari(String keyword) {
-        if (keyword == null || keyword.isBlank()) {
-            return getSemua();
-        }
-        return itemSampahRepo.findByNamaItemContainingIgnoreCase(keyword.trim());
+    public List<ItemSampah> getAll() {
+        return itemSampahRepo.findByIsActiveTrueOrderByKategoriSampahNamaKategoriAscNamaItemAsc();
     }
 
     public ItemSampah getById(Long id) {
@@ -36,10 +33,15 @@ public class ItemSampahService {
                 .orElseThrow(() -> new RuntimeException("Item tidak ditemukan: " + id));
     }
 
+    public List<ItemSampah> cari(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return itemSampahRepo.findByIsActiveTrueOrderByKategoriSampahNamaKategoriAscNamaItemAsc();
+        }
+        return itemSampahRepo.findByNamaItemContainingIgnoreCaseAndIsActiveTrue(keyword.trim());
+    }
+
     @Transactional
-    public ItemSampah simpan(String namaItem, String deskripsi, String instruksiPenanganan, Long idKategori) {
-        KategoriSampah kategori = kategoriRepo.findById(idKategori)
-                .orElseThrow(() -> new RuntimeException("Kategori tidak ditemukan: " + idKategori));
+    public ItemSampah simpan(String namaItem, String deskripsi, String instruksiPenanganan, KategoriSampah kategori) {
         ItemSampah item = new ItemSampah();
         item.setNamaItem(namaItem);
         item.setDeskripsi(deskripsi);
@@ -49,10 +51,8 @@ public class ItemSampahService {
     }
 
     @Transactional
-    public ItemSampah update(Long id, String namaItem, String deskripsi, String instruksiPenanganan, Long idKategori) {
+    public ItemSampah update(Long id, String namaItem, String deskripsi, String instruksiPenanganan, KategoriSampah kategori) {
         ItemSampah item = getById(id);
-        KategoriSampah kategori = kategoriRepo.findById(idKategori)
-                .orElseThrow(() -> new RuntimeException("Kategori tidak ditemukan: " + idKategori));
         item.setNamaItem(namaItem);
         item.setDeskripsi(deskripsi);
         item.setInstruksiPenanganan(instruksiPenanganan);
@@ -62,7 +62,9 @@ public class ItemSampahService {
 
     @Transactional
     public void hapus(Long id) {
-        itemSampahRepo.deleteById(id);
+        ItemSampah item = getById(id);
+        item.setIsActive(false);
+        itemSampahRepo.save(item);
     }
 
     public long count() {

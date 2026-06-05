@@ -239,6 +239,20 @@
       margin-top: 2px;
     }
 
+    .kategori-grid { display: flex; gap: 14px; margin-bottom: 2.5rem; flex-wrap: wrap; }
+    .kategori-card {
+      flex: 1; min-width: 240px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-top: 3px solid var(--kat-color, var(--accent));
+      border-radius: 12px; padding: 1.25rem 1.5rem;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .kategori-header { display: flex; align-items: center; gap: 12px; }
+    .kategori-icon { font-size: 1.7rem; line-height: 1; }
+    .kategori-nama { font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--text-primary); letter-spacing: 0.5px; }
+    .kategori-poin { font-family: var(--mono); font-size: 11px; color: var(--kat-color, var(--accent)); letter-spacing: 0.5px; }
+    .kategori-instruksi { font-size: 12px; color: var(--text-secondary); line-height: 1.6; margin: 0; }
+
     .empty-state {
       grid-column: 1 / -1;
       text-align: center; padding: 4rem 2rem;
@@ -294,6 +308,7 @@
         </div>
         <div class="topbar-sep"></div>
         <form action="/logout" method="post" th:if="${#authorization.expression('isAuthenticated()')}" style="margin:0;">
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
           <button type="submit" class="btn-logout">
             <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
@@ -328,6 +343,24 @@
       <div class="page-stat-label">Item Sampah</div>
     </div>
   </section>
+
+  <div class="section-divider animate delay-2">
+    <span class="section-divider-label">Kategori Sampah</span>
+    <div class="section-divider-line"></div>
+  </div>
+
+  <div class="kategori-grid animate delay-3">
+    <div class="kategori-card" th:each="k : ${daftarKategori}">
+      <div class="kategori-header">
+        <span class="kategori-icon">📋</span>
+        <div>
+          <div class="kategori-nama" th:text="${k.namaKategori}">ORGANIK</div>
+          <div class="kategori-poin" th:text="${k.poinPerKg} + ' poin / kg'">100 poin / kg</div>
+        </div>
+      </div>
+      <p class="kategori-instruksi" th:text="${k.instruksiPenanganan}" th:if="${k.instruksiPenanganan != null}">Instruksi</p>
+    </div>
+  </div>
 
   <div class="section-divider animate delay-2">
     <span class="section-divider-label">Direktori Sampah</span>

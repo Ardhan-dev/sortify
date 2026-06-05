@@ -2,6 +2,7 @@ package com.SortifyTeam.Sortify.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
 
 @Entity
 @Table(name = "transaksi_detail")
@@ -11,11 +12,12 @@ public class TransaksiDetail {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_transaksi")
+    @ToString.Exclude
     private Transaksi transaksi;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_kategori")
     private KategoriSampah kategoriSampah;
 

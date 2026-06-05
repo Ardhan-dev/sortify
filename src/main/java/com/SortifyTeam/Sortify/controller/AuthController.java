@@ -6,6 +6,7 @@ import com.SortifyTeam.Sortify.model.Warga;
 import com.SortifyTeam.Sortify.repository.UserRepository;
 import com.SortifyTeam.Sortify.repository.WargaRepository;
 import com.SortifyTeam.Sortify.service.LogAktivitasService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -42,14 +43,16 @@ public class AuthController {
     @GetMapping("/login")
     public String loginPage(@RequestParam(value = "error", required = false) String error,
                             @RequestParam(value = "logout", required = false) String logout,
-                            Model model) {
+                            Model model, HttpServletRequest request) {
+        request.getSession();
         if (error != null) model.addAttribute("errorMsg", "Username atau password salah.");
         if (logout != null) model.addAttribute("logoutMsg", "Kamu berhasil keluar.");
         return "login";
     }
 
     @GetMapping("/register")
-    public String registerPage(Model model) {
+    public String registerPage(Model model, HttpServletRequest request) {
+        request.getSession();
         model.addAttribute("formData", new RegisterDTO());
         return "register";
     }
@@ -79,9 +82,8 @@ public class AuthController {
         Warga warga = new Warga();
         warga.setNama(user.getFullName());
         warga.setUsername(user.getUsername());
-        warga.setPassword(user.getPassword());
-        warga.setAlamat("-");
-        warga.setNoHp("-");
+        warga.setAlamat(dto.getAlamat() != null && !dto.getAlamat().isBlank() ? dto.getAlamat() : "-");
+        warga.setNoHp(dto.getNoTelepon() != null && !dto.getNoTelepon().isBlank() ? dto.getNoTelepon() : "-");
         warga.setUser(user);
         wargaRepo.save(warga);
 

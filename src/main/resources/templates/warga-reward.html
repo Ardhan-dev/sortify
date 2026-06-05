@@ -89,6 +89,15 @@
     .hist-amount.earn { color: var(--accent); }
     .hist-amount.spend { color: var(--amber); }
 
+    .status-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px; border: 1px solid; }
+    .status-badge .dot { width: 5px; height: 5px; border-radius: 50%; }
+    .badge-pending { background: var(--amber-dim); border-color: rgba(200,137,26,0.25); color: var(--amber); }
+    .badge-pending .dot { background: var(--amber); }
+    .badge-ambil { background: var(--accent-dim); border-color: rgba(134,187,76,0.25); color: var(--accent); }
+    .badge-ambil .dot { background: var(--accent); }
+    .badge-batal { background: var(--danger-dim); border-color: rgba(184,84,84,0.25); color: var(--danger); }
+    .badge-batal .dot { background: var(--danger); }
+
     .empty-state { text-align: center; padding: 2rem; }
     .empty-text { font-family: var(--mono); font-size: 11px; color: var(--text-muted); letter-spacing: 1px; }
 
@@ -143,11 +152,19 @@
     <h1 class="page-title">Tukar <strong>Poin</strong> Sampah</h1>
   </div>
 
-  <div th:if="${success}" class="alert-card alert-success animate">
+  <!-- Success / Error Alert -->
+  <div class="poin-card" th:if="${kodePenukaran != null}" style="border-color:rgba(134,187,76,0.4); margin-bottom:1rem; flex-direction:column; gap:16px; padding:2rem; text-align:center;">
+    <div style="font-family:var(--mono); font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--accent);">Penukaran Berhasil!</div>
+    <div style="font-size:13px; color:var(--text-secondary);" th:text="${success}">Penukaran berhasil!</div>
+    <div style="font-family:var(--mono); font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-muted); margin-top:4px;">KODE AMDAL ANDA</div>
+    <div style="font-family:var(--mono); font-size:2.2rem; font-weight:700; letter-spacing:12px; color:var(--accent); background:var(--accent-dim); border:1px solid rgba(134,187,76,0.25); border-radius:12px; padding:0.75rem 1.5rem; display:inline-block;" th:text="${kodePenukaran}">7A3F2B</div>
+    <div style="font-size:12px; color:var(--text-secondary);">Tunjukkan kode ini ke petugas saat ambil reward.</div>
+  </div>
+  <div th:if="${success != null and kodePenukaran == null}" class="alert-card alert-success animate">
     <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
     <span th:text="${success}">Penukaran berhasil!</span>
   </div>
-  <div th:if="${error}" class="alert-card alert-error animate">
+  <div th:if="${error != null}" class="alert-card alert-error animate">
     <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
     <span th:text="${error}">Error</span>
   </div>
@@ -199,17 +216,17 @@
   <div th:if="${#lists.isEmpty(riwayatPoint)}">
     <div class="empty-state"><div class="empty-text">Belum ada riwayat point</div></div>
   </div>
-  <div th:each="h : ${riwayatPoint}" class="hist-item animate delay-3">
-    <div class="hist-icon" th:classappend="${h.type.name() == 'EARN'} ? 'earn' : 'spend'">
-      <svg th:if="${h.type.name() == 'EARN'}" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-      <svg th:if="${h.type.name() == 'SPEND'}" viewBox="0 0 24 24"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+  <div th:each="h : ${riwayatPoint}" class="hist-item animate">
+    <div class="hist-icon" th:classappend="${h.type?.name() == 'EARN'} ? 'earn' : 'spend'">
+      <svg th:if="${h.type?.name() == 'EARN'}" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      <svg th:if="${h.type?.name() == 'SPEND'}" viewBox="0 0 24 24"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
     </div>
     <div class="hist-info">
       <div class="hist-desc" th:text="${h.description}">Deskripsi</div>
       <div class="hist-date" th:text="${#temporals.format(h.createdAt, 'dd MMM yyyy, HH:mm')}">—</div>
     </div>
-    <div class="hist-amount" th:classappend="${h.type.name() == 'EARN'} ? 'earn' : 'spend'"
-         th:text="${h.type.name() == 'EARN'} ? '+' + ${h.amount} : '-' + ${h.amount}">
+    <div class="hist-amount" th:classappend="${h.type?.name() == 'EARN'} ? 'earn' : 'spend'"
+         th:text="${h.type?.name() == 'EARN'} ? '+' + ${h.amount} : '-' + ${h.amount}">
       +0
     </div>
   </div>
@@ -223,7 +240,7 @@
       <svg viewBox="0 0 24 24" stroke="var(--accent)"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
     </div>
     <div class="hist-info">
-      <div class="hist-desc" th:text="'Tukar ' + ${p.rewardItem.namaBarang}">Tukar Beras</div>
+      <div class="hist-desc" th:text="'Tukar ' + ${p.rewardItem?.namaBarang ?: 'Reward tidak tersedia'}">Tukar Beras</div>
       <div class="hist-date" th:text="${#temporals.format(p.tanggalPenukaran, 'dd MMM yyyy, HH:mm')}">—</div>
       <div th:if="${p.lokasi}" style="font-family:var(--mono); font-size:9px; color:var(--text-muted); letter-spacing:0.3px;" th:text="${'Ambil di: ' + p.lokasi}">Ambil di: Drop Point</div>
       <div th:if="${p.kodePenukaran}" style="display:flex; align-items:center; gap:8px; margin-top:6px;">
@@ -231,12 +248,24 @@
         <div>
           <div style="font-family:var(--mono); font-size:8px; letter-spacing:0.5px; text-transform:uppercase; color:var(--text-muted);">Kode Penukaran</div>
           <div style="font-family:var(--mono); font-size:12px; font-weight:700; color:var(--amber); letter-spacing:1px;" th:text="${p.kodePenukaran}">RDM-001-ABC123</div>
-          <div th:if="${p.status.name() == 'SUDAH_DIAMBIL'}" style="font-family:var(--mono); font-size:9px; color:var(--accent); letter-spacing:0.5px;">✓ Sudah diambil</div>
-          <div th:if="${p.status.name() == 'PENDING'}" style="font-family:var(--mono); font-size:9px; color:var(--amber); letter-spacing:0.5px;">⏳ Tunjukkan kode ini ke petugas</div>
+          <div style="margin-top:4px;">
+            <span class="status-badge"
+                  th:classappend="${p.status.name() == 'SUDAH_DIAMBIL'} ? 'badge-ambil' : (${p.status.name() == 'DIBATALKAN'} ? 'badge-batal' : 'badge-pending')">
+              <span class="dot"></span>
+              <span th:text="${p.status.name() == 'SUDAH_DIAMBIL'} ? 'Sudah Diterima' : (${p.status.name() == 'DIBATALKAN'} ? 'Dibatalkan' : 'Menunggu Konfirmasi')">PENDING</span>
+            </span>
+          </div>
         </div>
       </div>
+      <div th:if="${p.kodePenukaran == null}" style="margin-top:6px;">
+        <span class="status-badge"
+              th:classappend="${p.status.name() == 'SUDAH_DIAMBIL'} ? 'badge-ambil' : (${p.status.name() == 'DIBATALKAN'} ? 'badge-batal' : 'badge-pending')">
+          <span class="dot"></span>
+          <span th:text="${p.status.name() == 'SUDAH_DIAMBIL'} ? 'Sudah Diterima' : (${p.status.name() == 'DIBATALKAN'} ? 'Dibatalkan' : 'Menunggu Konfirmasi')">PENDING</span>
+        </span>
+      </div>
     </div>
-    <div class="hist-amount spend" th:text="'-' + ${p.rewardItem.pointNeeded} + ' poin'">-1000</div>
+    <div class="hist-amount spend" th:text="'-' + ${p.rewardItem?.pointNeeded ?: '0'} + ' poin'">-1000</div>
   </div>
 
   <footer>

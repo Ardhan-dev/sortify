@@ -20,7 +20,10 @@ public class ItemSampah {
     @Column(columnDefinition = "TEXT")
     private String instruksiPenanganan;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_kategori", nullable = false)
     private KategoriSampah kategoriSampah;
+
+    @Column(nullable = false)
+    private Boolean isActive = true;
 }

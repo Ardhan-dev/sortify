@@ -13,11 +13,11 @@ public class PenukaranReward {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "warga_id", nullable = false)
-    private User warga;
+    private User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reward_item_id", nullable = false)
     private RewardItem rewardItem;
 
@@ -29,7 +29,7 @@ public class PenukaranReward {
 
     private String lokasi;
 
-    @Column(unique = true)
+    @Column(unique = true, length = 6)
     private String kodePenukaran;
 
     @Column(nullable = false)
@@ -41,7 +41,7 @@ public class PenukaranReward {
     }
 
     public enum StatusPenukaran {
-        PENDING, SUDAH_DIAMBIL
+        PENDING, SUDAH_DIAMBIL, DIBATALKAN
     }
 }
 

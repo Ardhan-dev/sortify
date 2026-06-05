@@ -7,6 +7,7 @@ import com.SortifyTeam.Sortify.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -19,64 +20,75 @@ public class RewardService {
     private final PointService pointService;
     private final UserRepository userRepo;
     private final LogAktivitasService logAktivitasService;
+    private final NotifikasiService notifikasiService;
 
     public RewardService(RewardItemRepository rewardItemRepo,
                          PenukaranRewardRepository penukaranRepo,
                          PointService pointService,
                          UserRepository userRepo,
-                         LogAktivitasService logAktivitasService) {
+                         LogAktivitasService logAktivitasService,
+                         NotifikasiService notifikasiService) {
         this.rewardItemRepo = rewardItemRepo;
         this.penukaranRepo = penukaranRepo;
         this.pointService = pointService;
         this.userRepo = userRepo;
         this.logAktivitasService = logAktivitasService;
+        this.notifikasiService = notifikasiService;
     }
 
     public List<RewardItem> getRewardTersedia() {
-        return rewardItemRepo.findByStockGreaterThan(0);
+        return rewardItemRepo.findByStockGreaterThanAndIsActiveTrue(0);
     }
 
     public List<PenukaranReward> getRiwayatPenukaran(User warga) {
-        return penukaranRepo.findByWargaOrderByTanggalPenukaranDesc(warga);
+        return penukaranRepo.findByUserOrderByTanggalPenukaranDesc(warga);
     }
 
     @Transactional
-    public void tukarReward(User warga, Long rewardItemId, String lokasi) {
-        RewardItem item = rewardItemRepo.findById(rewardItemId)
+    public PenukaranReward tukarReward(User warga, Long rewardItemId) {
+        RewardItem item = rewardItemRepo.findByIdWithLock(rewardItemId)
                 .orElseThrow(() -> new RuntimeException("Reward tidak ditemukan"));
 
         if (item.getStock() <= 0) {
             throw new RuntimeException("Stok reward habis");
         }
 
-        if (warga.getTotalPoints() < item.getPointNeeded()) {
+        User lockedWarga = userRepo.findByIdWithLock(warga.getId())
+                .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
+
+        if (lockedWarga.getTotalPoints() < item.getPointNeeded()) {
             throw new RuntimeException("Poin tidak mencukupi");
         }
 
-        warga.setTotalPoints(warga.getTotalPoints() - item.getPointNeeded());
+        lockedWarga.setTotalPoints(lockedWarga.getTotalPoints() - item.getPointNeeded());
         item.setStock(item.getStock() - 1);
 
         PenukaranReward penukaran = new PenukaranReward();
-        penukaran.setWarga(warga);
+        penukaran.setUser(lockedWarga);
         penukaran.setRewardItem(item);
-        penukaran.setLokasi(lokasi);
+        penukaran.setKodePenukaran(generateUniqueKode());
 
-        userRepo.save(warga);
+        userRepo.save(lockedWarga);
         rewardItemRepo.save(item);
-        penukaranRepo.save(penukaran);
-
-        String kode = "RDM-" + penukaran.getId() + "-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
-        penukaran.setKodePenukaran(kode);
-        penukaranRepo.save(penukaran);
-        pointService.tambahPointHistory(warga, item.getPointNeeded(),
+        penukaran = penukaranRepo.save(penukaran);
+        pointService.tambahPointHistory(lockedWarga, item.getPointNeeded(),
                 PointHistory.PointType.SPEND,
                 "Penukaran " + item.getNamaBarang());
         logAktivitasService.catatAktivitas(
-            warga.getUsername(),
-            warga.getRole().name(),
+            lockedWarga.getUsername(),
+            lockedWarga.getRole().name(),
             "TUKAR_REWARD",
-            "Menukar " + item.getNamaBarang() + " (" + item.getPointNeeded() + " poin) di " + lokasi + " — sisa poin: " + warga.getTotalPoints()
+            "Menukar " + item.getNamaBarang() + " (" + item.getPointNeeded() + " poin) — sisa poin: " + lockedWarga.getTotalPoints()
         );
+        notifikasiService.buatNotifikasi(lockedWarga,
+                "Penukaran berhasil! Kode AMDAL Anda: " + penukaran.getKodePenukaran() + ". Silakan ambil reward " + item.getNamaBarang() + " di Kantor Sortify pada jam kerja.");
+        List<User> petugasList = userRepo.findByRole(User.Role.PETUGAS);
+        for (User petugas : petugasList) {
+            notifikasiService.buatNotifikasi(petugas,
+                    "Penukaran reward " + item.getNamaBarang() + " oleh " + lockedWarga.getFullName()
+                    + " (" + item.getPointNeeded() + " poin) — segera konfirmasi serah terima.");
+        }
+        return penukaran;
     }
 
     public long countTotalPenukaran() {
@@ -104,24 +116,28 @@ public class RewardService {
         penukaranRepo.save(p);
     }
 
-    @Transactional
-    public PenukaranReward verifikasiPenukaran(String kode, String fotoBukti) {
-        PenukaranReward p = penukaranRepo.findByKodePenukaran(kode)
-                .orElseThrow(() -> new RuntimeException("Kode penukaran tidak valid: " + kode));
-        if (p.getStatus() == PenukaranReward.StatusPenukaran.SUDAH_DIAMBIL) {
-            throw new RuntimeException("Penukaran dengan kode " + kode + " sudah diambil sebelumnya.");
+    private String generateUniqueKode() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        SecureRandom random = new SecureRandom();
+        for (int attempt = 0; attempt < 100; attempt++) {
+            StringBuilder sb = new StringBuilder(6);
+            for (int i = 0; i < 6; i++) {
+                sb.append(chars.charAt(random.nextInt(chars.length())));
+            }
+            String kode = sb.toString();
+            if (!penukaranRepo.existsByKodePenukaran(kode)) {
+                return kode;
+            }
         }
-        p.setStatus(PenukaranReward.StatusPenukaran.SUDAH_DIAMBIL);
-        if (fotoBukti != null && !fotoBukti.isBlank()) {
-            p.setFotoBukti(fotoBukti);
-        }
-        return penukaranRepo.save(p);
+        throw new RuntimeException("Gagal generate kode unik — coba lagi.");
     }
 
     // ── CRUD untuk Admin ──
 
     public List<RewardItem> getAllRewardItems() {
-        return rewardItemRepo.findAll();
+        return rewardItemRepo.findAll().stream()
+                .filter(RewardItem::getIsActive)
+                .toList();
     }
 
     public RewardItem getRewardById(Long id) {
@@ -131,6 +147,15 @@ public class RewardService {
 
     @Transactional
     public RewardItem simpanReward(String namaBarang, int pointNeeded, int stock) {
+        if (namaBarang == null || namaBarang.isBlank()) {
+            throw new IllegalArgumentException("Nama barang tidak boleh kosong");
+        }
+        if (pointNeeded < 1) {
+            throw new IllegalArgumentException("Poin minimal 1");
+        }
+        if (stock < 0) {
+            throw new IllegalArgumentException("Stok minimal 0");
+        }
         RewardItem item = new RewardItem();
         item.setNamaBarang(namaBarang);
         item.setPointNeeded(pointNeeded);
@@ -140,6 +165,15 @@ public class RewardService {
 
     @Transactional
     public RewardItem updateReward(Long id, String namaBarang, int pointNeeded, int stock) {
+        if (namaBarang == null || namaBarang.isBlank()) {
+            throw new IllegalArgumentException("Nama barang tidak boleh kosong");
+        }
+        if (pointNeeded < 1) {
+            throw new IllegalArgumentException("Poin minimal 1");
+        }
+        if (stock < 0) {
+            throw new IllegalArgumentException("Stok minimal 0");
+        }
         RewardItem item = getRewardById(id);
         item.setNamaBarang(namaBarang);
         item.setPointNeeded(pointNeeded);
@@ -149,7 +183,46 @@ public class RewardService {
 
     @Transactional
     public void hapusReward(Long id) {
-        rewardItemRepo.deleteById(id);
+        RewardItem item = getRewardById(id);
+        item.setIsActive(false);
+        rewardItemRepo.save(item);
+    }
+
+    @Transactional
+    public PenukaranReward batalkanPenukaran(Long penukaranId) {
+        PenukaranReward penukaran = penukaranRepo.findById(penukaranId)
+                .orElseThrow(() -> new RuntimeException("Penukaran reward tidak ditemukan: " + penukaranId));
+
+        if (!PenukaranReward.StatusPenukaran.PENDING.equals(penukaran.getStatus())) {
+            throw new RuntimeException("Penukaran #" + penukaranId + " sudah diproses dan tidak dapat dibatalkan.");
+        }
+
+        penukaran.setStatus(PenukaranReward.StatusPenukaran.DIBATALKAN);
+        penukaranRepo.save(penukaran);
+
+        User warga = userRepo.findByIdWithLock(penukaran.getUser().getId())
+                .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
+        RewardItem item = penukaran.getRewardItem();
+
+        warga.setTotalPoints(warga.getTotalPoints() + item.getPointNeeded());
+        item.setStock(item.getStock() + 1);
+
+        userRepo.save(warga);
+        rewardItemRepo.save(item);
+
+        pointService.tambahPointHistory(warga, item.getPointNeeded(),
+                PointHistory.PointType.EARN,
+                "Refund poin pembatalan " + item.getNamaBarang());
+        logAktivitasService.catatAktivitas(
+            warga.getUsername(),
+            warga.getRole().name(),
+            "BATAL_REWARD",
+            "Penukaran " + item.getNamaBarang() + " dibatalkan — refund " + item.getPointNeeded() + " poin"
+        );
+        notifikasiService.buatNotifikasi(warga,
+                "Penukaran " + item.getNamaBarang() + " dibatalkan oleh petugas. " + item.getPointNeeded() + " poin telah dikembalikan.");
+
+        return penukaran;
     }
 }
 

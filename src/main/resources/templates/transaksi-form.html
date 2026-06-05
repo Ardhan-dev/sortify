@@ -323,20 +323,12 @@
             </div>
           </div>
 
-          <!-- Staff -->
+          <!-- Staff (auto-assigned from current user) -->
           <div class="field-group">
-            <label class="field-label" for="idStaff">Staff Pencatat <span class="required">*</span></label>
-            <select id="idStaff" name="idStaff" class="field-select" required onchange="previewSelect(this, 'previewStaff')">
-              <option value="">— Pilih Staff —</option>
-              <option th:each="s : ${daftarStaff}"
-                      th:value="${s.idStaff}"
-                      th:text="${s.nama} + ' · ' + ${s.jabatan}"
-                      th:selected="${transaksi.staff != null and transaksi.staff.idStaff == s.idStaff}">
-              </option>
-            </select>
-            <div class="preview-card" id="previewStaff">
+            <label class="field-label">Staff Pencatat</label>
+            <div class="preview-card" style="margin-top:6px;">
               <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-              <span id="previewStaffText">—</span>
+              <span th:text="${currentStaff != null} ? ${currentStaff.nama} + ' · ' + ${currentStaff.jabatan} : '(akan diisi otomatis)'">—</span>
             </div>
           </div>
 

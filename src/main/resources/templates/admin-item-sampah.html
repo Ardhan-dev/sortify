@@ -75,6 +75,11 @@
     .empty-icon svg { width: 20px; height: 20px; stroke: var(--accent); fill: none; stroke-width: 1.5; }
     .empty-title { font-size: 14px; font-weight: 500; color: var(--text-secondary); margin-bottom: 4px; }
     .empty-desc { font-size: 12px; color: var(--text-muted); }
+    .nav-tabs { display: flex; gap: 0; margin-bottom: 2rem; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .nav-tab { flex: 1; padding: 0.7rem 1rem; font-family: var(--mono); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; text-align: center; text-decoration: none; color: var(--text-muted); background: var(--surface); border-right: 1px solid var(--border); }
+    .nav-tab:last-child { border-right: none; }
+    .nav-tab.active { background: var(--accent-dim); color: var(--accent); }
+    .nav-tab:hover { background: var(--surface-hover); }
     footer { border-top: 1px solid var(--border); padding: 1.5rem 0; margin-top: 3rem; display: flex; align-items: center; justify-content: space-between; }
     .footer-id { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 1px; }
     @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
@@ -118,6 +123,11 @@
       <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Tambah Item
     </a>
+  </div>
+
+  <div class="nav-tabs animate delay-2">
+    <a href="/admin/kategori-sampah" class="nav-tab">Kategori</a>
+    <a href="/admin/item-sampah" class="nav-tab active">Item Sampah</a>
   </div>
 
   <div class="section-head animate delay-2">

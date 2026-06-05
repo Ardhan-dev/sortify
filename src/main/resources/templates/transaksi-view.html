@@ -216,6 +216,8 @@
     .badge-diproses .dot { background: var(--teal); }
     .badge-selesai { background: rgba(134,187,76,0.1); border-color: rgba(134,187,76,0.25); color: var(--accent); }
     .badge-selesai .dot { background: var(--accent); }
+    .badge-ditolak { background: rgba(184,84,84,0.1); border-color: rgba(184,84,84,0.25); color: var(--danger); }
+    .badge-ditolak .dot { background: var(--danger); }
 
     .cell-actions { display: flex; justify-content: center; gap: 6px; }
     .icon-btn { width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--border); background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); transition: background 0.15s, border-color 0.15s, color 0.15s; text-decoration: none; }
@@ -421,7 +423,7 @@
 
           <td>
             <span class="status-badge"
-                  th:classappend="${t.status.name() == 'PENDING'} ? 'badge-menunggu' : (${t.status.name() == 'DIPROSES'} ? 'badge-diproses' : 'badge-selesai')">
+                  th:classappend="${t.status.name() == 'PENDING'} ? 'badge-menunggu' : (${t.status.name() == 'DIPROSES'} ? 'badge-diproses' : (${t.status.name() == 'DITOLAK' or t.status.name() == 'DIBATALKAN'} ? 'badge-ditolak' : 'badge-selesai'))">
               <span class="dot"></span>
               <span th:text="${t.status != null ? t.status.name() : 'PENDING'}">PENDING</span>
             </span>

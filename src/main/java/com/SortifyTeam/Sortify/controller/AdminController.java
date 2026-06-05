@@ -8,11 +8,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -33,7 +30,6 @@ public class AdminController {
     private final TransaksiRepository transaksiRepo;
     private final TransaksiDetailRepository transaksiDetailRepo;
     private final PenukaranRewardRepository penukaranRepo;
-    private final FileStorageService fileStorageService;
     private final WargaRepository wargaRepo;
     private final KategoriSampahRepository kategoriRepo;
     private final LogAktivitasService logAktivitasService;
@@ -43,7 +39,6 @@ public class AdminController {
                            TransaksiRepository transaksiRepo,
                            TransaksiDetailRepository transaksiDetailRepo,
                            PenukaranRewardRepository penukaranRepo,
-                           FileStorageService fileStorageService,
                            WargaRepository wargaRepo,
                            KategoriSampahRepository kategoriRepo,
                            LogAktivitasService logAktivitasService) {
@@ -52,7 +47,6 @@ public class AdminController {
         this.transaksiRepo = transaksiRepo;
         this.transaksiDetailRepo = transaksiDetailRepo;
         this.penukaranRepo = penukaranRepo;
-        this.fileStorageService = fileStorageService;
         this.wargaRepo = wargaRepo;
         this.kategoriRepo = kategoriRepo;
         this.logAktivitasService = logAktivitasService;
@@ -61,16 +55,9 @@ public class AdminController {
     @GetMapping("/dashboard")
     public String dashboard(Authentication auth, Model model) {
         log.info("[ACCESS] Admin {} sedang membuka halaman Dashboard Admin", auth.getName());
-        List<Transaksi> semuaTransaksi = transaksiRepo.findAll();
-        long transaksiSelesai = semuaTransaksi.stream()
-                .filter(t -> t.getStatus() == Transaksi.StatusTransaksi.SELESAI)
-                .count();
-        long transaksiPending = semuaTransaksi.stream()
-                .filter(t -> t.getStatus() == Transaksi.StatusTransaksi.PENDING)
-                .count();
-        double totalBerat = semuaTransaksi.stream()
-                .filter(t -> t.getTotalBerat() != null)
-                .mapToDouble(Transaksi::getTotalBerat).sum();
+        long transaksiSelesai = transaksiRepo.countByStatus(Transaksi.StatusTransaksi.SELESAI);
+        long transaksiPending = transaksiRepo.countByStatus(Transaksi.StatusTransaksi.PENDING);
+        double totalBerat = transaksiRepo.sumTotalBerat();
 
         model.addAttribute("totalWarga", userRepo.countByRole(User.Role.WARGA));
         model.addAttribute("totalPetugas", userRepo.countByRole(User.Role.PETUGAS));
@@ -106,7 +93,7 @@ public class AdminController {
 
         // ── Data untuk filter dropdown ──
         model.addAttribute("daftarWarga", wargaRepo.findAll());
-        model.addAttribute("daftarKategori", kategoriRepo.findAll());
+        model.addAttribute("daftarKategori", kategoriRepo.findByIsActiveTrue());
 
         return "admin-dashboard";
     }
@@ -119,44 +106,16 @@ public class AdminController {
 
         long totalPenukaran = semuaPenukaran.size();
         long menungguDiproses = semuaPenukaran.stream()
-                .filter(p -> p.getStatus() == PenukaranReward.StatusPenukaran.PENDING)
+                .filter(p -> PenukaranReward.StatusPenukaran.PENDING.equals(p.getStatus()))
                 .count();
         long rewardKeluar = semuaPenukaran.stream()
-                .filter(p -> p.getStatus() == PenukaranReward.StatusPenukaran.SUDAH_DIAMBIL)
+                .filter(p -> PenukaranReward.StatusPenukaran.SUDAH_DIAMBIL.equals(p.getStatus()))
                 .count();
 
         model.addAttribute("totalPenukaran", totalPenukaran);
         model.addAttribute("menungguDiproses", menungguDiproses);
         model.addAttribute("rewardKeluar", rewardKeluar);
         return "admin-monitoring";
-    }
-
-    @Transactional
-    @PostMapping("/reward/konfirmasi/{id}")
-    public String konfirmasiReward(@PathVariable Long id,
-                                    @RequestParam("fotoBukti") MultipartFile fotoBukti,
-                                    RedirectAttributes redirectAttributes) {
-        log.info("[PROSES] Admin mengkonfirmasi penukaran reward #{}", id);
-
-        if (fotoBukti.isEmpty()) {
-            redirectAttributes.addFlashAttribute("error", "Foto bukti penyerahan harus diupload.");
-            return "redirect:/admin/monitoring";
-        }
-
-        PenukaranReward penukaran = penukaranRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Penukaran reward tidak ditemukan: " + id));
-
-        if (penukaran.getStatus() == PenukaranReward.StatusPenukaran.SUDAH_DIAMBIL) {
-            redirectAttributes.addFlashAttribute("error", "Reward #" + id + " sudah diserahkan sebelumnya.");
-            return "redirect:/admin/monitoring";
-        }
-
-        String namaFoto = fileStorageService.storeFile(fotoBukti, "reward");
-        penukaran.setFotoBukti(namaFoto);
-        penukaran.setStatus(PenukaranReward.StatusPenukaran.SUDAH_DIAMBIL);
-        penukaranRepo.save(penukaran);
-        redirectAttributes.addFlashAttribute("success", "Reward berhasil diserahkan ke warga.");
-        return "redirect:/admin/monitoring";
     }
 
     @GetMapping("/transaksi/export")
@@ -216,11 +175,10 @@ public class AdminController {
         List<User> wargaList = userRepo.findByRoleOrderByTotalPointsDesc(User.Role.WARGA);
 
         Map<Long, Double> totalBeratMap = new HashMap<>();
-        List<Transaksi> semuaTransaksi = transaksiRepo.findAll();
-        for (Transaksi t : semuaTransaksi) {
-            if (t.getWarga() != null && t.getTotalBerat() != null) {
-                Long wargaId = t.getWarga().getIdWarga();
-                totalBeratMap.put(wargaId, totalBeratMap.getOrDefault(wargaId, 0.0) + t.getTotalBerat());
+        for (User u : wargaList) {
+            if (u.getWarga() != null) {
+                double berat = transaksiRepo.sumTotalBeratByWarga(u.getWarga().getIdWarga());
+                if (berat > 0) totalBeratMap.put(u.getWarga().getIdWarga(), berat);
             }
         }
 
