@@ -326,62 +326,87 @@
   </div>
 
   <!-- Riwayat Lapor Sampah -->
-  <div class="section-head animate">
-    <div class="section-label">Riwayat Lapor Sampah</div>
-    <span class="section-count" th:text="${transaksiList != null ? #lists.size(transaksiList) + ' transaksi' : '0 transaksi'}">0 transaksi</span>
+  <div class="section-head animate" style="cursor:pointer;" onclick="toggleRiwayat()">
+    <div class="section-label">
+      <svg id="iconRiwayat" viewBox="0 0 24 24" width="14" height="14" stroke="var(--accent)" fill="none" stroke-width="2" style="transition:transform 0.25s;"><polyline points="9 18 15 12 9 6"/></svg>
+      Riwayat Lapor Sampah
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span class="section-count" th:text="${transaksiList != null ? #lists.size(transaksiList) + ' transaksi' : '0 transaksi'}">0 transaksi</span>
+    </div>
   </div>
 
-  <div class="tx-list" th:if="${transaksiList != null and !transaksiList.isEmpty()}">
-    <div class="tx-item animate" th:each="t : ${transaksiList}"
-         th:attr="data-id=${t.idTransaksi},
-                  data-tanggal=${#temporals.format(t.tanggalTransaksi, 'dd MMM yyyy HH:mm')},
-                  data-lokasi=${t.lokasi ?: '-'},
-                  data-status=${t.status},
-                  data-berat=${t.totalBerat != null ? t.totalBerat : 0},
-                  data-poin=${t.totalPoin != null ? t.totalPoin : 0},
-                  data-foto-warga=${t.fotoLaporanWarga != null ? '/uploads/' + t.fotoLaporanWarga : ''},
-                  data-foto-bukti=${t.fotoBuktiTimbangan != null ? '/uploads/' + t.fotoBuktiTimbangan : ''},
-                  data-details=${#strings.listJoin(t.details.![kategoriSampah?.namaKategori + '|' + (beratEstimasi ?: 0) + '|' + (beratFinal ?: 0) + '|' + (subTotalPoin ?: 0)], ',')}"
-         onclick="openDetail(this)">
+  <div id="riwayatContainer" style="display:none;">
+    <div style="display:flex; gap:8px; margin-bottom:1rem; flex-wrap:wrap;" class="animate">
+      <button onclick="filterRiwayat('SEMUA')" class="btn-filter active" data-filter="SEMUA" style="display:inline-flex; align-items:center; gap:5px; padding:0.4rem 0.9rem; font-family:var(--mono); font-size:10px; letter-spacing:0.5px; text-transform:uppercase; border-radius:20px; border:1px solid var(--border); background:var(--surface); color:var(--text-muted); cursor:pointer; transition:all 0.15s;">
+        Semua
+      </button>
+      <button onclick="filterRiwayat('SELESAI')" class="btn-filter" data-filter="SELESAI" style="display:inline-flex; align-items:center; gap:5px; padding:0.4rem 0.9rem; font-family:var(--mono); font-size:10px; letter-spacing:0.5px; text-transform:uppercase; border-radius:20px; border:1px solid var(--border); background:var(--surface); color:var(--text-muted); cursor:pointer; transition:all 0.15s;">
+        <span style="width:6px; height:6px; border-radius:50%; background:var(--accent);"></span> Selesai
+      </button>
+      <button onclick="filterRiwayat('DIPROSES')" class="btn-filter" data-filter="DIPROSES" style="display:inline-flex; align-items:center; gap:5px; padding:0.4rem 0.9rem; font-family:var(--mono); font-size:10px; letter-spacing:0.5px; text-transform:uppercase; border-radius:20px; border:1px solid var(--border); background:var(--surface); color:var(--text-muted); cursor:pointer; transition:all 0.15s;">
+        <span style="width:6px; height:6px; border-radius:50%; background:var(--yellow);"></span> Diproses
+      </button>
+      <button onclick="filterRiwayat('PENDING')" class="btn-filter" data-filter="PENDING" style="display:inline-flex; align-items:center; gap:5px; padding:0.4rem 0.9rem; font-family:var(--mono); font-size:10px; letter-spacing:0.5px; text-transform:uppercase; border-radius:20px; border:1px solid var(--border); background:var(--surface); color:var(--text-muted); cursor:pointer; transition:all 0.15s;">
+        <span style="width:6px; height:6px; border-radius:50%; background:var(--amber);"></span> Pending
+      </button>
+      <button onclick="filterRiwayat('DITOLAK')" class="btn-filter" data-filter="DITOLAK" style="display:inline-flex; align-items:center; gap:5px; padding:0.4rem 0.9rem; font-family:var(--mono); font-size:10px; letter-spacing:0.5px; text-transform:uppercase; border-radius:20px; border:1px solid var(--border); background:var(--surface); color:var(--text-muted); cursor:pointer; transition:all 0.15s;">
+        <span style="width:6px; height:6px; border-radius:50%; background:var(--red);"></span> Ditolak
+      </button>
+    </div>
 
-      <img th:if="${t.fotoLaporanWarga != null}" th:src="@{'/uploads/' + ${t.fotoLaporanWarga}}" class="tx-thumb" alt="foto">
-      <div th:if="${t.fotoLaporanWarga == null}" class="tx-thumb-empty"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
-      <div class="tx-meta">
-        <div class="tx-jenis" style="color:var(--accent); font-size:12px;" th:text="${t.details != null and !t.details.isEmpty()} ? ${#strings.listJoin(t.details.![kategoriSampah.namaKategori + ' ' + (beratFinal != null ? beratFinal : beratEstimasi) + 'kg'], ', ')} : 'Lapor Sampah'">Lapor Sampah</div>
-        <div class="tx-sub">
-          <span class="tx-id" th:text="'#LS-' + ${t.idTransaksi}">—</span>
-          <span class="tx-dot"></span>
-          <span class="tx-date" th:text="${#temporals.format(t.tanggalTransaksi, 'dd MMM yyyy')}">—</span>
+    <div class="tx-list" th:if="${transaksiList != null and !transaksiList.isEmpty()}">
+      <div class="tx-item animate" th:each="t : ${transaksiList}"
+           th:attr="data-id=${t.idTransaksi},
+                    data-tanggal=${#temporals.format(t.tanggalTransaksi, 'dd MMM yyyy HH:mm')},
+                    data-lokasi=${t.lokasi ?: '-'},
+                    data-status=${t.status},
+                    data-berat=${t.totalBerat != null ? t.totalBerat : 0},
+                    data-poin=${t.totalPoin != null ? t.totalPoin : 0},
+                    data-foto-warga=${t.fotoLaporanWarga != null ? '/uploads/' + t.fotoLaporanWarga : ''},
+                    data-foto-bukti=${t.fotoBuktiTimbangan != null ? '/uploads/' + t.fotoBuktiTimbangan : ''},
+                    data-details=${#strings.listJoin(t.details.![kategoriSampah?.namaKategori + '|' + (beratEstimasi ?: 0) + '|' + (beratFinal ?: 0) + '|' + (subTotalPoin ?: 0)], ',')}"
+           onclick="openDetail(this)">
+
+        <img th:if="${t.fotoLaporanWarga != null}" th:src="@{'/uploads/' + ${t.fotoLaporanWarga}}" class="tx-thumb" alt="foto">
+        <div th:if="${t.fotoLaporanWarga == null}" class="tx-thumb-empty"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+        <div class="tx-meta">
+          <div class="tx-jenis" style="color:var(--accent); font-size:12px;" th:text="${t.details != null and !t.details.isEmpty()} ? ${#strings.listJoin(t.details.![kategoriSampah.namaKategori + ' ' + (beratFinal != null ? beratFinal : beratEstimasi) + 'kg'], ', ')} : 'Lapor Sampah'">Lapor Sampah</div>
+          <div class="tx-sub">
+            <span class="tx-id" th:text="'#LS-' + ${t.idTransaksi}">—</span>
+            <span class="tx-dot"></span>
+            <span class="tx-date" th:text="${#temporals.format(t.tanggalTransaksi, 'dd MMM yyyy')}">—</span>
+          </div>
+        </div>
+        <div class="tx-right">
+          <div class="tx-berat" th:if="${t.totalBerat != null}" th:text="${t.totalBerat} + ' kg'"><!-- --></div>
+          <div class="tx-berat" th:if="${t.totalBerat == null}">— kg</div>
+          <div class="tx-poin" th:if="${t.totalPoin != null}" th:text="'+' + ${t.totalPoin} + ' poin'">+0 poin</div>
+          <div class="tx-status"
+               th:classappend="${t.status.name() == 'SELESAI'} ? 'selesai' : (${t.status.name() == 'DIPROSES'} ? 'proses' : (${t.status.name() == 'DITOLAK'} ? 'ditolak' : (${t.status.name() == 'DIBATALKAN'} ? 'dibatalkan' : 'pending')))"
+               th:text="${t.status != null ? t.status.name() : 'PENDING'}">Status</div>
+          <div class="tx-alasan" th:if="${t.status.name() == 'DITOLAK' and t.alasanPenolakan != null}"
+               th:text="${t.alasanPenolakan}" style="font-size:11px;color:var(--danger);margin-top:4px;"></div>
+        </div>
+        <div style="display:flex; gap:6px; align-items:center;">
+          <a th:if="${t.status.name() == 'SELESAI'}" th:href="@{/warga/transaksi/struk/{id}(id=${t.idTransaksi})}"
+             class="btn-batal" style="color:var(--accent); border-color:var(--accent); text-decoration:none;"
+             target="_blank">PDF</a>
+          <form th:if="${t.status.name() == 'PENDING'}" th:action="@{/warga/transaksi/batal/{id}(id=${t.idTransaksi})}" method="post"
+                onsubmit="return confirm('Yakin ingin membatalkan laporan ini?')" style="display:flex;">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+            <button type="submit" class="btn-batal">Batal</button>
+          </form>
         </div>
       </div>
-      <div class="tx-right">
-        <div class="tx-berat" th:if="${t.totalBerat != null}" th:text="${t.totalBerat} + ' kg'"><!-- --></div>
-        <div class="tx-berat" th:if="${t.totalBerat == null}">— kg</div>
-        <div class="tx-poin" th:if="${t.totalPoin != null}" th:text="'+' + ${t.totalPoin} + ' poin'">+0 poin</div>
-        <div class="tx-status"
-             th:classappend="${t.status.name() == 'SELESAI'} ? 'selesai' : (${t.status.name() == 'DIPROSES'} ? 'proses' : (${t.status.name() == 'DITOLAK'} ? 'ditolak' : (${t.status.name() == 'DIBATALKAN'} ? 'dibatalkan' : 'pending')))"
-             th:text="${t.status != null ? t.status.name() : 'PENDING'}">Status</div>
-        <div class="tx-alasan" th:if="${t.status.name() == 'DITOLAK' and t.alasanPenolakan != null}"
-             th:text="${t.alasanPenolakan}" style="font-size:11px;color:var(--danger);margin-top:4px;"></div>
-      </div>
-      <div style="display:flex; gap:6px; align-items:center;">
-        <a th:if="${t.status.name() == 'SELESAI'}" th:href="@{/warga/transaksi/struk/{id}(id=${t.idTransaksi})}"
-           class="btn-batal" style="color:var(--accent); border-color:var(--accent); text-decoration:none;"
-           target="_blank">PDF</a>
-        <form th:if="${t.status.name() == 'PENDING'}" th:action="@{/warga/transaksi/batal/{id}(id=${t.idTransaksi})}" method="post"
-              onsubmit="return confirm('Yakin ingin membatalkan laporan ini?')" style="display:flex;">
-          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-          <button type="submit" class="btn-batal">Batal</button>
-        </form>
-      </div>
     </div>
-  </div>
 
-  <div class="tx-empty" th:if="${transaksiList == null or transaksiList.isEmpty()}">
-    <div class="tx-empty-icon">
-      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+    <div class="tx-empty" th:if="${transaksiList == null or transaksiList.isEmpty()}">
+      <div class="tx-empty-icon">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+      </div>
+      <div class="tx-empty-text">Belum ada laporan sampah</div>
     </div>
-    <div class="tx-empty-text">Belum ada laporan sampah</div>
   </div>
 
   <footer>
@@ -425,6 +450,29 @@
 </div>
 
 <script>
+  function toggleRiwayat() {
+    var c = document.getElementById('riwayatContainer');
+    var icon = document.getElementById('iconRiwayat');
+    if (c.style.display === 'none') {
+      c.style.display = 'block';
+      icon.style.transform = 'rotate(90deg)';
+    } else {
+      c.style.display = 'none';
+      icon.style.transform = 'rotate(0deg)';
+    }
+  }
+
+  function filterRiwayat(status) {
+    document.querySelectorAll('.btn-filter').forEach(function(b) { b.classList.remove('active'); b.style.background = 'var(--surface)'; b.style.color = 'var(--text-muted)'; b.style.borderColor = 'var(--border)'; });
+    var akt = document.querySelector('.btn-filter[data-filter="' + status + '"]');
+    if (akt) { akt.classList.add('active'); akt.style.background = 'var(--accent-dim)'; akt.style.color = 'var(--accent)'; akt.style.borderColor = 'rgba(134,187,76,0.3)'; }
+
+    document.querySelectorAll('.tx-list .tx-item').forEach(function(item) {
+      var s = item.getAttribute('data-status');
+      item.style.display = (status === 'SEMUA' || s === status) ? '' : 'none';
+    });
+  }
+
   function openDetail(row) {
     var id = row.getAttribute('data-id');
     var tanggal = row.getAttribute('data-tanggal') || '—';

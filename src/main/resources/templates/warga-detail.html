@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sortify — Detail Warga</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0f0c; --surface: #141710; --surface-raised: #1a1e16;
+      --border: rgba(134, 187, 76, 0.12); --border-hover: rgba(134, 187, 76, 0.28);
+      --accent: #86bb4c; --accent-dim: rgba(134, 187, 76, 0.08);
+      --text-primary: #e8ede2; --text-secondary: #8a9480; --text-muted: #4e5749;
+      --teal: #2a9c7a; --amber: #c8891a; --danger: #b85454;
+      --mono: 'Space Mono', monospace; --sans: 'DM Sans', sans-serif;
+    }
+    body { background: var(--bg); color: var(--text-primary); font-family: var(--sans); font-size: 15px; min-height: 100vh; }
+    body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(134,187,76,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(134,187,76,0.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; z-index: 0; }
+    .wrapper { position: relative; z-index: 1; max-width: 820px; margin: 0 auto; padding: 0 2rem 4rem; }
+
+    header { padding: 2rem 0 0; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+    .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .brand-icon { width: 36px; height: 36px; background: var(--accent); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+    .brand-icon svg { width: 20px; height: 20px; fill: var(--bg); }
+    .brand-name { font-family: var(--mono); font-size: 18px; font-weight: 700; color: var(--accent); letter-spacing: -0.5px; }
+    .brand-version { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 1px; }
+
+    .page-head { padding: 3rem 0 2rem; }
+    .page-label { font-family: var(--mono); font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--accent); display: flex; align-items: center; gap: 8px; margin-bottom: 0.6rem; }
+    .page-label::before { content: ''; display: block; width: 24px; height: 1px; background: var(--accent); }
+    .page-title { font-size: 2rem; font-weight: 300; letter-spacing: -1px; }
+    .page-title strong { font-weight: 500; color: var(--accent); }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    .animate { animation: fadeUp 0.45s ease both; }
+    .delay-1 { animation-delay: 0.05s; }
+    .delay-2 { animation-delay: 0.12s; }
+    .delay-3 { animation-delay: 0.2s; }
+    .delay-4 { animation-delay: 0.28s; }
+
+    .profile-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .profile-card-header { padding: 1.5rem 1.75rem; background: var(--surface-raised); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; }
+    .avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--accent-dim); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: var(--mono); font-size: 18px; font-weight: 700; color: var(--accent); text-transform: uppercase; }
+    .profile-name { font-size: 1.1rem; font-weight: 500; }
+    .profile-username { font-family: var(--mono); font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .profile-badge { display: inline-flex; align-items: center; gap: 5px; padding: 2px 10px; border-radius: 20px; font-family: var(--mono); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
+    .profile-badge.secondary { background: rgba(142,148,128,0.15); color: var(--text-secondary); border: 1px solid rgba(142,148,128,0.25); }
+    .profile-badge.info { background: rgba(42,156,122,0.12); color: var(--teal); border: 1px solid rgba(42,156,122,0.25); }
+    .profile-badge.warning { background: rgba(200,137,26,0.12); color: var(--amber); border: 1px solid rgba(200,137,26,0.25); }
+    .profile-badge.success { background: rgba(134,187,76,0.15); color: var(--accent); border: 1px solid rgba(134,187,76,0.3); }
+
+    .profile-body { padding: 1.75rem; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    .info-item { display: flex; flex-direction: column; gap: 4px; }
+    .info-label { font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); }
+    .info-value { font-size: 14px; color: var(--text-primary); }
+    .info-value.mono { font-family: var(--mono); font-size: 13px; }
+
+    .actions { display: flex; gap: 10px; margin-top: 1.5rem; }
+    .btn { display: inline-flex; align-items: center; gap: 7px; padding: 0.55rem 1.1rem; font-family: var(--mono); font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; text-decoration: none; border-radius: 7px; border: 1px solid; cursor: pointer; transition: background 0.18s, border-color 0.18s; }
+    .btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .btn-primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+    .btn-primary:hover { background: #97cc5a; border-color: #97cc5a; }
+    .btn-ghost { background: transparent; color: var(--text-secondary); border-color: var(--border); }
+    .btn-ghost:hover { border-color: var(--border-hover); color: var(--text-primary); background: var(--accent-dim); }
+
+    .section-head { display: flex; align-items: center; justify-content: space-between; margin: 2.5rem 0 1rem; }
+    .section-label { font-family: var(--mono); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+    .section-label::before { content: ''; display: block; width: 16px; height: 1px; background: var(--accent); }
+    .section-count { font-family: var(--mono); font-size: 10px; color: var(--text-muted); background: var(--surface-raised); border: 1px solid var(--border); border-radius: 20px; padding: 2px 10px; }
+
+    .tx-list { display: flex; flex-direction: column; gap: 0.6rem; }
+    .tx-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 1rem; }
+    .tx-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .tx-icon svg { width: 18px; height: 18px; stroke-width: 1.5; fill: none; }
+    .tx-icon.pending { background: var(--accent-dim); }
+    .tx-icon.pending svg { stroke: var(--accent); }
+    .tx-icon.selesai { background: rgba(42,156,122,0.12); }
+    .tx-icon.selesai svg { stroke: var(--teal); }
+    .tx-icon.ditolak { background: rgba(184,84,84,0.1); }
+    .tx-icon.ditolak svg { stroke: var(--danger); }
+    .tx-icon.diproses { background: rgba(200,137,26,0.12); }
+    .tx-icon.diproses svg { stroke: var(--amber); }
+    .tx-info { display: flex; flex-direction: column; gap: 2px; }
+    .tx-id { font-family: var(--mono); font-size: 10px; color: var(--text-muted); }
+    .tx-date { font-size: 12px; color: var(--text-secondary); }
+    .tx-meta { display: flex; align-items: center; gap: 12px; }
+    .tx-weight { font-family: var(--mono); font-size: 11px; color: var(--text-primary); }
+    .tx-points { font-family: var(--mono); font-size: 11px; color: var(--accent); }
+    .tx-status { font-family: var(--mono); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; padding: 2px 10px; border-radius: 20px; }
+    .tx-status.selesai { background: rgba(42,156,122,0.12); color: var(--teal); border: 1px solid rgba(42,156,122,0.25); }
+    .tx-status.pending { background: rgba(134,187,76,0.12); color: var(--accent); border: 1px solid rgba(134,187,76,0.25); }
+    .tx-status.ditolak { background: rgba(184,84,84,0.1); color: var(--danger); border: 1px solid rgba(184,84,84,0.25); }
+    .tx-status.diproses { background: rgba(200,137,26,0.12); color: var(--amber); border: 1px solid rgba(200,137,26,0.25); }
+    .tx-status.dibatalkan { background: rgba(142,148,128,0.1); color: var(--text-secondary); border: 1px solid rgba(142,148,128,0.2); }
+
+    .empty-tx { padding: 3rem 2rem; text-align: center; color: var(--text-muted); font-size: 13px; }
+
+    footer { border-top: 1px solid var(--border); padding: 1.5rem 0; margin-top: 3rem; display: flex; align-items: center; justify-content: space-between; }
+    .back-link { display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 11px; color: var(--text-muted); text-decoration: none; letter-spacing: 0.5px; transition: color 0.15s; }
+    .back-link svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .back-link:hover { color: var(--accent); }
+    .footer-id { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 1px; }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header class="animate">
+    <div class="topbar">
+      <a href="/" class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.35C16.5 22.15 20 17.25 20 12V6L12 2zm-1 13l-3-3 1.4-1.4 1.6 1.6 4.6-4.6 1.4 1.4L11 15z"/></svg>
+        </div>
+        <div>
+          <div class="brand-name">Sortify</div>
+          <div class="brand-version">v1.0 · OOP Waste System</div>
+        </div>
+      </a>
+    </div>
+  </header>
+
+  <div class="page-head animate delay-1">
+    <div>
+      <div class="page-label">Admin · Detail Warga</div>
+      <h1 class="page-title">Profil <strong>Warga</strong></h1>
+    </div>
+  </div>
+
+  <div class="profile-card animate delay-2">
+    <div class="profile-card-header">
+      <div class="avatar" style="overflow:hidden;">
+        <img th:if="${user.fotoProfil != null}" th:src="@{'/uploads/' + ${user.fotoProfil}}" alt="Foto Profil" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">
+        <span th:unless="${user.fotoProfil != null}" th:text="${#strings.length(user.fullName) > 0 ? #strings.substring(user.fullName, 0, 1) : '?'}">A</span>
+      </div>
+      <div>
+        <div class="profile-name" th:text="${user.fullName}">Nama Warga</div>
+        <div class="profile-username">
+          <span th:text="${'@' + user.username}">@username</span>
+        </div>
+        <span class="profile-badge"
+              th:text="${user.pangkat}"
+              th:classappend="'profile-badge ' + ${user.badgePangkat}">Bronze</span>
+      </div>
+    </div>
+    <div class="profile-body">
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="info-label">Nama Lengkap</span>
+          <span class="info-value" th:text="${warga.nama}">Nama</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Username</span>
+          <span class="info-value mono" th:text="${user.username}">username</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Alamat</span>
+          <span class="info-value" th:text="${warga.alamat ?: '—'}">Alamat</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">No. HP</span>
+          <span class="info-value mono" th:text="${warga.noHp ?: '—'}">08123456789</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Total Poin</span>
+          <span class="info-value mono" th:text="${user.totalPoints}">0</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Pangkat</span>
+          <span class="info-value" th:text="${user.pangkat}">Bronze</span>
+        </div>
+      </div>
+      <div class="actions">
+        <a th:href="@{/admin/warga/edit/{id}(id=${user.id})}" class="btn btn-primary">
+          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit Warga
+        </a>
+        <a href="/admin/warga" class="btn btn-ghost">
+          <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          Kembali
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-head animate delay-3">
+    <div class="section-label">Riwayat Transaksi</div>
+    <span class="section-count" th:text="${#lists.size(transaksiList)} + ' transaksi'">0 transaksi</span>
+  </div>
+
+  <div class="tx-list animate delay-4">
+    <div class="tx-item" th:each="tx : ${transaksiList}">
+      <div class="tx-icon"
+           th:classappend="${tx.status.name() == 'SELESAI' ? 'selesai' : tx.status.name() == 'PENDING' ? 'pending' : tx.status.name() == 'DIPROSES' ? 'diproses' : tx.status.name() == 'DITOLAK' ? 'ditolak' : 'dibatalkan'}">
+        <svg viewBox="0 0 24 24" stroke="currentColor" fill="none">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+        </svg>
+      </div>
+      <div class="tx-info">
+        <span class="tx-id" th:text="'#TX-' + ${tx.idTransaksi}">#TX-001</span>
+        <span class="tx-date" th:text="${#temporals.format(tx.tanggalTransaksi, 'dd MMM yyyy, HH:mm')}">01 Jan 2025, 10:00</span>
+      </div>
+      <div class="tx-meta">
+        <span class="tx-weight" th:text="${tx.totalBerat} + ' kg'">0 kg</span>
+        <span class="tx-points" th:text="${tx.totalPoin} + ' pts'">0 pts</span>
+        <span class="tx-status"
+              th:text="${tx.status.name()}"
+              th:classappend="${tx.status.name() == 'SELESAI' ? 'selesai' : tx.status.name() == 'PENDING' ? 'pending' : tx.status.name() == 'DIPROSES' ? 'diproses' : tx.status.name() == 'DITOLAK' ? 'ditolak' : 'dibatalkan'}">SELESAI</span>
+      </div>
+    </div>
+
+    <div class="empty-tx" th:if="${#lists.isEmpty(transaksiList)}">
+      Belum ada transaksi.
+    </div>
+  </div>
+
+  <footer class="animate delay-4">
+    <a href="/admin/warga" class="back-link">
+      <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Kembali ke Data Warga
+    </a>
+    <span class="footer-id">ADMIN · DETAIL WARGA</span>
+  </footer>
+
+</div>
+</body>
+</html>

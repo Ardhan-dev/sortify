@@ -1,5 +1,6 @@
 package com.SortifyTeam.Sortify.controller;
 
+import com.SortifyTeam.Sortify.model.Transaksi;
 import com.SortifyTeam.Sortify.model.User;
 import com.SortifyTeam.Sortify.model.Warga;
 import com.SortifyTeam.Sortify.repository.TransaksiRepository;
@@ -13,6 +14,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.List;
 
 @Controller
 @RequestMapping("/admin/warga")
@@ -73,11 +76,27 @@ public class WargaWebController {
         return "redirect:/admin/warga";
     }
 
+    @GetMapping("/detail/{id}")
+    public String detail(@PathVariable Long id, Model model) {
+        User user = userRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User tidak ditemukan: " + id));
+        Warga warga = wargaRepo.findByUser(user)
+                .orElseThrow(() -> new IllegalArgumentException("Data warga tidak ditemukan untuk user: " + id));
+        List<Transaksi> transaksiList = transaksiRepo.findByWargaOrderByTanggalTransaksiDesc(warga);
+        model.addAttribute("user", user);
+        model.addAttribute("warga", warga);
+        model.addAttribute("transaksiList", transaksiList);
+        return "warga-detail";
+    }
+
     @GetMapping("/edit/{id}")
     public String formEdit(@PathVariable Long id, Model model) {
-        Warga warga = wargaRepo.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Warga tidak ditemukan: " + id));
+        User user = userRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User tidak ditemukan: " + id));
+        Warga warga = wargaRepo.findByUser(user)
+                .orElseThrow(() -> new IllegalArgumentException("Data warga tidak ditemukan untuk user: " + id));
         model.addAttribute("warga", warga);
+        model.addAttribute("userId", id);
         model.addAttribute("isNew", false);
         return "warga-form";
     }
@@ -86,20 +105,19 @@ public class WargaWebController {
     public String simpanEdit(@PathVariable Long id,
                              @ModelAttribute Warga warga,
                              @RequestParam(value = "password", required = false) String password) {
-        Warga existing = wargaRepo.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Warga tidak ditemukan: " + id));
+        User user = userRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User tidak ditemukan: " + id));
+        Warga existing = wargaRepo.findByUser(user)
+                .orElseThrow(() -> new IllegalArgumentException("Data warga tidak ditemukan untuk user: " + id));
 
         existing.setNama(warga.getNama());
         existing.setAlamat(warga.getAlamat());
         existing.setNoHp(warga.getNoHp());
 
         if (password != null && !password.isEmpty()) {
-            User user = existing.getUser();
-            if (user != null) {
-                user.setPassword(passwordEncoder.encode(password));
-                user.setFullName(warga.getNama());
-                userRepo.save(user);
-            }
+            user.setPassword(passwordEncoder.encode(password));
+            user.setFullName(warga.getNama());
+            userRepo.save(user);
         }
 
         wargaRepo.save(existing);
@@ -108,16 +126,16 @@ public class WargaWebController {
 
     @GetMapping("/hapus/{id}")
     public String hapus(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        Warga warga = wargaRepo.findById(id).orElse(null);
-        if (warga != null) {
-            if (!transaksiRepo.findByWargaOrderByTanggalTransaksiDesc(warga).isEmpty()) {
-                redirectAttributes.addFlashAttribute("error",
-                        "Warga '" + warga.getNama() + "' memiliki riwayat transaksi dan tidak dapat dihapus.");
-                return "redirect:/admin/warga";
-            }
-            User user = warga.getUser();
-            wargaRepo.deleteById(id);
-            if (user != null) {
+        User user = userRepo.findById(id).orElse(null);
+        if (user != null) {
+            Warga warga = wargaRepo.findByUser(user).orElse(null);
+            if (warga != null) {
+                if (!transaksiRepo.findByWargaOrderByTanggalTransaksiDesc(warga).isEmpty()) {
+                    redirectAttributes.addFlashAttribute("error",
+                            "Warga '" + warga.getNama() + "' memiliki riwayat transaksi dan tidak dapat dihapus.");
+                    return "redirect:/admin/warga";
+                }
+                wargaRepo.delete(warga);
                 userRepo.delete(user);
             }
         }

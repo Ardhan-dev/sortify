@@ -212,60 +212,81 @@
     </div>
   </div>
 
-  <div class="section-head animate delay-3">Riwayat Point <span class="section-count" th:text="${#lists.size(riwayatPoint)} + ' transaksi'">0</span></div>
-  <div th:if="${#lists.isEmpty(riwayatPoint)}">
-    <div class="empty-state"><div class="empty-text">Belum ada riwayat point</div></div>
+  <div class="section-head animate delay-3" style="cursor:pointer;" onclick="toggleSection('riwayatPoint')">
+    <svg id="iconPoint" viewBox="0 0 24 24" width="14" height="14" stroke="var(--accent)" fill="none" stroke-width="2" style="transition:transform 0.25s;"><polyline points="9 18 15 12 9 6"/></svg>
+    Riwayat Point <span class="section-count" th:text="${#lists.size(riwayatPoint)} + ' transaksi'">0</span>
   </div>
-  <div th:each="h : ${riwayatPoint}" class="hist-item animate">
-    <div class="hist-icon" th:classappend="${h.type?.name() == 'EARN'} ? 'earn' : 'spend'">
-      <svg th:if="${h.type?.name() == 'EARN'}" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-      <svg th:if="${h.type?.name() == 'SPEND'}" viewBox="0 0 24 24"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+  <div id="riwayatPoint" style="display:none;">
+    <div style="display:flex; gap:8px; margin-bottom:1rem; flex-wrap:wrap;">
+      <button onclick="filterPoint('SEMUA')" class="btn-fp active" data-fp="SEMUA" style="display:inline-flex; align-items:center; gap:5px; padding:0.35rem 0.8rem; font-family:var(--mono); font-size:9px; letter-spacing:0.5px; text-transform:uppercase; border-radius:20px; border:1px solid var(--border); background:var(--surface); color:var(--text-muted); cursor:pointer; transition:all 0.15s;">Semua</button>
+      <button onclick="filterPoint('EARN')" class="btn-fp" data-fp="EARN" style="display:inline-flex; align-items:center; gap:5px; padding:0.35rem 0.8rem; font-family:var(--mono); font-size:9px; letter-spacing:0.5px; text-transform:uppercase; border-radius:20px; border:1px solid var(--border); background:var(--surface); color:var(--text-muted); cursor:pointer; transition:all 0.15s;"><span style="width:6px; height:6px; border-radius:50%; background:var(--accent);"></span> Dapat</button>
+      <button onclick="filterPoint('SPEND')" class="btn-fp" data-fp="SPEND" style="display:inline-flex; align-items:center; gap:5px; padding:0.35rem 0.8rem; font-family:var(--mono); font-size:9px; letter-spacing:0.5px; text-transform:uppercase; border-radius:20px; border:1px solid var(--border); background:var(--surface); color:var(--text-muted); cursor:pointer; transition:all 0.15s;"><span style="width:6px; height:6px; border-radius:50%; background:var(--amber);"></span> Pakai</button>
     </div>
-    <div class="hist-info">
-      <div class="hist-desc" th:text="${h.description}">Deskripsi</div>
-      <div class="hist-date" th:text="${#temporals.format(h.createdAt, 'dd MMM yyyy, HH:mm')}">—</div>
+    <div th:if="${#lists.isEmpty(riwayatPoint)}">
+      <div class="empty-state"><div class="empty-text">Belum ada riwayat point</div></div>
     </div>
-    <div class="hist-amount" th:classappend="${h.type?.name() == 'EARN'} ? 'earn' : 'spend'"
-         th:text="${h.type?.name() == 'EARN'} ? '+' + ${h.amount} : '-' + ${h.amount}">
-      +0
+    <div th:each="h : ${riwayatPoint}" class="hist-item animate">
+      <div class="hist-icon" th:classappend="${h.type?.name() == 'EARN'} ? 'earn' : 'spend'" th:attr="data-tipe=${h.type?.name()}">
+        <svg th:if="${h.type?.name() == 'EARN'}" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        <svg th:if="${h.type?.name() == 'SPEND'}" viewBox="0 0 24 24"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+      </div>
+      <div class="hist-info">
+        <div class="hist-desc" th:text="${h.description}">Deskripsi</div>
+        <div class="hist-date" th:text="${#temporals.format(h.createdAt, 'dd MMM yyyy, HH:mm')}">—</div>
+      </div>
+      <div class="hist-amount" th:classappend="${h.type?.name() == 'EARN'} ? 'earn' : 'spend'"
+           th:text="${h.type?.name() == 'EARN'} ? '+' + ${h.amount} : '-' + ${h.amount}">
+        +0
+      </div>
     </div>
   </div>
 
-  <div class="section-head animate delay-3">Riwayat Penukaran <span class="section-count" th:text="${#lists.size(riwayatPenukaran)} + ' kali'">0</span></div>
-  <div th:if="${#lists.isEmpty(riwayatPenukaran)}">
-    <div class="empty-state"><div class="empty-text">Belum ada penukaran reward</div></div>
+  <div class="section-head animate delay-3" style="cursor:pointer;" onclick="toggleSection('riwayatPenukaran')">
+    <svg id="iconPenukaran" viewBox="0 0 24 24" width="14" height="14" stroke="var(--accent)" fill="none" stroke-width="2" style="transition:transform 0.25s;"><polyline points="9 18 15 12 9 6"/></svg>
+    Riwayat Penukaran <span class="section-count" th:text="${#lists.size(riwayatPenukaran)} + ' kali'">0</span>
   </div>
-  <div th:each="p : ${riwayatPenukaran}" class="hist-item animate delay-3" style="padding:0.9rem 1.25rem;">
-    <div class="hist-icon spend" style="background:var(--accent-dim); align-self:flex-start;">
-      <svg viewBox="0 0 24 24" stroke="var(--accent)"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+  <div id="riwayatPenukaran" style="display:none;">
+    <div style="display:flex; gap:8px; margin-bottom:1rem; flex-wrap:wrap;">
+      <button onclick="filterPenukaran('SEMUA')" class="btn-fpk active" data-fpk="SEMUA" style="display:inline-flex; align-items:center; gap:5px; padding:0.35rem 0.8rem; font-family:var(--mono); font-size:9px; letter-spacing:0.5px; text-transform:uppercase; border-radius:20px; border:1px solid var(--border); background:var(--surface); color:var(--text-muted); cursor:pointer; transition:all 0.15s;">Semua</button>
+      <button onclick="filterPenukaran('SUDAH_DIAMBIL')" class="btn-fpk" data-fpk="SUDAH_DIAMBIL" style="display:inline-flex; align-items:center; gap:5px; padding:0.35rem 0.8rem; font-family:var(--mono); font-size:9px; letter-spacing:0.5px; text-transform:uppercase; border-radius:20px; border:1px solid var(--border); background:var(--surface); color:var(--text-muted); cursor:pointer; transition:all 0.15s;"><span style="width:6px; height:6px; border-radius:50%; background:var(--accent);"></span> Diambil</button>
+      <button onclick="filterPenukaran('MENUNGGU')" class="btn-fpk" data-fpk="MENUNGGU" style="display:inline-flex; align-items:center; gap:5px; padding:0.35rem 0.8rem; font-family:var(--mono); font-size:9px; letter-spacing:0.5px; text-transform:uppercase; border-radius:20px; border:1px solid var(--border); background:var(--surface); color:var(--text-muted); cursor:pointer; transition:all 0.15s;"><span style="width:6px; height:6px; border-radius:50%; background:var(--amber);"></span> Menunggu</button>
+      <button onclick="filterPenukaran('DIBATALKAN')" class="btn-fpk" data-fpk="DIBATALKAN" style="display:inline-flex; align-items:center; gap:5px; padding:0.35rem 0.8rem; font-family:var(--mono); font-size:9px; letter-spacing:0.5px; text-transform:uppercase; border-radius:20px; border:1px solid var(--border); background:var(--surface); color:var(--text-muted); cursor:pointer; transition:all 0.15s;"><span style="width:6px; height:6px; border-radius:50%; background:var(--danger);"></span> Dibatalkan</button>
     </div>
-    <div class="hist-info">
-      <div class="hist-desc" th:text="'Tukar ' + ${p.rewardItem?.namaBarang ?: 'Reward tidak tersedia'}">Tukar Beras</div>
-      <div class="hist-date" th:text="${#temporals.format(p.tanggalPenukaran, 'dd MMM yyyy, HH:mm')}">—</div>
-      <div th:if="${p.lokasi}" style="font-family:var(--mono); font-size:9px; color:var(--text-muted); letter-spacing:0.3px;" th:text="${'Ambil di: ' + p.lokasi}">Ambil di: Drop Point</div>
-      <div th:if="${p.kodePenukaran}" style="display:flex; align-items:center; gap:8px; margin-top:6px;">
-        <img th:src="@{'https://api.qrserver.com/v1/create-qr-code/?size=70x70&data=' + ${p.kodePenukaran}}" alt="QR" style="width:50px; height:50px; border-radius:6px; border:1px solid var(--border); cursor:pointer;" loading="lazy" onerror="this.style.display='none'" th:attr="data-kode=${p.kodePenukaran}" onclick="bukaQR(this)">
-        <div>
-          <div style="font-family:var(--mono); font-size:8px; letter-spacing:0.5px; text-transform:uppercase; color:var(--text-muted);">Kode Penukaran</div>
-          <div style="font-family:var(--mono); font-size:12px; font-weight:700; color:var(--amber); letter-spacing:1px;" th:text="${p.kodePenukaran}">RDM-001-ABC123</div>
-          <div style="margin-top:4px;">
-            <span class="status-badge"
-                  th:classappend="${p.status.name() == 'SUDAH_DIAMBIL'} ? 'badge-ambil' : (${p.status.name() == 'DIBATALKAN'} ? 'badge-batal' : 'badge-pending')">
-              <span class="dot"></span>
-              <span th:text="${p.status.name() == 'SUDAH_DIAMBIL'} ? 'Sudah Diterima' : (${p.status.name() == 'DIBATALKAN'} ? 'Dibatalkan' : 'Menunggu Konfirmasi')">PENDING</span>
-            </span>
+    <div th:if="${#lists.isEmpty(riwayatPenukaran)}">
+      <div class="empty-state"><div class="empty-text">Belum ada penukaran reward</div></div>
+    </div>
+    <div th:each="p : ${riwayatPenukaran}" class="hist-item animate delay-3" style="padding:0.9rem 1.25rem;" th:attr="data-status=${p.status.name()}">
+      <div class="hist-icon spend" style="background:var(--accent-dim); align-self:flex-start;">
+        <svg viewBox="0 0 24 24" stroke="var(--accent)"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      </div>
+      <div class="hist-info">
+        <div class="hist-desc" th:text="'Tukar ' + ${p.rewardItem?.namaBarang ?: 'Reward tidak tersedia'}">Tukar Beras</div>
+        <div class="hist-date" th:text="${#temporals.format(p.tanggalPenukaran, 'dd MMM yyyy, HH:mm')}">—</div>
+        <div th:if="${p.lokasi}" style="font-family:var(--mono); font-size:9px; color:var(--text-muted); letter-spacing:0.3px;" th:text="${'Ambil di: ' + p.lokasi}">Ambil di: Drop Point</div>
+        <div th:if="${p.kodePenukaran}" style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+          <img th:src="@{'https://api.qrserver.com/v1/create-qr-code/?size=70x70&data=' + ${p.kodePenukaran}}" alt="QR" style="width:50px; height:50px; border-radius:6px; border:1px solid var(--border); cursor:pointer;" loading="lazy" onerror="this.style.display='none'" th:attr="data-kode=${p.kodePenukaran}" onclick="bukaQR(this)">
+          <div>
+            <div style="font-family:var(--mono); font-size:8px; letter-spacing:0.5px; text-transform:uppercase; color:var(--text-muted);">Kode Penukaran</div>
+            <div style="font-family:var(--mono); font-size:12px; font-weight:700; color:var(--amber); letter-spacing:1px;" th:text="${p.kodePenukaran}">RDM-001-ABC123</div>
+            <div style="margin-top:4px;">
+              <span class="status-badge"
+                    th:classappend="${p.status.name() == 'SUDAH_DIAMBIL'} ? 'badge-ambil' : (${p.status.name() == 'DIBATALKAN'} ? 'badge-batal' : 'badge-pending')">
+                <span class="dot"></span>
+                <span th:text="${p.status.name() == 'SUDAH_DIAMBIL'} ? 'Sudah Diterima' : (${p.status.name() == 'DIBATALKAN'} ? 'Dibatalkan' : 'Menunggu Konfirmasi')">PENDING</span>
+              </span>
+            </div>
           </div>
         </div>
+        <div th:if="${p.kodePenukaran == null}" style="margin-top:6px;">
+          <span class="status-badge"
+                th:classappend="${p.status.name() == 'SUDAH_DIAMBIL'} ? 'badge-ambil' : (${p.status.name() == 'DIBATALKAN'} ? 'badge-batal' : 'badge-pending')">
+            <span class="dot"></span>
+            <span th:text="${p.status.name() == 'SUDAH_DIAMBIL'} ? 'Sudah Diterima' : (${p.status.name() == 'DIBATALKAN'} ? 'Dibatalkan' : 'Menunggu Konfirmasi')">PENDING</span>
+          </span>
+        </div>
       </div>
-      <div th:if="${p.kodePenukaran == null}" style="margin-top:6px;">
-        <span class="status-badge"
-              th:classappend="${p.status.name() == 'SUDAH_DIAMBIL'} ? 'badge-ambil' : (${p.status.name() == 'DIBATALKAN'} ? 'badge-batal' : 'badge-pending')">
-          <span class="dot"></span>
-          <span th:text="${p.status.name() == 'SUDAH_DIAMBIL'} ? 'Sudah Diterima' : (${p.status.name() == 'DIBATALKAN'} ? 'Dibatalkan' : 'Menunggu Konfirmasi')">PENDING</span>
-        </span>
-      </div>
+      <div class="hist-amount spend" th:text="'-' + ${p.rewardItem?.pointNeeded ?: '0'} + ' poin'">-1000</div>
     </div>
-    <div class="hist-amount spend" th:text="'-' + ${p.rewardItem?.pointNeeded ?: '0'} + ' poin'">-1000</div>
   </div>
 
   <footer>
@@ -325,6 +346,35 @@
   document.getElementById('modalKonfirmasi').addEventListener('click', function(e) {
     if (e.target === this) this.classList.remove('active');
   });
+
+  function toggleSection(id) {
+    var el = document.getElementById(id);
+    var icon = document.getElementById('icon' + id.charAt(0).toUpperCase() + id.slice(1));
+    if (el.style.display === 'none') { el.style.display = 'block'; if (icon) icon.style.transform = 'rotate(90deg)'; }
+    else { el.style.display = 'none'; if (icon) icon.style.transform = 'rotate(0deg)'; }
+  }
+
+  function filterPoint(tipe) {
+    document.querySelectorAll('.btn-fp').forEach(function(b) { b.style.background = 'var(--surface)'; b.style.color = 'var(--text-muted)'; b.style.borderColor = 'var(--border)'; });
+    var akt = document.querySelector('.btn-fp[data-fp="' + tipe + '"]');
+    if (akt) { akt.style.background = 'var(--accent-dim)'; akt.style.color = 'var(--accent)'; akt.style.borderColor = 'rgba(134,187,76,0.3)'; }
+    document.querySelectorAll('#riwayatPoint .hist-item').forEach(function(item) {
+      var t = item.querySelector('.hist-icon')?.getAttribute('data-tipe');
+      item.style.display = (tipe === 'SEMUA' || t === tipe) ? '' : 'none';
+    });
+  }
+
+  function filterPenukaran(status) {
+    document.querySelectorAll('.btn-fpk').forEach(function(b) { b.style.background = 'var(--surface)'; b.style.color = 'var(--text-muted)'; b.style.borderColor = 'var(--border)'; });
+    var akt = document.querySelector('.btn-fpk[data-fpk="' + status + '"]');
+    if (akt) { akt.style.background = 'var(--accent-dim)'; akt.style.color = 'var(--accent)'; akt.style.borderColor = 'rgba(134,187,76,0.3)'; }
+    document.querySelectorAll('#riwayatPenukaran .hist-item').forEach(function(item) {
+      var s = item.getAttribute('data-status');
+      if (status === 'SEMUA') { item.style.display = ''; return; }
+      if (status === 'MENUNGGU') { item.style.display = (s === 'PENDING' || s === 'DIPROSES') ? '' : 'none'; return; }
+      item.style.display = (s === status) ? '' : 'none';
+    });
+  }
 
   function bukaQR(el) {
     var kode = el.getAttribute('data-kode');
