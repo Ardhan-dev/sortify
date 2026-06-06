@@ -1,0 +1,34 @@
+@startuml
+skinparam rectangleStyle round
+start
+
+:Input Username & Password;
+:Kirim ke server;
+
+if (Validasi kredensial?) then (Salah)
+  :Tampilkan error\n"Username/password salah";
+  stop
+else (Benar)
+  :Cari user di database;
+  if (Akun BANNED?) then (Ya)
+    :Tampilkan error\n"Akun telah di-banned";
+    stop
+  else (Tidak)
+    if (Akun SUSPENDED?) then (Ya)
+      :Tampilkan error\n"Akun di-suspend";
+      stop
+    else (Aktif)
+      :Catat login ke LogAktivitas;
+      if (Role?) then (ADMIN)
+        :Redirect ke\n/admin/dashboard;
+      else (PETUGAS)
+        :Redirect ke\n/petugas/dashboard;
+      else (WARGA)
+        :Redirect ke\n/warga/dashboard;
+      endif
+    endif
+  endif
+endif
+
+stop
+@enduml

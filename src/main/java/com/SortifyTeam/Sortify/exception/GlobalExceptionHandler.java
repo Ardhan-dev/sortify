@@ -7,6 +7,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @Slf4j
 @ControllerAdvice
@@ -30,6 +31,17 @@ public class GlobalExceptionHandler {
         model.addAttribute("errorMsg", ex.getMessage());
         model.addAttribute("statusCode", 500);
         model.addAttribute("statusPhrase", "Internal Server Error");
+        model.addAttribute("path", request.getRequestURI());
+        return "error/custom-error";
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public String handleNoResource(NoResourceFoundException ex, Model model, HttpServletRequest request) {
+        log.warn("[404] No static resource di {}: {}", request.getRequestURI(), ex.getMessage());
+        model.addAttribute("errorMsg", "Resource tidak ditemukan: " + request.getRequestURI());
+        model.addAttribute("statusCode", 404);
+        model.addAttribute("statusPhrase", "Not Found");
         model.addAttribute("path", request.getRequestURI());
         return "error/custom-error";
     }

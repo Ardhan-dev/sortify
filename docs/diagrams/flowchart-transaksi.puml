@@ -1,0 +1,48 @@
+@startuml
+|Warga|
+start
+:Buka halaman\nSetor Sampah;
+:Pilih Drop Point;
+:Pilih Kategori Sampah\n(bisa lebih dari satu);
+:Input estimasi berat\nper kategori;
+:Upload foto sampah;
+:Input detail\n(opsional);
+:Submit laporan;
+
+|Sistem|
+:Validasi input;
+if (Valid?) then (Ya)
+  :Simpan Transaksi\nstatus = PENDING;
+  :Kirim Notifikasi\nke Petugas;
+  :Catat Log Aktivitas;
+  :Tampilkan\n"Transaksi berhasil\ndiajukan";
+else (Tidak)
+  :Tampilkan error\nvalidasi;
+  stop
+endif
+
+|Petugas|
+:Lihat antrian\ntransaksi PENDING;
+:Proses transaksi\n(PENDING → DIPROSES);
+
+|Sistem|
+:Update status\nmenjadi DIPROSES;
+:Kirim notifikasi\nke Warga;
+
+|Petugas|
+:Timbang sampah\n(berat final per kategori);
+:Upload foto\nbukti timbangan;
+:Klik "Selesaikan";
+
+|Sistem|
+:Hitung total poin\n(berat final × poin/kg);
+:Update status\nmenjadi SELESAI;
+:Tambah poin\nke akun Warga;
+:Kirim notifikasi\nke Warga;
+
+|Warga|
+:Lihat notifikasi\ntransaksi selesai;
+:Download struk PDF\n(opsional);
+
+stop
+@enduml

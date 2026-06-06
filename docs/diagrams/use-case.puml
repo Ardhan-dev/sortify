@@ -1,0 +1,73 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+actor "Warga" as warga
+actor "Petugas" as petugas
+actor "Admin" as admin
+
+rectangle "Sistem Informasi Bank Sampah\nSortify" {
+  !define UC(x) usecase x
+
+  UC(UC01) as "Registrasi Akun"
+  UC(UC02) as "Login"
+  UC(UC03) as "Lihat Kamus Sampah"
+  UC(UC04) as "Setor Sampah"
+  UC(UC05) as "Lihat Dashboard"
+  UC(UC06) as "Tukar Reward"
+  UC(UC07) as "Download Struk PDF"
+  UC(UC08) as "Batalkan Transaksi"
+  UC(UC09) as "Ubah Password"
+  UC(UC10) as "Upload Foto Profil"
+  UC(UC11) as "Proses Transaksi"
+  UC(UC12)as "Selesaikan Transaksi"
+  UC(UC13)as "Tolak Transaksi"
+  UC(UC14)as "Konfirmasi Penukaran"
+  UC(UC15) as "Batalkan Penukaran"
+  UC(UC16) as "Kelola Reward"
+  UC(UC17) as "Beri Peringatan"
+  UC(UC18) as "Kelola Data Master"
+  UC(UC19) as "Monitoring & Laporan"
+  UC(UC20) as "Manajemen User"
+  UC(UC21) as "Manajemen Peringatan\n(Suspend/Ban)"
+  UC(UC22) as "Export CSV"
+  UC(UC23) as "Lihat Log Aktivitas"
+  UC(UC24) as "Kelola Pengumuman"
+}
+
+warga --> UC01
+warga --> UC02
+warga --> UC03
+warga --> UC04
+warga --> UC05
+warga --> UC06
+warga --> UC07
+warga --> UC08
+warga --> UC09
+warga --> UC10
+
+petugas --> UC02
+petugas --> UC05
+petugas --> UC11
+petugas --> UC12
+petugas --> UC13
+petugas --> UC14
+petugas --> UC15
+petugas --> UC16
+petugas --> UC17
+
+admin --> UC02
+admin --> UC05
+admin --> UC18
+admin --> UC19
+admin --> UC20
+admin --> UC21
+admin --> UC22
+admin --> UC23
+admin --> UC24
+
+note right of UC06 : Generate kode AMDAL\nPessimistic Lock
+note right of UC12 : Input berat final\nUpload foto timbangan\nTambah poin otomatis
+note right of UC14 : Verifikasi kode AMDAL\nUpload foto serah terima
+note right of UC15 : Refund poin + stock
+
+@enduml

@@ -1,0 +1,60 @@
+@startuml
+|Warga|
+start
+:Buka halaman Reward;
+:Lihat daftar reward\nyang tersedia;
+:Pilih reward\ndan klik "Tukar";
+
+|Sistem|
+:Pessimistic Lock\n(RewardItem + User);
+if (Poin cukup?) then (Tidak)
+  :Tampilkan\n"Poin tidak cukup";
+  :Release lock;
+  stop
+else (Ya)
+  if (Stock > 0?) then (Tidak)
+    :Tampilkan\n"Stock habis";
+    :Release lock;
+    stop
+  else (Ya)
+    :Generate kode\nAMDAL 6 digit;
+    :Kurangi poin user;
+    :Kurangi stock reward;
+    :Simpan PenukaranReward\nstatus = PENDING;
+    :Kirim Notifikasi\nke Petugas;
+    :Release lock;
+    :Tampilkan kode AMDAL\nke Warga;
+  endif
+endif
+
+|Warga|
+:Bawa kode AMDAL\nke Petugas;
+
+|Petugas|
+:Input kode AMDAL\ndari Warga;
+:Upload foto\nbukti serah terima;
+
+if (Kode cocok?) then (Ya)
+  |Sistem|
+  :Update status\nSUDAH_DIAMBIL;
+  :Kirim notifikasi\nke Warga;
+  :Tampilkan\n"Penukaran berhasil";
+else (Tidak)
+  |Sistem|
+  :Tampilkan\n"Kode tidak valid";
+  stop
+endif
+
+|Warga|
+:Terima reward;
+stop
+
+|Sistem|
+note right
+  Alternatif:
+  Petugas bisa batalkan
+  penukaran (DIBATALKAN)
+  → refund poin + stock
+end note
+
+@enduml

@@ -1,0 +1,157 @@
+@startuml
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam packageStyle rectangle
+
+package "Model" {
+  class User {
+    - id: Long
+    - username: String
+    - password: String
+    - fullName: String
+    - role: Enum {ADMIN, PETUGAS, WARGA}
+    - totalPoints: int
+    - accountStatus: Enum {ACTIVE, SUSPENDED, BANNED}
+    - warningCount: int
+    - fotoProfil: String
+    + getPangkat(): String
+    + getBadgePangkat(): String
+  }
+
+  class Warga {
+    - idWarga: Long
+    - nama: String
+    - alamat: String
+    - noHp: String
+    - username: String
+  }
+
+  class Staff {
+    - idStaff: Long
+    - nama: String
+    - nip: String
+    - jabatan: String
+    - username: String
+  }
+
+  class DropPoint {
+    - id: Long
+    - nama: String
+    - alamat: String
+    - latitude: Double
+    - longitude: Double
+    - aktif: boolean
+  }
+
+  class KategoriSampah {
+    - idKategori: Long
+    - namaKategori: String
+    - poinPerKg: Integer
+    - instruksiPenanganan: String
+    - isActive: Boolean
+  }
+
+  class ItemSampah {
+    - id: Long
+    - namaItem: String
+    - deskripsi: String
+    - instruksiPenanganan: String
+    - isActive: Boolean
+  }
+
+  class Transaksi {
+    - idTransaksi: Long
+    - tanggalTransaksi: LocalDateTime
+    - totalBerat: Double
+    - totalPoin: Double
+    - fotoLaporanWarga: String
+    - fotoBuktiTimbangan: String
+    - lokasi: String
+    - detail: String
+    - status: Enum {PENDING, DIPROSES, SELESAI, DITOLAK, DIBATALKAN}
+    - alasanPenolakan: String
+  }
+
+  class TransaksiDetail {
+    - id: Long
+    - beratEstimasi: Double
+    - beratFinal: Double
+    - subTotalPoin: Double
+  }
+
+  class RewardItem {
+    - id: Long
+    - namaBarang: String
+    - pointNeeded: int
+    - stock: int
+    - isActive: Boolean
+  }
+
+  class PenukaranReward {
+    - id: Long
+    - status: Enum {PENDING, SUDAH_DIAMBIL, DIBATALKAN}
+    - fotoBukti: String
+    - lokasi: String
+    - alasanTolak: String
+    - kodePenukaran: String
+    - tanggalPenukaran: LocalDateTime
+  }
+
+  class Notifikasi {
+    - id: Long
+    - pesan: String
+    - isRead: boolean
+    - createdAt: LocalDateTime
+  }
+
+  class PointHistory {
+    - id: Long
+    - amount: int
+    - type: Enum {EARN, SPEND}
+    - description: String
+    - createdAt: LocalDateTime
+  }
+
+  class LogAktivitas {
+    - id: Long
+    - username: String
+    - role: String
+    - aksi: String
+    - deskripsi: String
+    - waktu: LocalDateTime
+  }
+
+  class Pengumuman {
+    - id: Long
+    - judul: String
+    - konten: String
+    - isActive: boolean
+    - createdAt: LocalDateTime
+    - updatedAt: LocalDateTime
+  }
+
+  class Warning {
+    - id: Long
+    - issuedBy: String
+    - reason: String
+    - type: Enum {WARNING, SUSPEND, BAN}
+    - createdAt: LocalDateTime
+  }
+}
+
+User "1" -- "1" Warga : has
+User "1" -- "1" Staff : has
+Warga "*" -- "1" DropPoint : memilih
+KategoriSampah "1" -- "*" ItemSampah : memiliki
+KategoriSampah "1" -- "*" TransaksiDetail : digunakan di
+Transaksi "1" -- "*" TransaksiDetail : terdiri dari
+Warga "1" -- "*" Transaksi : mengajukan
+Staff "1" -- "*" Transaksi : memproses
+User "1" -- "*" PenukaranReward : menukarkan
+RewardItem "1" -- "*" PenukaranReward : ditukar menjadi
+User "1" -- "*" Notifikasi : menerima
+User "1" -- "*" PointHistory : memiliki riwayat
+User "1" -- "*" Warning : mendapatkan
+
+@enduml

@@ -1,0 +1,28 @@
+@startuml
+skinparam stateArrowFontSize 16
+skinparam stateFontSize 14
+
+[*] --> PENDING : Warga submit setoran
+
+state PENDING : Transaksi baru\ndiajukan warga
+state DIPROSES : Sedang\ndiproses petugas
+state SELESAI : Selesai,\npoin ditambahkan
+state DITOLAK : Ditolak\noleh petugas
+state DIBATALKAN : Dibatalkan\noleh warga
+
+PENDING --> DIPROSES : Petugas klik "Proses"
+PENDING --> DITOLAK : Petugas tolak\ndengan alasan
+PENDING --> DIBATALKAN : Warga batalkan\n(sebelum diproses)
+
+DIPROSES --> SELESAI : Petugas selesaikan\n(input berat final + foto)
+
+note right on link
+  Hanya PENDING yang
+  bisa dibatalkan warga
+end note
+
+SELESAI --> [*]
+DITOLAK --> [*]
+DIBATALKAN --> [*]
+
+@enduml

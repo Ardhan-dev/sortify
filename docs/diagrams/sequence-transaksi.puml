@@ -1,0 +1,62 @@
+@startuml
+actor "Warga" as warga
+actor "Petugas" as petugas
+participant "Browser" as browser
+participant "WargaController" as wc
+participant "PetugasController" as pc
+participant "TransaksiService" as ts
+participant "NotifikasiService" as ns
+participant "LogAktivitasService" as las
+participant "PointService" as ps
+participant "TransaksiRepository" as tr
+participant "Database" as db
+
+== Fase 1: Warga Mengajukan Setoran ==
+
+warga -> browser: Buka form setor sampah
+browser -> wc: GET /warga/transaksi/tambah
+wc -> browser: Tampilkan form
+warga -> browser: Isi data + upload foto
+browser -> wc: POST /warga/transaksi/tambah
+wc -> ts: buatLaporanDropPoint(warga, foto, kategori, berat)
+ts -> tr: save(transaksi)
+tr -> db: INSERT transaksi
+db --> tr: transaksi saved
+tr --> ts: return transaksi
+ts -> ns: buatNotifikasi(petugas, pesan)
+ns -> db: INSERT notifikasi
+ts -> las: catatAktivitas("SETOR", ...)
+las -> db: INSERT log_aktivitas
+ts --> wc: return transaksi
+wc -> browser: Redirect dashboard + notifikasi
+
+== Fase 2: Petugas Memproses ==
+
+petugas -> browser: Buka dashboard
+browser -> pc: GET /petugas/dashboard
+pc -> browser: Tampilkan daftar PENDING
+petugas -> browser: Klik "Proses"
+browser -> pc: POST /petugas/transaksi/proses/{id}
+pc -> ts: prosesTransaksi(id, staff)
+ts -> tr: update status = DIPROSES
+tr -> db: UPDATE transaksi
+ts -> ns: buatNotifikasi(warga, "sedang diproses")
+ts -> las: catatAktivitas("PROSES", ...)
+pc -> browser: Redirect dashboard
+
+== Fase 3: Petugas Menyelesaikan ==
+
+petugas -> browser: Klik "Selesaikan" pada DIPROSES
+browser -> pc: POST /petugas/transaksi/selesai/{id}
+pc -> ts: selesaikanTransaksi(id, beratFinal, foto, staff)
+ts -> tr: update status = SELESAI
+tr -> db: UPDATE transaksi
+ts -> ps: tambahPoint(warga, totalPoin, "Setor sampah")
+ps -> db: SELECT ... FOR UPDATE
+ps -> db: UPDATE users SET total_points = ...
+ps -> db: INSERT point_history
+ts -> ns: buatNotifikasi(warga, "Selesai, +X poin")
+ts -> las: catatAktivitas("SELESAI", ...)
+pc -> browser: Redirect dashboard
+
+@enduml

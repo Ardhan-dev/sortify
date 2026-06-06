@@ -278,8 +278,8 @@
         <tr th:each="p : ${penukaranList}">
           <td class="cell-id" th:text="'#' + ${p.id}">001</td>
           <td>
-            <div class="cell-warga" th:text="${p.warga.fullName}">Nama Warga</div>
-            <div style="font-family:var(--mono); font-size:10px; color:var(--text-muted);" th:text="'@' + ${p.warga.username}">@username</div>
+            <div class="cell-warga" th:text="${p.user.fullName}">Nama Warga</div>
+            <div style="font-family:var(--mono); font-size:10px; color:var(--text-muted);" th:text="'@' + ${p.user.username}">@username</div>
           </td>
           <td>
             <div class="cell-rew-nama" th:text="${p.rewardItem.namaBarang}">Beras 5kg</div>

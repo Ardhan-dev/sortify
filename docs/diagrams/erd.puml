@@ -1,0 +1,172 @@
+@startuml
+!define TABLE(x) entity x ## [x]
+!define PK(x) <u>x</u>
+!define FK(x) <color:blue>x</color>
+
+hide methods
+skinparam linetype ortho
+
+TABLE(users) {
+  PK(id) BIGINT PK
+  * username VARCHAR(50) UNIQUE
+  * password VARCHAR(255)
+  * full_name VARCHAR(100)
+  * role VARCHAR(20)
+  total_points INT DEFAULT 0
+  account_status VARCHAR(20) DEFAULT 'ACTIVE'
+  warning_count INT DEFAULT 0
+  foto_profil VARCHAR(255)
+}
+
+TABLE(warga) {
+  PK(id_warga) BIGINT PK
+  nama VARCHAR(100)
+  alamat TEXT
+  no_hp VARCHAR(20)
+  * username VARCHAR(50) UNIQUE
+  FK(user_id) BIGINT FK
+  FK(drop_point_id) BIGINT FK
+}
+
+TABLE(staff) {
+  PK(id_staff) BIGINT PK
+  nama VARCHAR(100)
+  nip VARCHAR(50)
+  jabatan VARCHAR(100)
+  * username VARCHAR(50) UNIQUE
+  FK(user_id) BIGINT FK
+}
+
+TABLE(drop_point) {
+  PK(id) BIGINT PK
+  * nama VARCHAR(100)
+  alamat TEXT
+  latitude DOUBLE
+  longitude DOUBLE
+  aktif BOOLEAN DEFAULT TRUE
+}
+
+TABLE(kategori_sampah) {
+  PK(id_kategori) BIGINT PK
+  nama_kategori VARCHAR(50)
+  poin_per_kg INT
+  instruksi_penanganan TEXT
+  is_active BOOLEAN DEFAULT TRUE
+}
+
+TABLE(item_sampah) {
+  PK(id) BIGINT PK
+  * nama_item VARCHAR(100)
+  deskripsi TEXT
+  instruksi_penanganan TEXT
+  FK(id_kategori) BIGINT FK
+  is_active BOOLEAN DEFAULT TRUE
+}
+
+TABLE(transaksi) {
+  PK(id_transaksi) BIGINT PK
+  FK(id_warga) BIGINT FK
+  FK(id_staff) BIGINT FK
+  tanggal_transaksi DATETIME
+  total_berat DOUBLE
+  total_poin DOUBLE
+  foto_laporan_warga VARCHAR(255)
+  foto_bukti_timbangan VARCHAR(255)
+  lokasi VARCHAR(255)
+  detail TEXT
+  status VARCHAR(20)
+  alasan_penolakan TEXT
+}
+
+TABLE(transaksi_detail) {
+  PK(id) BIGINT PK
+  FK(id_transaksi) BIGINT FK
+  FK(id_kategori) BIGINT FK
+  berat_estimasi DOUBLE
+  berat_final DOUBLE
+  sub_total_poin DOUBLE
+}
+
+TABLE(reward_item) {
+  PK(id) BIGINT PK
+  * nama_barang VARCHAR(100)
+  * point_needed INT
+  * stock INT
+  is_active BOOLEAN DEFAULT TRUE
+}
+
+TABLE(penukaran_reward) {
+  PK(id) BIGINT PK
+  FK(warga_id) BIGINT FK
+  FK(reward_item_id) BIGINT FK
+  status VARCHAR(20)
+  foto_bukti VARCHAR(255)
+  lokasi VARCHAR(255)
+  alasan_tolak TEXT
+  * kode_penukaran VARCHAR(6) UNIQUE
+  tanggal_penukaran DATETIME
+}
+
+TABLE(notifikasi) {
+  PK(id) BIGINT PK
+  FK(warga_id) BIGINT FK
+  * pesan VARCHAR(500)
+  is_read BOOLEAN DEFAULT FALSE
+  created_at DATETIME
+}
+
+TABLE(point_history) {
+  PK(id) BIGINT PK
+  FK(warga_id) BIGINT FK
+  amount INT
+  type VARCHAR(10)
+  description VARCHAR(255)
+  created_at DATETIME
+}
+
+TABLE(log_aktivitas) {
+  PK(id) BIGINT PK
+  * username VARCHAR(50)
+  * role VARCHAR(20)
+  * aksi VARCHAR(100)
+  * deskripsi TEXT
+  * waktu DATETIME
+}
+
+TABLE(pengumuman) {
+  PK(id) BIGINT PK
+  * judul VARCHAR(200)
+  * konten TEXT
+  is_active BOOLEAN DEFAULT TRUE
+  created_at DATETIME
+  updated_at DATETIME
+}
+
+TABLE(warnings) {
+  PK(id) BIGINT PK
+  FK(target_user_id) BIGINT FK
+  * issued_by VARCHAR(50)
+  * reason TEXT
+  type VARCHAR(20)
+  created_at DATETIME
+}
+
+' Relationships
+users ||--o| warga : "1..1"
+users ||--o| staff : "1..1"
+warga }o--|| drop_point : "ManyToOne"
+users ||--o{ penukaran_reward : "1..*"
+users ||--o{ notifikasi : "1..*"
+users ||--o{ point_history : "1..*"
+users ||--o{ warnings : "1..*"
+
+kategori_sampah ||--o{ item_sampah : "1..*"
+kategori_sampah ||--o{ transaksi_detail : "1..*"
+
+warga ||--o{ transaksi : "1..*"
+staff ||--o{ transaksi : "1..*"
+transaksi ||--o{ transaksi_detail : "1..*"
+
+reward_item ||--o{ penukaran_reward : "1..*"
+
+@enduml
