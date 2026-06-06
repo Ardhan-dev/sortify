@@ -120,54 +120,55 @@
     </a>
   </div>
 
+  <!-- ── TABEL DAFTAR WARGA ── -->
   <div class="table-wrap animate delay-3">
+    <div style="padding:.8rem 1rem;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);">Daftar Warga</div>
     <table>
       <thead>
         <tr>
-          <th>Waktu</th>
-          <th>User</th>
-          <th>Tipe</th>
-          <th>Alasan</th>
-          <th>Diberikan Oleh</th>
+          <th>Nama</th>
+          <th>Username</th>
+          <th>Role</th>
           <th>Status Akun</th>
+          <th>Peringatan</th>
           <th class="col-actions">Aksi</th>
         </tr>
       </thead>
       <tbody>
-        <tr th:each="w : ${warningList}">
-          <td class="cell-mono" th:text="${#temporals.format(w.createdAt, 'dd MMM HH:mm')}">—</td>
-          <td class="cell-nama">
-            <span th:text="${w.targetUser.fullName}">Nama</span>
-            <span class="cell-mono" style="display:block;font-size:10px;" th:text="'@' + ${w.targetUser.username}">username</span>
-          </td>
+        <tr th:each="u : ${daftarWarga}">
+          <td class="cell-nama" th:text="${u.fullName}">Nama</td>
+          <td class="cell-mono" th:text="'@' + ${u.username}">username</td>
+          <td class="cell-mono" th:text="${u.role}">WARGA</td>
           <td>
             <span class="status-badge"
-                  th:classappend="${w.type.name() == 'WARNING'} ? 'badge-warning' : (${w.type.name() == 'SUSPEND'} ? 'badge-suspend' : 'badge-ban')">
+                  th:classappend="${u.accountStatus.name() == 'ACTIVE'} ? 'badge-active' : (${u.accountStatus.name() == 'SUSPENDED'} ? 'badge-suspended' : 'badge-banned')">
               <span class="dot"></span>
-              <span th:text="${w.type.name() == 'WARNING'} ? 'PERINGATAN' : (${w.type.name() == 'SUSPEND'} ? 'SUSPEND' : 'BAN')">WARNING</span>
+              <span th:text="${u.accountStatus.name() == 'ACTIVE'} ? 'ACTIVE' : (${u.accountStatus.name() == 'SUSPENDED'} ? 'SUSPENDED' : 'BANNED')">ACTIVE</span>
             </span>
           </td>
-          <td class="cell-reason" th:text="${w.reason}">Alasan</td>
-          <td class="cell-mono" th:text="${w.issuedBy}">petugas1</td>
-          <td>
-            <span class="status-badge"
-                  th:classappend="${w.targetUser.accountStatus.name() == 'ACTIVE'} ? 'badge-active' : (${w.targetUser.accountStatus.name() == 'SUSPENDED'} ? 'badge-suspended' : 'badge-banned')">
-              <span class="dot"></span>
-              <span th:text="${w.targetUser.accountStatus.name() == 'ACTIVE'} ? 'ACTIVE' : (${w.targetUser.accountStatus.name() == 'SUSPENDED'} ? 'SUSPENDED' : 'BANNED')">ACTIVE</span>
-            </span>
-          </td>
+          <td class="cell-mono" th:text="${u.warningCount}">0</td>
           <td>
             <div class="cell-actions">
-              <a th:href="@{/admin/user/warnings/{id}(id=${w.targetUser.id})}" class="btn-sm btn-activate">
+              <a th:href="@{/admin/user/warnings/{id}(id=${u.id})}" class="btn-sm btn-activate">
                 <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                 Detail
               </a>
-              <button th:if="${w.targetUser.accountStatus.name() != 'BANNED'}" type="button" class="btn-sm btn-ban btn-ban-trigger"
-                      th:attr="data-id=${w.targetUser.id}, data-nama=${w.targetUser.fullName}, data-username=${w.targetUser.username}">
+              <button th:if="${u.accountStatus.name() == 'ACTIVE'}" type="button" class="btn-sm btn-warn btn-warning-trigger"
+                      th:attr="data-id=${u.id}, data-nama=${u.fullName}, data-username=${u.username}">
+                <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                Warning
+              </button>
+              <button th:if="${u.accountStatus.name() == 'ACTIVE'}" type="button" class="btn-sm btn-suspend-trigger" style="background:var(--amber-dim);color:var(--amber);border-color:rgba(200,137,26,0.25);"
+                      th:attr="data-id=${u.id}, data-nama=${u.fullName}, data-username=${u.username}">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                Suspend
+              </button>
+              <button th:if="${u.accountStatus.name() != 'BANNED'}" type="button" class="btn-sm btn-ban btn-ban-trigger"
+                      th:attr="data-id=${u.id}, data-nama=${u.fullName}, data-username=${u.username}">
                 <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
                 Ban
               </button>
-              <form th:if="${w.targetUser.accountStatus.name() == 'SUSPENDED'}" th:action="@{/admin/user/activate/{id}(id=${w.targetUser.id})}" method="post" style="display:inline;" onsubmit="return confirm('Aktifkan akun ' + '${w.targetUser.fullName}' + '?')">
+              <form th:if="${u.accountStatus.name() == 'SUSPENDED'}" th:action="@{/admin/user/activate/{id}(id=${u.id})}" method="post" style="display:inline;" onsubmit="return confirm('Aktifkan akun ' + '${u.fullName}' + '?')">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                 <button type="submit" class="btn-sm btn-activate">
                   <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
@@ -177,12 +178,12 @@
             </div>
           </td>
         </tr>
-        <tr th:if="${#lists.isEmpty(warningList)}">
-          <td colspan="7">
+        <tr th:if="${#lists.isEmpty(daftarWarga)}">
+          <td colspan="6">
             <div class="empty-state">
-              <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
-              <div class="empty-title">Belum ada peringatan</div>
-              <div class="empty-desc">Semua akun dalam keadaan baik.</div>
+              <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+              <div class="empty-title">Belum ada warga terdaftar</div>
+              <div class="empty-desc">Warga akan muncul setelah mendaftar melalui halaman register.</div>
             </div>
           </td>
         </tr>
@@ -190,10 +191,122 @@
     </table>
   </div>
 
+  <!-- ── RIWAYAT WARNINGS ── -->
+  <div style="margin-top:2rem;">
+    <div class="table-wrap animate delay-4">
+      <div style="padding:.8rem 1rem;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);">Riwayat Sanksi</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Waktu</th>
+            <th>User</th>
+            <th>Tipe</th>
+            <th>Alasan</th>
+            <th>Diberikan Oleh</th>
+            <th>Status Akun</th>
+            <th class="col-actions">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:each="w : ${warningList}">
+            <td class="cell-mono" th:text="${#temporals.format(w.createdAt, 'dd MMM HH:mm')}">—</td>
+            <td class="cell-nama">
+              <span th:text="${w.targetUser.fullName}">Nama</span>
+              <span class="cell-mono" style="display:block;font-size:10px;" th:text="'@' + ${w.targetUser.username}">username</span>
+            </td>
+            <td>
+              <span class="status-badge"
+                    th:classappend="${w.type.name() == 'WARNING'} ? 'badge-warning' : (${w.type.name() == 'SUSPEND'} ? 'badge-suspend' : 'badge-ban')">
+                <span class="dot"></span>
+                <span th:text="${w.type.name() == 'WARNING'} ? 'PERINGATAN' : (${w.type.name() == 'SUSPEND'} ? 'SUSPEND' : 'BAN')">WARNING</span>
+              </span>
+            </td>
+            <td class="cell-reason" th:text="${w.reason}">Alasan</td>
+            <td class="cell-mono" th:text="${w.issuedBy}">petugas1</td>
+            <td>
+              <span class="status-badge"
+                    th:classappend="${w.targetUser.accountStatus.name() == 'ACTIVE'} ? 'badge-active' : (${w.targetUser.accountStatus.name() == 'SUSPENDED'} ? 'badge-suspended' : 'badge-banned')">
+                <span class="dot"></span>
+                <span th:text="${w.targetUser.accountStatus.name() == 'ACTIVE'} ? 'ACTIVE' : (${w.targetUser.accountStatus.name() == 'SUSPENDED'} ? 'SUSPENDED' : 'BANNED')">ACTIVE</span>
+              </span>
+            </td>
+            <td>
+              <div class="cell-actions">
+                <a th:href="@{/admin/user/warnings/{id}(id=${w.targetUser.id})}" class="btn-sm btn-activate">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                  Detail
+                </a>
+                <button th:if="${w.targetUser.accountStatus.name() != 'BANNED'}" type="button" class="btn-sm btn-ban btn-ban-trigger"
+                        th:attr="data-id=${w.targetUser.id}, data-nama=${w.targetUser.fullName}, data-username=${w.targetUser.username}">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                  Ban
+                </button>
+                <form th:if="${w.targetUser.accountStatus.name() == 'SUSPENDED'}" th:action="@{/admin/user/activate/{id}(id=${w.targetUser.id})}" method="post" style="display:inline;" onsubmit="return confirm('Aktifkan akun ' + '${w.targetUser.fullName}' + '?')">
+                  <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                  <button type="submit" class="btn-sm btn-activate">
+                    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                    Aktifkan
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          <tr th:if="${#lists.isEmpty(warningList)}">
+            <td colspan="7">
+              <div class="empty-state">
+                <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+                <div class="empty-title">Belum ada riwayat sanksi</div>
+                <div class="empty-desc">Semua akun dalam keadaan baik.</div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <footer class="animate delay-4">
     <span class="footer-id">ADMIN · WARNINGS</span>
     <span class="footer-id">SORTIFY v1.0</span>
   </footer>
+</div>
+
+<!-- MODAL WARNING -->
+<div id="modalWarning" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title" style="color:var(--amber);">Beri Peringatan</div>
+    <div class="modal-desc">Berikan peringatan ke <strong id="warnNama">—</strong> (<span id="warnUsername" style="font-family:var(--mono);">—</span>). 3 peringatan akan otomatis suspend.</div>
+    <form id="formWarning" method="post" style="margin:0;">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+      <div class="form-group">
+        <label class="form-label">Alasan Peringatan <span style="color:var(--danger);">*</span></label>
+        <textarea id="warnAlasan" name="alasan" class="form-control" rows="4" placeholder="Contoh: Pelanggaran aturan, spam..." required></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-modal-batal" id="btnWarnBatal">Batal</button>
+        <button type="submit" class="btn-modal-konfirm" style="border-color:rgba(200,137,26,0.25);background:var(--amber-dim);color:var(--amber);">Konfirmasi Warning</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL SUSPEND -->
+<div id="modalSuspend" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title" style="color:var(--amber);">Suspend Akun</div>
+    <div class="modal-desc">Nonaktifkan sementara akun <strong id="susNama">—</strong> (<span id="susUsername" style="font-family:var(--mono);">—</span>).</div>
+    <form id="formSuspend" method="post" style="margin:0;">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+      <div class="form-group">
+        <label class="form-label">Alasan Suspend <span style="color:var(--danger);">*</span></label>
+        <textarea id="susAlasan" name="alasan" class="form-control" rows="4" placeholder="Contoh: Pelanggaran berat..." required></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-modal-batal" id="btnSusBatal">Batal</button>
+        <button type="submit" class="btn-modal-konfirm" style="border-color:rgba(200,137,26,0.25);background:var(--amber-dim);color:var(--amber);">Konfirmasi Suspend</button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <!-- MODAL BAN -->
@@ -216,6 +329,45 @@
 </div>
 
 <script>
+  // Warning modal
+  document.querySelectorAll('.btn-warning-trigger').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var id = this.getAttribute('data-id');
+      var nama = this.getAttribute('data-nama');
+      var username = this.getAttribute('data-username');
+      document.getElementById('warnNama').textContent = nama;
+      document.getElementById('warnUsername').textContent = '@' + username;
+      document.getElementById('formWarning').action = '/admin/user/warning/' + id;
+      document.getElementById('modalWarning').classList.add('active');
+    });
+  });
+  document.getElementById('btnWarnBatal').addEventListener('click', function() {
+    document.getElementById('modalWarning').classList.remove('active');
+  });
+  document.getElementById('modalWarning').addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('active');
+  });
+
+  // Suspend modal
+  document.querySelectorAll('.btn-suspend-trigger').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var id = this.getAttribute('data-id');
+      var nama = this.getAttribute('data-nama');
+      var username = this.getAttribute('data-username');
+      document.getElementById('susNama').textContent = nama;
+      document.getElementById('susUsername').textContent = '@' + username;
+      document.getElementById('formSuspend').action = '/admin/user/suspend/' + id;
+      document.getElementById('modalSuspend').classList.add('active');
+    });
+  });
+  document.getElementById('btnSusBatal').addEventListener('click', function() {
+    document.getElementById('modalSuspend').classList.remove('active');
+  });
+  document.getElementById('modalSuspend').addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('active');
+  });
+
+  // Ban modal
   document.querySelectorAll('.btn-ban-trigger').forEach(function(btn) {
     btn.addEventListener('click', function() {
       var id = this.getAttribute('data-id');

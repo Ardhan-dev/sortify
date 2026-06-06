@@ -153,9 +153,13 @@
                 <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                 Edit
               </button>
-              <a th:href="@{/admin/drop-point/hapus/{id}(id=${d.id})}" class="btn-sm btn-del" onclick="return confirm('Nonaktifkan drop point ' + '${d.nama}' + '?')">
+              <a th:if="${d.aktif}" th:href="@{/admin/drop-point/hapus/{id}(id=${d.id})}" class="btn-sm btn-del" onclick="return confirm('Nonaktifkan drop point ' + '${d.nama}' + '?')">
                 <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
                 Nonaktifkan
+              </a>
+              <a th:if="${!d.aktif}" th:href="@{/admin/drop-point/aktifkan/{id}(id=${d.id})}" class="btn-sm" style="background:var(--accent-dim);color:var(--accent);border-color:rgba(134,187,76,0.25);" onclick="return confirm('Aktifkan drop point ' + '${d.nama}' + '?')">
+                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                Aktifkan
               </a>
             </div>
           </td>

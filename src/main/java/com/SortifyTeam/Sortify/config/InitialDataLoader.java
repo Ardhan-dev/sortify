@@ -12,10 +12,13 @@ import com.SortifyTeam.Sortify.repository.RewardItemRepository;
 import com.SortifyTeam.Sortify.repository.StaffRepository;
 import com.SortifyTeam.Sortify.repository.UserRepository;
 import com.SortifyTeam.Sortify.repository.WargaRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Component
@@ -28,6 +31,9 @@ public class InitialDataLoader implements CommandLineRunner {
     private final WargaRepository wargaRepo;
     private final StaffRepository staffRepo;
     private final PasswordEncoder passwordEncoder;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public InitialDataLoader(UserRepository userRepo,
                              RewardItemRepository rewardItemRepo,
@@ -58,7 +64,24 @@ public class InitialDataLoader implements CommandLineRunner {
     }
 
     @Override
+    @Transactional
     public void run(String... args) {
+        try {
+            entityManager.createNativeQuery(
+                "ALTER TABLE staff MODIFY COLUMN password VARCHAR(255) NULL"
+            ).executeUpdate();
+        } catch (Exception e) {
+            log.warn("Fix kolom password staff: {}", e.getMessage());
+        }
+
+        try {
+            entityManager.createNativeQuery(
+                "ALTER TABLE transaksi MODIFY COLUMN status VARCHAR(20)"
+            ).executeUpdate();
+        } catch (Exception e) {
+            log.warn("Fix kolom status transaksi: {}", e.getMessage());
+        }
+
         if (!userRepo.existsByUsername("admin")) {
             buatUser("admin", "Admin Sistem", User.Role.ADMIN, 0);
         }

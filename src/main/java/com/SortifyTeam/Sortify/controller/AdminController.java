@@ -282,4 +282,44 @@ public class AdminController {
         }
         return "redirect:/admin/warnings";
     }
+
+    @PostMapping("/user/warning/{id}")
+    public String warningUser(Authentication auth, @PathVariable Long id,
+                               @RequestParam("alasan") String alasan,
+                               RedirectAttributes redirectAttributes) {
+        if (alasan == null || alasan.isBlank()) {
+            redirectAttributes.addFlashAttribute("error", "Alasan peringatan harus diisi.");
+            return "redirect:/admin/warnings";
+        }
+        try {
+            User target = userRepo.findById(id)
+                    .orElseThrow(() -> new RuntimeException("User tidak ditemukan: " + id));
+            warningService.beriWarning(target, auth.getName(), alasan);
+            redirectAttributes.addFlashAttribute("success",
+                    "Peringatan diberikan ke " + target.getFullName() + ".");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Gagal: " + e.getMessage());
+        }
+        return "redirect:/admin/warnings";
+    }
+
+    @PostMapping("/user/suspend/{id}")
+    public String suspendUser(Authentication auth, @PathVariable Long id,
+                               @RequestParam("alasan") String alasan,
+                               RedirectAttributes redirectAttributes) {
+        if (alasan == null || alasan.isBlank()) {
+            redirectAttributes.addFlashAttribute("error", "Alasan suspend harus diisi.");
+            return "redirect:/admin/warnings";
+        }
+        try {
+            User target = userRepo.findById(id)
+                    .orElseThrow(() -> new RuntimeException("User tidak ditemukan: " + id));
+            warningService.suspendUser(target, auth.getName(), alasan);
+            redirectAttributes.addFlashAttribute("success",
+                    "Akun " + target.getFullName() + " dinonaktifkan.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Gagal: " + e.getMessage());
+        }
+        return "redirect:/admin/warnings";
+    }
 }

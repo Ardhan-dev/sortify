@@ -1,36 +1,30 @@
 package com.SortifyTeam.Sortify.config;
 
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
 @Component
-public class CustomAuthFailureHandler extends SimpleUrlAuthenticationFailureHandler {
-
-    public CustomAuthFailureHandler() {
-        super("/login?error=true");
-    }
+public class CustomAuthFailureHandler implements AuthenticationFailureHandler {
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request,
                                         HttpServletResponse response,
-                                        AuthenticationException exception) throws IOException, ServletException {
+                                        AuthenticationException exception) throws IOException {
+        String redirectUrl = "/login?error=true";
         if (exception instanceof DisabledException) {
             String message = exception.getMessage();
             if (message != null && message.contains("diblokir")) {
-                setDefaultFailureUrl("/login?banned=true");
+                redirectUrl = "/login?banned=true";
             } else {
-                setDefaultFailureUrl("/login?suspended=true");
+                redirectUrl = "/login?suspended=true";
             }
-        } else {
-            setDefaultFailureUrl("/login?error=true");
         }
-        super.onAuthenticationFailure(request, response, exception);
+        response.sendRedirect(response.encodeRedirectURL(redirectUrl));
     }
 }

@@ -57,10 +57,10 @@ public class TransaksiWebController {
     }
 
     private Staff getCurrentStaff(Authentication auth) {
-        User user = userRepo.findByUsername(auth.getName())
-                .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
-        return staffRepo.findByUser(user)
-                .orElseThrow(() -> new RuntimeException("Staff tidak ditemukan untuk user: " + auth.getName()));
+        if (auth == null) return null;
+        return userRepo.findByUsername(auth.getName())
+                .flatMap(staffRepo::findByUser)
+                .orElse(null);
     }
 
     @GetMapping
@@ -110,7 +110,8 @@ public class TransaksiWebController {
         Transaksi transaksi = new Transaksi();
         transaksi.setWarga(wargaRepo.findById(idWarga)
                 .orElseThrow(() -> new IllegalArgumentException("Warga tidak ditemukan")));
-        transaksi.setStaff(getCurrentStaff(auth));
+        Staff currentStaff = getCurrentStaff(auth);
+        if (currentStaff != null) transaksi.setStaff(currentStaff);
         transaksi.setTanggalTransaksi(LocalDateTime.now());
         transaksi.setStatus(Transaksi.StatusTransaksi.PENDING);
         transaksi.setDetail(detail);
@@ -184,7 +185,8 @@ public class TransaksiWebController {
 
         transaksi.setWarga(wargaRepo.findById(idWarga)
                 .orElseThrow(() -> new IllegalArgumentException("Warga tidak ditemukan")));
-        transaksi.setStaff(getCurrentStaff(auth));
+        Staff currentStaff = getCurrentStaff(auth);
+        if (currentStaff != null) transaksi.setStaff(currentStaff);
         transaksi.setDetail(detail);
         transaksi.setStatus(status);
 

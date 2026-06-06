@@ -70,4 +70,16 @@ public class AdminDropPointController {
         }
         return "redirect:/admin/drop-point";
     }
+
+    @GetMapping("/aktifkan/{id}")
+    public String aktifkan(@PathVariable Long id, RedirectAttributes ra) {
+        try {
+            dropPointService.update(id, null, null, null, null, true);
+            DropPoint dp = dropPointService.getById(id);
+            ra.addFlashAttribute("success", "Drop point " + dp.getNama() + " diaktifkan kembali.");
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/admin/drop-point";
+    }
 }
