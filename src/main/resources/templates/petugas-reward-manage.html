@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sortify — Kelola Reward</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0f0c; --surface: #141710; --surface-raised: #191610; --surface-hover: #1d1a10;
+      --border: rgba(200, 137, 26, 0.12); --border-hover: rgba(200, 137, 26, 0.30);
+      --accent: #c8891a; --accent-dim: rgba(200, 137, 26, 0.08);
+      --green: #86bb4c; --green-dim: rgba(134, 187, 76, 0.1);
+      --teal: #2a9c7a; --danger: #b85454; --danger-dim: rgba(184, 84, 84, 0.1);
+      --text-primary: #ede8e0; --text-secondary: #948e80; --text-muted: #574f42;
+      --mono: 'Space Mono', monospace; --sans: 'DM Sans', sans-serif;
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text-primary); font-family: var(--sans); font-size: 15px; min-height: 100vh; }
+    body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(200,137,26,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(200,137,26,0.025) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; z-index: 0; }
+    .wrapper { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 0 2rem 4rem; }
+    header { padding: 2rem 0 0; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+    .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .brand-icon { width: 36px; height: 36px; background: var(--green); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+    .brand-icon svg { width: 20px; height: 20px; fill: var(--bg); }
+    .brand-name { font-family: var(--mono); font-size: 18px; font-weight: 700; color: var(--green); }
+    .brand-version { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; }
+    .page-head { padding: 3rem 0 2rem; }
+    .page-label { font-family: var(--mono); font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--accent); display: flex; align-items: center; gap: 8px; margin-bottom: 0.6rem; }
+    .page-label::before { content: ''; display: block; width: 24px; height: 1px; background: var(--accent); }
+    .page-title { font-size: clamp(1.8rem, 4vw, 2.4rem); font-weight: 300; letter-spacing: -1px; }
+    .page-title strong { font-weight: 500; color: var(--accent); }
+
+    .toolbar { display: flex; gap: 10px; margin-bottom: 1.25rem; align-items: center; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: 7px; padding: 0.5rem 1rem; font-family: var(--mono); font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; text-decoration: none; border-radius: 7px; border: 1px solid; cursor: pointer; transition: all 0.15s; }
+    .btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .btn-primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+    .btn-primary:hover { background: #d49a2e; }
+    .btn-ghost { background: transparent; color: var(--text-secondary); border-color: var(--border); }
+    .btn-ghost:hover { border-color: var(--border-hover); color: var(--text-primary); }
+    .btn-danger { background: var(--danger-dim); color: var(--danger); border-color: rgba(184,84,84,0.25); }
+    .btn-danger:hover { background: rgba(184,84,84,0.15); }
+
+    .stats-row { display: flex; gap: 12px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.5rem; flex: 1; min-width: 120px; }
+    .stat-label { font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); }
+    .stat-num { font-family: var(--mono); font-size: 1.5rem; font-weight: 700; margin-top: 4px; }
+
+    .table-wrap { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--surface); }
+    table { width: 100%; border-collapse: collapse; }
+    thead { background: var(--surface-raised); border-bottom: 1px solid var(--border); }
+    thead th { padding: 0.8rem 1rem; font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); font-weight: 400; text-align: left; white-space: nowrap; }
+    thead th.col-actions { width: 140px; text-align: center; }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--surface-hover); }
+    tbody td { padding: 0.85rem 1rem; font-size: 14px; vertical-align: middle; }
+    .cell-id { font-family: var(--mono); font-size: 12px; color: var(--text-muted); }
+    .cell-nama { font-weight: 500; }
+    .cell-poin { font-family: var(--mono); font-size: 13px; color: var(--accent); }
+    .cell-stock { font-family: var(--mono); font-size: 13px; }
+    .cell-actions { display: flex; justify-content: center; gap: 6px; }
+    .btn-sm { display: inline-flex; align-items: center; gap: 4px; padding: 0.35rem 0.75rem; font-family: var(--mono); font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase; border-radius: 6px; border: 1px solid; cursor: pointer; text-decoration: none; transition: all 0.15s; }
+    .btn-sm svg { width: 11px; height: 11px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .btn-edit { background: var(--accent-dim); color: var(--accent); border-color: rgba(200,137,26,0.25); }
+    .btn-edit:hover { background: rgba(200,137,26,0.15); }
+    .btn-del { background: var(--danger-dim); color: var(--danger); border-color: rgba(184,84,84,0.25); }
+    .btn-del:hover { background: rgba(184,84,84,0.15); }
+
+    .alert { padding: 0.85rem 1.25rem; border-radius: 10px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.5px; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; border: 1px solid; }
+    .alert-success { background: var(--green-dim); border-color: rgba(134,187,76,0.25); color: var(--green); }
+    .alert-error { background: var(--danger-dim); border-color: rgba(184,84,84,0.25); color: var(--danger); }
+
+    .empty-state { padding: 3rem 2rem; text-align: center; }
+    .empty-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--accent-dim); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; }
+    .empty-icon svg { width: 20px; height: 20px; stroke: var(--accent); fill: none; stroke-width: 1.5; }
+    .empty-title { font-size: 14px; font-weight: 500; color: var(--text-secondary); }
+    .empty-desc { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+    footer { border-top: 1px solid var(--border); padding: 1.5rem 0; margin-top: 3rem; display: flex; align-items: center; justify-content: space-between; }
+    .footer-id { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 1px; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+    .animate { animation: fadeUp 0.45s ease both; }
+    .delay-1 { animation-delay: 0.05s; } .delay-2 { animation-delay: 0.12s; } .delay-3 { animation-delay: 0.2s; }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+  <header class="animate">
+    <div class="topbar">
+      <a href="/petugas/dashboard" class="brand">
+        <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.35C16.5 22.15 20 17.25 20 12V6L12 2z"/></svg></div>
+        <div><div class="brand-name">Sortify</div><div class="brand-version">v1.0 · Petugas Panel</div></div>
+      </a>
+    </div>
+  </header>
+
+  <div class="page-head animate delay-1">
+    <div>
+      <div class="page-label">Petugas · Kelola Reward</div>
+      <h1 class="page-title">Manajemen <strong>Reward</strong></h1>
+    </div>
+  </div>
+
+  <div th:if="${success}" class="alert alert-success animate">
+    <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    <span th:text="${success}">Berhasil!</span>
+  </div>
+  <div th:if="${error}" class="alert alert-error animate">
+    <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+    <span th:text="${error}">Error</span>
+  </div>
+
+  <div class="stats-row animate delay-2">
+    <div class="stat-card"><div class="stat-label">Total Reward</div><div class="stat-num" style="color:var(--accent)" th:text="${#lists.size(daftarReward)}">0</div></div>
+    <div class="stat-card"><div class="stat-label">Total Stok</div><div class="stat-num" style="color:var(--green)" th:text="${totalStock}">0</div></div>
+    <div class="stat-card"><div class="stat-label">Stok Habis</div><div class="stat-num" style="color:var(--danger)" th:text="${outOfStock}">0</div></div>
+  </div>
+
+  <div class="toolbar animate delay-2">
+    <a href="/petugas/reward/manage/tambah" class="btn btn-primary">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Tambah Reward
+    </a>
+    <a href="/petugas/dashboard" class="btn btn-ghost">
+      <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Dashboard
+    </a>
+  </div>
+
+  <div class="table-wrap animate delay-3">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nama Barang</th>
+          <th>Poin</th>
+          <th>Stok</th>
+          <th class="col-actions">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="r : ${daftarReward}">
+          <td class="cell-id" th:text="'#' + ${r.id}">001</td>
+          <td class="cell-nama" th:text="${r.namaBarang}">Beras 5kg</td>
+          <td class="cell-poin" th:text="${r.pointNeeded} + ' poin'">1000</td>
+          <td class="cell-stock" th:style="${r.stock <= 0} ? 'color:var(--danger)' : (${r.stock <= 5} ? 'color:var(--accent)' : 'color:var(--green)')" th:text="${r.stock}">50</td>
+          <td>
+            <div class="cell-actions">
+              <a th:href="@{/petugas/reward/manage/edit/{id}(id=${r.id})}" class="btn-sm btn-edit">
+                <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Edit
+              </a>
+              <a th:href="@{/petugas/reward/manage/hapus/{id}(id=${r.id})}" class="btn-sm btn-del" onclick="return confirm('Hapus reward ini?')"
+                <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                Hapus
+              </a>
+            </div>
+          </td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(daftarReward)}">
+          <td colspan="5">
+            <div class="empty-state">
+              <div class="empty-icon"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+              <div class="empty-title">Belum ada reward</div>
+              <div class="empty-desc">Klik "Tambah Reward" untuk menambahkan item reward.</div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer class="animate delay-3">
+    <span class="footer-id">PETUGAS · KELOLA REWARD</span>
+    <span class="footer-id">SORTIFY v1.0</span>
+  </footer>
+</div>
+</body>
+</html>

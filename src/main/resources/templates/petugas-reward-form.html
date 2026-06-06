@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sortify — Form Reward</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0f0c; --surface: #141710; --surface-raised: #191610; --surface-hover: #1d1a10;
+      --border: rgba(200, 137, 26, 0.12); --border-hover: rgba(200, 137, 26, 0.30); --border-focus: rgba(200, 137, 26, 0.55);
+      --accent: #c8891a; --accent-dim: rgba(200, 137, 26, 0.08);
+      --green: #86bb4c; --green-dim: rgba(134, 187, 76, 0.1);
+      --danger: #b85454; --danger-dim: rgba(184, 84, 84, 0.1);
+      --text-primary: #ede8e0; --text-secondary: #948e80; --text-muted: #574f42;
+      --mono: 'Space Mono', monospace; --sans: 'DM Sans', sans-serif;
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text-primary); font-family: var(--sans); font-size: 15px; min-height: 100vh; }
+    body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(200,137,26,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(200,137,26,0.025) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; z-index: 0; }
+    .wrapper { position: relative; z-index: 1; max-width: 640px; margin: 0 auto; padding: 0 2rem 4rem; }
+    header { padding: 2rem 0 0; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+    .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .brand-icon { width: 36px; height: 36px; background: var(--green); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+    .brand-icon svg { width: 20px; height: 20px; fill: var(--bg); }
+    .brand-name { font-family: var(--mono); font-size: 18px; font-weight: 700; color: var(--green); }
+    .brand-version { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; }
+    .btn-back { display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 11px; color: var(--text-muted); text-decoration: none; border: 1px solid var(--border); border-radius: 7px; padding: 0.45rem 0.9rem; }
+    .btn-back:hover { border-color: var(--border-hover); color: var(--text-primary); }
+    .page-head { padding: 3rem 0 2rem; }
+    .page-label { font-family: var(--mono); font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--accent); display: flex; align-items: center; gap: 8px; margin-bottom: 0.6rem; }
+    .page-label::before { content: ''; display: block; width: 24px; height: 1px; background: var(--accent); }
+    .page-title { font-size: clamp(1.5rem, 3.5vw, 2rem); font-weight: 300; letter-spacing: -1px; }
+    .page-title strong { font-weight: 500; color: var(--accent); }
+
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 2rem; }
+    .form-group { margin-bottom: 1.5rem; }
+    .form-group label { display: block; font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; }
+    .form-control { width: 100%; padding: 0.85rem 1rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: var(--sans); font-size: 14px; transition: border-color 0.15s; }
+    .form-control:focus { outline: none; border-color: var(--border-focus); }
+    .form-control::placeholder { color: var(--text-muted); }
+    .hint { font-size: 11px; color: var(--text-muted); margin-top: 0.35rem; }
+
+    .form-actions { display: flex; gap: 10px; margin-top: 2rem; }
+    .btn { display: inline-flex; align-items: center; gap: 7px; padding: 0.65rem 1.25rem; font-family: var(--mono); font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; text-decoration: none; border-radius: 7px; border: 1px solid; cursor: pointer; transition: all 0.15s; }
+    .btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .btn-primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+    .btn-primary:hover { background: #d49a2e; }
+    .btn-ghost { background: transparent; color: var(--text-secondary); border-color: var(--border); }
+    .btn-ghost:hover { border-color: var(--border-hover); color: var(--text-primary); }
+
+    @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+    .animate { animation: fadeUp 0.45s ease both; }
+    .delay-1 { animation-delay: 0.05s; } .delay-2 { animation-delay: 0.12s; } .delay-3 { animation-delay: 0.2s; }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+  <header class="animate">
+    <div class="topbar">
+      <a href="/petugas/dashboard" class="brand">
+        <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.35C16.5 22.15 20 17.25 20 12V6L12 2z"/></svg></div>
+        <div><div class="brand-name">Sortify</div><div class="brand-version">v1.0 · Petugas Panel</div></div>
+      </a>
+      <a href="/petugas/reward/manage" class="btn-back">
+        <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Kembali
+      </a>
+    </div>
+  </header>
+
+  <div class="page-head animate delay-1">
+    <div class="page-label" th:text="${isEdit} ? 'Edit Reward' : 'Reward Baru'">Tambah Reward</div>
+    <h1 class="page-title" th:utext="${isEdit} ? 'Perbarui <strong>Reward</strong>' : 'Tambahkan <strong>Reward</strong> Baru'"><strong>Reward</strong> Baru</h1>
+  </div>
+
+  <div class="card animate delay-2">
+    <form th:action="${isEdit} ? @{/petugas/reward/manage/edit/{id}(id=${reward.id})} : @{/petugas/reward/manage/tambah}" method="post">
+      <div class="form-group">
+        <label for="namaBarang">Nama Barang</label>
+        <input type="text" id="namaBarang" name="namaBarang" class="form-control"
+               th:value="${reward?.namaBarang}" placeholder="Masukkan nama barang reward" required>
+        <div class="hint">Contoh: Beras 5kg, Minyak Goreng, Sembako</div>
+      </div>
+      <div class="form-group">
+        <label for="pointNeeded">Poin Dibutuhkan</label>
+        <input type="number" id="pointNeeded" name="pointNeeded" class="form-control"
+               th:value="${reward?.pointNeeded}" placeholder="Masukkan jumlah poin" required min="1" step="1">
+        <div class="hint">Jumlah poin yang harus dimiliki warga untuk menukarkan reward ini</div>
+      </div>
+      <div class="form-group">
+        <label for="stock">Stok</label>
+        <input type="number" id="stock" name="stock" class="form-control"
+               th:value="${reward?.stock}" placeholder="Masukkan jumlah stok" required min="0" step="1">
+        <div class="hint">Jumlah item yang tersedia (0 berarti stok habis)</div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          <th:block th:text="${isEdit} ? 'Simpan Perubahan' : 'Tambah Reward'">Simpan</th:block>
+        </button>
+        <a href="/petugas/reward/manage" class="btn btn-ghost">
+          <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          Batal
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <footer class="animate delay-3">
+    <span class="footer-id">PETUGAS · KELOLA REWARD</span>
+    <span class="footer-id">SORTIFY v1.0</span>
+  </footer>
+</div>
+</body>
+</html>

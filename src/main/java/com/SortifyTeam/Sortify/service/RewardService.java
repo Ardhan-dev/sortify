@@ -194,7 +194,7 @@ public class RewardService {
     }
 
     @Transactional
-    public PenukaranReward batalkanPenukaran(Long penukaranId) {
+    public PenukaranReward batalkanPenukaran(Long penukaranId, String alasan) {
         PenukaranReward penukaran = penukaranRepo.findById(penukaranId)
                 .orElseThrow(() -> new RuntimeException("Penukaran reward tidak ditemukan: " + penukaranId));
 
@@ -203,6 +203,7 @@ public class RewardService {
         }
 
         penukaran.setStatus(PenukaranReward.StatusPenukaran.DIBATALKAN);
+        penukaran.setAlasanTolak(alasan);
         penukaranRepo.save(penukaran);
 
         User warga = userRepo.findByIdWithLock(penukaran.getUser().getId())
@@ -218,14 +219,19 @@ public class RewardService {
         pointService.tambahPointHistory(warga, item.getPointNeeded(),
                 PointHistory.PointType.EARN,
                 "Refund poin pembatalan " + item.getNamaBarang());
+        String logDetail = "Penukaran " + item.getNamaBarang() + " dibatalkan — refund " + item.getPointNeeded() + " poin";
+        if (alasan != null && !alasan.isBlank()) {
+            logDetail += " Alasan: " + alasan;
+        }
         logAktivitasService.catatAktivitas(
             warga.getUsername(),
             warga.getRole().name(),
             "BATAL_REWARD",
-            "Penukaran " + item.getNamaBarang() + " dibatalkan — refund " + item.getPointNeeded() + " poin"
+            logDetail
         );
         notifikasiService.buatNotifikasi(warga,
-                "Penukaran " + item.getNamaBarang() + " dibatalkan oleh petugas. " + item.getPointNeeded() + " poin telah dikembalikan.");
+                "Penukaran " + item.getNamaBarang() + " dibatalkan oleh petugas. " + item.getPointNeeded() + " poin telah dikembalikan."
+                + (alasan != null && !alasan.isBlank() ? " Alasan: " + alasan : ""));
 
         return penukaran;
     }

@@ -30,6 +30,13 @@ public class User {
     @Column(nullable = false)
     private int totalPoints = 0;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AccountStatus accountStatus = AccountStatus.ACTIVE;
+
+    @Column(nullable = false)
+    private int warningCount = 0;
+
     private String fotoProfil;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
@@ -60,6 +67,10 @@ public class User {
 
     public enum Role {
         ADMIN, PETUGAS, WARGA
+    }
+
+    public enum AccountStatus {
+        ACTIVE, SUSPENDED, BANNED
     }
 }
 

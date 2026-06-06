@@ -9,6 +9,7 @@ import com.SortifyTeam.Sortify.service.FileStorageService;
 import com.SortifyTeam.Sortify.service.NotifikasiService;
 import com.SortifyTeam.Sortify.service.RewardService;
 import com.SortifyTeam.Sortify.service.TransaksiService;
+import com.SortifyTeam.Sortify.service.WarningService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -34,6 +35,7 @@ public class PetugasController {
     private final UserRepository userRepo;
     private final RewardService rewardService;
     private final StaffRepository staffRepo;
+    private final WarningService warningService;
 
     public PetugasController(TransaksiService transaksiService,
                              TransaksiRepository transaksiRepo,
@@ -42,7 +44,8 @@ public class PetugasController {
                              NotifikasiService notifikasiService,
                              UserRepository userRepo,
                              RewardService rewardService,
-                             StaffRepository staffRepo) {
+                             StaffRepository staffRepo,
+                             WarningService warningService) {
         this.transaksiService = transaksiService;
         this.transaksiRepo = transaksiRepo;
         this.fileStorageService = fileStorageService;
@@ -51,6 +54,7 @@ public class PetugasController {
         this.userRepo = userRepo;
         this.rewardService = rewardService;
         this.staffRepo = staffRepo;
+        this.warningService = warningService;
     }
 
     private Staff getCurrentStaff(Authentication auth) {
@@ -189,12 +193,37 @@ public class PetugasController {
 
     @PostMapping("/reward/batal/{id}")
     public String batalReward(@PathVariable Long id,
+                               @RequestParam("alasan") String alasan,
                                RedirectAttributes redirectAttributes) {
+        if (alasan == null || alasan.isBlank()) {
+            redirectAttributes.addFlashAttribute("error", "Alasan pembatalan harus diisi.");
+            return "redirect:/petugas/dashboard";
+        }
         try {
-            rewardService.batalkanPenukaran(id);
+            rewardService.batalkanPenukaran(id, alasan);
             redirectAttributes.addFlashAttribute("success", "Penukaran reward #" + id + " berhasil dibatalkan. Poin dan stok dikembalikan.");
         } catch (RuntimeException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/petugas/dashboard";
+    }
+
+    @PostMapping("/user/warning/{id}")
+    public String beriWarning(Authentication auth, @PathVariable Long id,
+                               @RequestParam("alasan") String alasan,
+                               RedirectAttributes redirectAttributes) {
+        if (alasan == null || alasan.isBlank()) {
+            redirectAttributes.addFlashAttribute("error", "Alasan peringatan harus diisi.");
+            return "redirect:/petugas/dashboard";
+        }
+        try {
+            User target = userRepo.findById(id)
+                    .orElseThrow(() -> new RuntimeException("User tidak ditemukan: " + id));
+            warningService.beriWarning(target, auth.getName(), alasan);
+            redirectAttributes.addFlashAttribute("success",
+                    "Peringatan berhasil diberikan ke " + target.getFullName() + ".");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Gagal memberi peringatan: " + e.getMessage());
         }
         return "redirect:/petugas/dashboard";
     }

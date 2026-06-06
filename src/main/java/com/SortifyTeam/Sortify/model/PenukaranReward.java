@@ -29,6 +29,9 @@ public class PenukaranReward {
 
     private String lokasi;
 
+    @Column(columnDefinition = "TEXT")
+    private String alasanTolak;
+
     @Column(unique = true, length = 6)
     private String kodePenukaran;
 

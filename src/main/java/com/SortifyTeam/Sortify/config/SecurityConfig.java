@@ -17,11 +17,14 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
     private final CustomAuthSuccessHandler successHandler;
+    private final CustomAuthFailureHandler failureHandler;
 
     public SecurityConfig(CustomUserDetailsService userDetailsService,
-                          CustomAuthSuccessHandler successHandler) {
+                          CustomAuthSuccessHandler successHandler,
+                          CustomAuthFailureHandler failureHandler) {
         this.userDetailsService = userDetailsService;
         this.successHandler = successHandler;
+        this.failureHandler = failureHandler;
     }
 
     @Bean
@@ -48,7 +51,7 @@ public class SecurityConfig {
                 .loginPage("/login")
                 .loginProcessingUrl("/login")
                 .successHandler(successHandler)
-                .failureUrl("/login?error=true")
+                .failureHandler(failureHandler)
                 .permitAll()
             )
             .logout(logout -> logout

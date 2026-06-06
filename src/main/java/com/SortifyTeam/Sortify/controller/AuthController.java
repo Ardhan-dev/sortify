@@ -43,10 +43,14 @@ public class AuthController {
     @GetMapping("/login")
     public String loginPage(@RequestParam(value = "error", required = false) String error,
                             @RequestParam(value = "logout", required = false) String logout,
+                            @RequestParam(value = "suspended", required = false) String suspended,
+                            @RequestParam(value = "banned", required = false) String banned,
                             Model model, HttpServletRequest request) {
         request.getSession();
         if (error != null) model.addAttribute("errorMsg", "Username atau password salah.");
         if (logout != null) model.addAttribute("logoutMsg", "Kamu berhasil keluar.");
+        if (suspended != null) model.addAttribute("errorMsg", "Akun Anda telah dinonaktifkan. Silakan hubungi admin untuk pengajuan aktivasi kembali.");
+        if (banned != null) model.addAttribute("errorMsg", "Akun Anda telah diblokir karena melanggar ketentuan. Tidak dapat login.");
         return "login";
     }
 

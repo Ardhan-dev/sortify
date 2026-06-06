@@ -10,6 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -33,6 +34,7 @@ public class AdminController {
     private final WargaRepository wargaRepo;
     private final KategoriSampahRepository kategoriRepo;
     private final LogAktivitasService logAktivitasService;
+    private final WarningService warningService;
 
     public AdminController(UserRepository userRepo,
                            RewardService rewardService,
@@ -41,7 +43,8 @@ public class AdminController {
                            PenukaranRewardRepository penukaranRepo,
                            WargaRepository wargaRepo,
                            KategoriSampahRepository kategoriRepo,
-                           LogAktivitasService logAktivitasService) {
+                           LogAktivitasService logAktivitasService,
+                           WarningService warningService) {
         this.userRepo = userRepo;
         this.rewardService = rewardService;
         this.transaksiRepo = transaksiRepo;
@@ -50,6 +53,7 @@ public class AdminController {
         this.wargaRepo = wargaRepo;
         this.kategoriRepo = kategoriRepo;
         this.logAktivitasService = logAktivitasService;
+        this.warningService = warningService;
     }
 
     @GetMapping("/dashboard")
@@ -222,5 +226,60 @@ public class AdminController {
         model.addAttribute("daftarLeaderboard", wargaList);
         model.addAttribute("totalBeratMap", totalBeratMap);
         return "leaderboard-view";
+    }
+
+    @GetMapping("/warnings")
+    public String halamanWarnings(Model model) {
+        log.info("[ACCESS] Admin membuka halaman warnings");
+        List<Warning> semua = warningService.getSemuaWarnings();
+        List<User> wargaList = userRepo.findByRole(User.Role.WARGA);
+        model.addAttribute("warningList", semua);
+        model.addAttribute("daftarWarga", wargaList);
+        return "admin-warnings";
+    }
+
+    @GetMapping("/user/warnings/{id}")
+    public String detailWarningsUser(@PathVariable Long id, Model model) {
+        User user = userRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("User tidak ditemukan: " + id));
+        List<Warning> warnings = warningService.getWarningsByUser(user);
+        model.addAttribute("targetUser", user);
+        model.addAttribute("warningList", warnings);
+        return "admin-user-warnings";
+    }
+
+    @PostMapping("/user/ban/{id}")
+    public String banUser(Authentication auth, @PathVariable Long id,
+                           @RequestParam("alasan") String alasan,
+                           RedirectAttributes redirectAttributes) {
+        if (alasan == null || alasan.isBlank()) {
+            redirectAttributes.addFlashAttribute("error", "Alasan ban harus diisi.");
+            return "redirect:/admin/warnings";
+        }
+        try {
+            User target = userRepo.findById(id)
+                    .orElseThrow(() -> new RuntimeException("User tidak ditemukan: " + id));
+            warningService.banUser(target, auth.getName(), alasan);
+            redirectAttributes.addFlashAttribute("success",
+                    "Akun " + target.getFullName() + " berhasil diblokir.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Gagal: " + e.getMessage());
+        }
+        return "redirect:/admin/warnings";
+    }
+
+    @PostMapping("/user/activate/{id}")
+    public String aktifkanUser(Authentication auth, @PathVariable Long id,
+                                RedirectAttributes redirectAttributes) {
+        try {
+            User target = userRepo.findById(id)
+                    .orElseThrow(() -> new RuntimeException("User tidak ditemukan: " + id));
+            warningService.activekanAkun(target, auth.getName());
+            redirectAttributes.addFlashAttribute("success",
+                    "Akun " + target.getFullName() + " berhasil diaktifkan kembali.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Gagal: " + e.getMessage());
+        }
+        return "redirect:/admin/warnings";
     }
 }
