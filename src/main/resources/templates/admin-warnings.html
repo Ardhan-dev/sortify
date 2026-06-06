@@ -168,6 +168,7 @@
                 Ban
               </button>
               <form th:if="${w.targetUser.accountStatus.name() == 'SUSPENDED'}" th:action="@{/admin/user/activate/{id}(id=${w.targetUser.id})}" method="post" style="display:inline;" onsubmit="return confirm('Aktifkan akun ' + '${w.targetUser.fullName}' + '?')">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                 <button type="submit" class="btn-sm btn-activate">
                   <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
                   Aktifkan
@@ -201,6 +202,7 @@
     <div class="modal-title" style="color:var(--danger);">Ban Akun</div>
     <div class="modal-desc">Blokir akun <strong id="banNama">—</strong> (<span id="banUsername" style="font-family:var(--mono);">—</span>) secara permanen.</div>
     <form id="formBan" method="post" style="margin:0;">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
       <div class="form-group">
         <label class="form-label">Alasan Ban <span style="color:var(--danger);">*</span></label>
         <textarea id="banAlasan" name="alasan" class="form-control" rows="4" placeholder="Contoh: Bot, spam, pelanggaran berat..." required></textarea>

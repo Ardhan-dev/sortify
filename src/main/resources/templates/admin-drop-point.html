@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sortify — Drop Point</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#0d0f0c;--surface:#141710;--surface-raised:#1a1e16;--surface-hover:#1d2219;--border:rgba(134,187,76,0.12);--border-hover:rgba(134,187,76,0.28);--accent:#86bb4c;--accent-dim:rgba(134,187,76,0.08);--amber:#c8891a;--amber-dim:rgba(200,137,26,0.08);--danger:#b85454;--danger-dim:rgba(184,84,84,0.1);--text-primary:#e8ede2;--text-secondary:#8a9480;--text-muted:#4e5749;--mono:'Space Mono',monospace;--sans:'DM Sans',sans-serif}
+    body{background:var(--bg);color:var(--text-primary);font-family:var(--sans);font-size:15px;min-height:100vh}
+    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(134,187,76,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(134,187,76,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+    .wrapper{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 2rem 4rem}
+    header{padding:2rem 0 0}
+    .topbar{display:flex;align-items:center;justify-content:space-between;padding-bottom:1.5rem;border-bottom:1px solid var(--border)}
+    .brand{display:flex;align-items:center;gap:12px;text-decoration:none}
+    .brand-icon{width:36px;height:36px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center}
+    .brand-icon svg{width:20px;height:20px;fill:var(--bg)}
+    .brand-name{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--accent)}
+    .brand-version{font-family:var(--mono);font-size:10px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase}
+    .page-head{padding:3rem 0 2rem}
+    .page-label{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:8px;margin-bottom:.6rem}
+    .page-label::before{content:'';display:block;width:24px;height:1px;background:var(--accent)}
+    .page-title{font-size:clamp(1.8rem,4vw,2.4rem);font-weight:300;letter-spacing:-1px}
+    .page-title strong{font-weight:500;color:var(--accent)}
+    .toolbar{display:flex;gap:10px;margin-bottom:1.25rem;flex-wrap:wrap}
+    .btn{display:inline-flex;align-items:center;gap:7px;padding:.5rem 1rem;font-family:var(--mono);font-size:11px;letter-spacing:.5px;text-transform:uppercase;text-decoration:none;border-radius:7px;border:1px solid;cursor:pointer;transition:all .15s}
+    .btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2}
+    .btn-primary{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+    .btn-primary:hover{background:#9bcf5a}
+    .btn-ghost{background:transparent;color:var(--text-secondary);border-color:var(--border)}
+    .btn-ghost:hover{border-color:var(--border-hover);color:var(--text-primary)}
+    .btn-sm{display:inline-flex;align-items:center;gap:4px;padding:.35rem .75rem;font-family:var(--mono);font-size:9px;letter-spacing:.5px;text-transform:uppercase;border-radius:6px;border:1px solid;cursor:pointer;text-decoration:none;transition:all .15s}
+    .btn-sm svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2}
+    .btn-edit{background:var(--accent-dim);color:var(--accent);border-color:rgba(134,187,76,0.25)}
+    .btn-edit:hover{background:rgba(134,187,76,0.15)}
+    .btn-del{background:var(--danger-dim);color:var(--danger);border-color:rgba(184,84,84,0.25)}
+    .btn-del:hover{background:rgba(184,84,84,0.15)}
+    .stats-row{display:flex;gap:12px;margin-bottom:1.5rem;flex-wrap:wrap}
+    .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.5rem;flex:1;min-width:140px}
+    .stat-label{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted)}
+    .stat-num{font-family:var(--mono);font-size:1.5rem;font-weight:700;margin-top:4px}
+    .table-wrap{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--surface);margin-bottom:1rem}
+    table{width:100%;border-collapse:collapse}
+    thead{background:var(--surface-raised);border-bottom:1px solid var(--border)}
+    thead th{padding:.8rem 1rem;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);font-weight:400;text-align:left;white-space:nowrap}
+    thead th.col-actions{width:160px;text-align:center}
+    tbody tr{border-bottom:1px solid var(--border)}
+    tbody tr:last-child{border-bottom:none}
+    tbody tr:hover{background:var(--surface-hover)}
+    tbody td{padding:.85rem 1rem;font-size:14px;vertical-align:middle}
+    .cell-mono{font-family:var(--mono);font-size:12px;color:var(--text-muted)}
+    .cell-nama{font-weight:500}
+    .cell-alamat{color:var(--text-secondary);font-size:13px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .badge{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:20px;font-family:var(--mono);font-size:10px;letter-spacing:.5px;border:1px solid}
+    .badge-aktif{background:var(--accent-dim);border-color:rgba(134,187,76,0.25);color:var(--accent)}
+    .badge-nonaktif{background:var(--danger-dim);border-color:rgba(184,84,84,0.25);color:var(--danger)}
+    .cell-actions{display:flex;justify-content:center;gap:6px}
+    .alert{padding:.85rem 1.25rem;border-radius:10px;font-family:var(--mono);font-size:11px;letter-spacing:.5px;margin-bottom:1rem;display:flex;align-items:center;gap:8px;border:1px solid}
+    .alert-success{background:var(--accent-dim);border-color:rgba(134,187,76,0.25);color:var(--accent)}
+    .alert-error{background:var(--danger-dim);border-color:rgba(184,84,84,0.25);color:var(--danger)}
+    .empty-state{padding:3rem 2rem;text-align:center}
+    .empty-icon{width:44px;height:44px;border-radius:12px;background:var(--accent-dim);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem}
+    .empty-icon svg{width:20px;height:20px;stroke:var(--accent);fill:none;stroke-width:1.5}
+    .empty-title{font-size:14px;font-weight:500;color:var(--text-secondary)}
+    .empty-desc{font-size:12px;color:var(--text-muted);margin-top:4px}
+    footer{border-top:1px solid var(--border);padding:1.5rem 0;margin-top:3rem;display:flex;align-items:center;justify-content:space-between}
+    .footer-id{font-family:var(--mono);font-size:10px;color:var(--text-muted);letter-spacing:1px}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+    .animate{animation:fadeUp .45s ease both}
+    .delay-1{animation-delay:.05s}.delay-2{animation-delay:.12s}.delay-3{animation-delay:.2s}.delay-4{animation-delay:.28s}
+
+    .modal-overlay{position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center}
+    .modal-overlay.active{display:flex}
+    .modal-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:2rem 2.5rem;max-width:560px;width:90%;animation:fadeUp .25s ease both;max-height:90vh;overflow-y:auto}
+    .modal-title{font-family:var(--mono);font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:.5rem}
+    .modal-desc{font-size:14px;color:var(--text-secondary);margin-bottom:1.25rem}
+    .form-group{margin-bottom:1rem}
+    .form-label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:.4rem}
+    .form-control{width:100%;padding:.65rem .9rem;background:var(--surface-raised);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-family:var(--sans);font-size:14px;outline:none}
+    .form-control:focus{border-color:var(--accent)}
+    .form-control[readonly]{opacity:.6;cursor:default}
+    .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:1.5rem}
+    .btn-modal-batal{display:inline-flex;align-items:center;gap:5px;padding:.5rem 1.2rem;font-family:var(--mono);font-size:10px;letter-spacing:.5px;text-transform:uppercase;border-radius:6px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-muted)}
+    .btn-modal-batal:hover{background:var(--surface-hover);color:var(--text-secondary)}
+    .btn-modal-konfirm{display:inline-flex;align-items:center;gap:5px;padding:.5rem 1.2rem;font-family:var(--mono);font-size:10px;letter-spacing:.5px;text-transform:uppercase;border-radius:6px;cursor:pointer;border:1px solid rgba(134,187,76,0.25);background:var(--accent-dim);color:var(--accent)}
+    .btn-modal-konfirm:hover{background:rgba(134,187,76,0.15)}
+    .coords-row{display:flex;gap:10px}
+    .coords-row .form-group{flex:1}
+    #mapForm{height:200px;border-radius:8px;border:1px solid var(--border);margin-bottom:1rem}
+    .map-hint{font-size:11px;color:var(--text-muted);margin-bottom:.75rem}
+  </style>
+</head>
+<body>
+<div class="wrapper">
+  <header class="animate">
+    <div class="topbar">
+      <a href="/admin/dashboard" class="brand">
+        <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.35C16.5 22.15 20 17.25 20 12V6L12 2z"/></svg></div>
+        <div><div class="brand-name">Sortify</div><div class="brand-version">v1.0 · Admin Panel</div></div>
+      </a>
+    </div>
+  </header>
+
+  <div class="page-head animate delay-1">
+    <div class="page-label">Admin · Lokasi Drop Point</div>
+    <h1 class="page-title">Kelola <strong>Drop Point</strong></h1>
+  </div>
+
+  <div th:if="${success}" class="alert alert-success animate"><span th:text="${success}">Berhasil</span></div>
+  <div th:if="${error}" class="alert alert-error animate"><span th:text="${error}">Error</span></div>
+
+  <div class="stats-row animate delay-2">
+    <div class="stat-card"><div class="stat-label">Total Drop Point</div><div class="stat-num" style="color:var(--accent)" th:text="${#lists.size(daftarDropPoint)}">0</div></div>
+    <div class="stat-card"><div class="stat-label">Aktif</div><div class="stat-num" style="color:var(--accent)" th:text="${totalAktif}">0</div></div>
+  </div>
+
+  <div class="toolbar animate delay-2">
+    <button class="btn btn-primary" onclick="openTambah()">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Tambah Drop Point
+    </button>
+    <a href="/admin/dashboard" class="btn btn-ghost">
+      <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Dashboard
+    </a>
+  </div>
+
+  <div class="table-wrap animate delay-3">
+    <table>
+      <thead>
+        <tr>
+          <th>Nama</th>
+          <th>Alamat</th>
+          <th>Koordinat</th>
+          <th>Status</th>
+          <th class="col-actions">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="d : ${daftarDropPoint}">
+          <td class="cell-nama" th:text="${d.nama}">Nama</td>
+          <td class="cell-alamat" th:text="${d.alamat ?: '—'}">Alamat</td>
+          <td class="cell-mono" th:text="${d.latitude != null and d.longitude != null} ? ${#numbers.formatDecimal(d.latitude, 0, 'COMMA', 5, 'POINT')} + ', ' + ${#numbers.formatDecimal(d.longitude, 0, 'COMMA', 5, 'POINT')} : '—'">-6.2088, 106.8456</td>
+          <td>
+            <span class="badge" th:classappend="${d.aktif} ? 'badge-aktif' : 'badge-nonaktif'" th:text="${d.aktif} ? 'AKTIF' : 'NONAKTIF'">AKTIF</span>
+          </td>
+          <td>
+            <div class="cell-actions">
+              <button class="btn-sm btn-edit" th:attr="data-id=${d.id}, data-nama=${d.nama}, data-alamat=${d.alamat ?: ''}, data-lat=${d.latitude}, data-lng=${d.longitude}, data-aktif=${d.aktif}" onclick="openEdit(this)">
+                <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Edit
+              </button>
+              <a th:href="@{/admin/drop-point/hapus/{id}(id=${d.id})}" class="btn-sm btn-del" onclick="return confirm('Nonaktifkan drop point ' + '${d.nama}' + '?')">
+                <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                Nonaktifkan
+              </a>
+            </div>
+          </td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(daftarDropPoint)}">
+          <td colspan="5">
+            <div class="empty-state">
+              <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+              <div class="empty-title">Belum ada drop point</div>
+              <div class="empty-desc">Klik "Tambah Drop Point" untuk menambahkan lokasi bank sampah.</div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer class="animate delay-4">
+    <span class="footer-id">ADMIN · DROP POINT</span>
+    <span class="footer-id">SORTIFY v1.0</span>
+  </footer>
+</div>
+
+<!-- MODAL TAMBAH / EDIT -->
+<div id="modalForm" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title" id="modalFormTitle">Tambah Drop Point</div>
+    <div class="modal-desc" id="modalFormDesc">Klik pada peta untuk menandai lokasi, atau isi koordinat manual.</div>
+    <form id="formDropPoint" method="post" style="margin:0;">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+      <input type="hidden" name="latitude" id="inputLat" step="any">
+      <input type="hidden" name="longitude" id="inputLng" step="any">
+      <div class="form-group">
+        <label class="form-label">Nama <span style="color:var(--danger);">*</span></label>
+        <input type="text" name="nama" id="inputNama" class="form-control" placeholder="Nama drop point" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Alamat</label>
+        <input type="text" name="alamat" id="inputAlamat" class="form-control" placeholder="Alamat lengkap">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Pilih Lokasi di Peta</label>
+        <div class="map-hint">Geser pin atau klik lokasi baru pada peta untuk menentukan koordinat.</div>
+        <div id="mapForm"></div>
+      </div>
+      <div class="coords-row">
+        <div class="form-group">
+          <label class="form-label">Latitude</label>
+          <input type="text" id="displayLat" class="form-control" readonly placeholder="Klik peta">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Longitude</label>
+          <input type="text" id="displayLng" class="form-control" readonly placeholder="Klik peta">
+        </div>
+      </div>
+      <div class="form-group" id="formGroupAktif" style="display:none;">
+        <label class="form-label">Status</label>
+        <select name="aktif" id="inputAktif" class="form-control">
+          <option value="true">Aktif</option>
+          <option value="false">Nonaktif</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-modal-batal" id="btnFormBatal">Batal</button>
+        <button type="submit" class="btn-modal-konfirm" id="btnFormSubmit">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  var mapForm, markerForm;
+
+  function initMapForm(lat, lng) {
+    if (mapForm) mapForm.remove();
+    lat = lat || -6.2088;
+    lng = lng || 106.8456;
+    mapForm = L.map('mapForm').setView([lat, lng], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(mapForm);
+    markerForm = L.marker([lat, lng], {draggable:true}).addTo(mapForm);
+    updateCoords(lat, lng);
+    markerForm.on('dragend', function(e) {
+      var pos = markerForm.getLatLng();
+      updateCoords(pos.lat, pos.lng);
+    });
+    mapForm.on('click', function(e) {
+      markerForm.setLatLng(e.latlng);
+      updateCoords(e.latlng.lat, e.latlng.lng);
+    });
+    setTimeout(function(){ mapForm.invalidateSize(); }, 100);
+  }
+
+  function updateCoords(lat, lng) {
+    document.getElementById('inputLat').value = lat;
+    document.getElementById('inputLng').value = lng;
+    document.getElementById('displayLat').value = lat.toFixed(5);
+    document.getElementById('displayLng').value = lng.toFixed(5);
+  }
+
+  function openTambah() {
+    document.getElementById('modalFormTitle').textContent = 'Tambah Drop Point';
+    document.getElementById('modalFormDesc').textContent = 'Klik pada peta untuk menandai lokasi baru.';
+    document.getElementById('formDropPoint').action = '/admin/drop-point/simpan';
+    document.getElementById('formGroupAktif').style.display = 'none';
+    document.getElementById('inputNama').value = '';
+    document.getElementById('inputAlamat').value = '';
+    document.getElementById('btnFormSubmit').textContent = 'Simpan';
+    document.getElementById('modalForm').classList.add('active');
+    initMapForm(-6.2088, 106.8456);
+  }
+
+  function openEdit(btn) {
+    var id = btn.getAttribute('data-id');
+    var nama = btn.getAttribute('data-nama');
+    var alamat = btn.getAttribute('data-alamat');
+    var lat = btn.getAttribute('data-lat');
+    var lng = btn.getAttribute('data-lng');
+    var aktif = btn.getAttribute('data-aktif');
+    document.getElementById('modalFormTitle').textContent = 'Edit Drop Point';
+    document.getElementById('modalFormDesc').textContent = 'Sesuaikan lokasi atau ubah informasi drop point.';
+    document.getElementById('formDropPoint').action = '/admin/drop-point/edit/' + id;
+    document.getElementById('formGroupAktif').style.display = 'block';
+    document.getElementById('inputNama').value = nama;
+    document.getElementById('inputAlamat').value = alamat;
+    document.getElementById('inputAktif').value = aktif;
+    document.getElementById('btnFormSubmit').textContent = 'Perbarui';
+    document.getElementById('modalForm').classList.add('active');
+    initMapForm(lat ? parseFloat(lat) : -6.2088, lng ? parseFloat(lng) : 106.8456);
+  }
+
+  document.getElementById('btnFormBatal').addEventListener('click', function() {
+    document.getElementById('modalForm').classList.remove('active');
+    if (mapForm) mapForm.remove();
+  });
+  document.getElementById('modalForm').addEventListener('click', function(e) {
+    if (e.target === this) { this.classList.remove('active'); if (mapForm) mapForm.remove(); }
+  });
+</script>
+</body>
+</html>

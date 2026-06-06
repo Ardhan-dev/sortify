@@ -249,6 +249,7 @@
   <div class="modal-box">
     <div class="modal-title" id="modal-kategori-title">Tambah Kategori</div>
     <form method="post" th:action="@{/admin/kamus/kategori/tambah}" id="form-kategori">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
       <input type="hidden" name="idKategori" id="kategori-id">
       <div class="field-group">
         <label class="field-label" for="kategori-nama">Nama Kategori <span class="required">*</span></label>
@@ -274,6 +275,7 @@
   <div class="modal-box">
     <div class="modal-title" id="modal-item-title">Tambah Item</div>
     <form method="post" th:action="@{/admin/kamus/item/tambah}" id="form-item">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
       <input type="hidden" name="idItem" id="item-id">
       <div class="field-group">
         <label class="field-label" for="item-nama">Nama Item <span class="required">*</span></label>

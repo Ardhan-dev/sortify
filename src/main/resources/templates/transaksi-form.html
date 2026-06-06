@@ -301,6 +301,7 @@
 
     <div class="form-body">
       <form th:action="${transaksi.idTransaksi != null} ? @{/admin/transaksi/edit/{id}(id=${transaksi.idTransaksi})} : @{/admin/transaksi/tambah}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
         <!-- ── SECTION: PELAKU ── -->
         <div class="section-label">Pelaku Transaksi</div>

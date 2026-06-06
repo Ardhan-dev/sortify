@@ -299,6 +299,7 @@
           <td>
             <div class="cell-actions">
               <form th:action="@{/petugas/transaksi/proses/{id}(id=${t.idTransaksi})}" method="post" style="display:inline;" onsubmit="return confirm('Yakin ingin memproses transaksi #' + ${t.idTransaksi} + '?')">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                 <button type="submit" class="btn-sm btn-acc">
                   <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
                   Proses

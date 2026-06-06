@@ -31,6 +31,12 @@ public class Warga {
     @JsonIgnore
     private User user;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "drop_point_id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private DropPoint dropPoint;
+
     @Transient
     public String getPangkat() {
         if (user == null) return "Bronze (Eco-Starter)";

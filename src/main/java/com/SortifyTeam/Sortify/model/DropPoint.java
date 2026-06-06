@@ -16,5 +16,9 @@ public class DropPoint {
 
     private String alamat;
 
+    private Double latitude;
+
+    private Double longitude;
+
     private boolean aktif = true;
 }

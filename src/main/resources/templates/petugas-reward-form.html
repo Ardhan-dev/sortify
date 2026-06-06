@@ -79,6 +79,7 @@
 
   <div class="card animate delay-2">
     <form th:action="${isEdit} ? @{/petugas/reward/manage/edit/{id}(id=${reward.id})} : @{/petugas/reward/manage/tambah}" method="post">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
       <div class="form-group">
         <label for="namaBarang">Nama Barang</label>
         <input type="text" id="namaBarang" name="namaBarang" class="form-control"

@@ -9,6 +9,7 @@ public class RegisterDTO {
     private String namaBelakang;
     private String alamat;
     private String noTelepon;
+    private Long dropPointId;
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
     public String getPassword() { return password; }
@@ -23,5 +24,7 @@ public class RegisterDTO {
     public void setAlamat(String alamat) { this.alamat = alamat; }
     public String getNoTelepon() { return noTelepon; }
     public void setNoTelepon(String noTelepon) { this.noTelepon = noTelepon; }
+    public Long getDropPointId() { return dropPointId; }
+    public void setDropPointId(Long dropPointId) { this.dropPointId = dropPointId; }
 }
 

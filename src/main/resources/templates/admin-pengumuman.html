@@ -187,6 +187,7 @@
   <div class="modal-box">
     <div class="modal-title" id="modal-title">Tambah Pengumuman</div>
     <form method="post" th:action="@{/admin/pengumuman/tambah}" id="form-pengumuman">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
       <div class="field-group">
         <label class="field-label" for="judul">Judul <span class="required">*</span></label>
         <input type="text" id="judul" name="judul" class="field-input" placeholder="Judul pengumuman..." required>

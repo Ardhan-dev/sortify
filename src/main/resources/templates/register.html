@@ -155,6 +155,7 @@
     </div>
 
     <form th:action="@{/register}" method="post">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
       <div class="divider-text">Akun</div>
 
@@ -208,10 +209,16 @@
                th:value="${formData.noTelepon}">
       </div>
 
-      <div class="divider-text">Lokasi Bank Sampah</div>
-      <div id="map" style="height:180px; border-radius:8px; border:1px solid var(--sortify-border); margin-bottom:1rem;"></div>
+      <div class="divider-text">Pilih Drop Point</div>
+      <div style="margin-bottom:0.75rem;">
+        <select id="dropPointSelect" name="dropPointId" class="form-control" required>
+          <option value="">— Pilih Drop Point —</option>
+          <option th:each="dp : ${dropPointList}" th:value="${dp.id}" th:text="${dp.nama} + (${dp.alamat} ? ' — ' + ${dp.alamat} : '')" th:attr="data-lat=${dp.latitude}, data-lng=${dp.longitude}">Nama</option>
+        </select>
+      </div>
+      <div id="map" style="height:200px; border-radius:8px; border:1px solid var(--sortify-border); margin-bottom:1rem;"></div>
       <p style="font-size:11px;color:var(--sortify-muted-text);margin-bottom:1rem;">
-        Bank Sampah Sortify pusat — lokasi penyerahan sampah.
+        Klik marker pada peta untuk memilih drop point terdekat.
       </p>
 
       <button type="submit" class="btn-submit mt-2">Daftar</button>
@@ -238,13 +245,59 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-  var map = L.map('map').setView([-6.2088, 106.8456], 13);
+  var selectEl = document.getElementById('dropPointSelect');
+  var dropPoints = Array.from(selectEl.options).map(function(opt) {
+    var lat = parseFloat(opt.getAttribute('data-lat'));
+    var lng = parseFloat(opt.getAttribute('data-lng'));
+    return {
+      id: opt.value,
+      nama: opt.value === '' ? 'Pilih Drop Point' : opt.text.split(' — ')[0],
+      lat: isNaN(lat) ? -6.2088 : lat,
+      lng: isNaN(lng) ? 106.8456 : lng
+    };
+  });
+
+  var map = L.map('map').setView([-6.2088, 106.8456], 12);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap'
   }).addTo(map);
-  L.marker([-6.2088, 106.8456]).addTo(map)
-    .bindPopup('<strong>Bank Sampah Sortify Pusat</strong><br>Jl. Contoh No. 123, Jakarta')
-    .openPopup();
+
+  var markerLayer = L.layerGroup().addTo(map);
+
+  var defaultIcon = L.icon({
+    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+    iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34]
+  });
+  var selectedIcon = L.icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
+    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+    iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34]
+  });
+
+  function renderMarkers() {
+    markerLayer.clearLayers();
+    dropPoints.forEach(function(dp) {
+      if (!dp.lat || !dp.lng) return;
+      var isSelected = selectEl.value == dp.id;
+      var marker = L.marker([dp.lat, dp.lng], {icon: isSelected ? selectedIcon : defaultIcon})
+        .addTo(markerLayer)
+        .bindPopup('<strong>' + dp.nama + '</strong>');
+      marker.on('click', function() {
+        selectEl.value = dp.id;
+        renderMarkers();
+      });
+    });
+    // Fit bounds if we have real points
+    var realPoints = dropPoints.filter(function(dp){ return dp.id !== '' && dp.lat && dp.lng; });
+    if (realPoints.length > 0) {
+      var group = L.featureGroup(realPoints.map(function(dp){ return L.marker([dp.lat, dp.lng]); }));
+      map.fitBounds(group.getBounds().pad(0.15));
+    }
+  }
+
+  selectEl.addEventListener('change', renderMarkers);
+  renderMarkers();
 </script>
 </body>
 </html>

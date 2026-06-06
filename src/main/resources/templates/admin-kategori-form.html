@@ -82,6 +82,7 @@
       <span class="form-card-header-title" th:text="${isEdit} ? 'Edit data kategori sampah' : 'Isi data kategori sampah baru'">Form</span>
     </div>
     <form th:action="${isEdit} ? @{/admin/kategori-sampah/edit/{id}(id=${kategori.idKategori})} : @{/admin/kategori-sampah/tambah}" method="post">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
       <div class="form-body">
         <div class="field-group">
           <label class="field-label" for="namaKategori">Nama Kategori <span class="required">*</span></label>

@@ -1,8 +1,10 @@
 package com.SortifyTeam.Sortify.controller;
 
 import com.SortifyTeam.Sortify.dto.RegisterDTO;
+import com.SortifyTeam.Sortify.model.DropPoint;
 import com.SortifyTeam.Sortify.model.User;
 import com.SortifyTeam.Sortify.model.Warga;
+import com.SortifyTeam.Sortify.repository.DropPointRepository;
 import com.SortifyTeam.Sortify.repository.UserRepository;
 import com.SortifyTeam.Sortify.repository.WargaRepository;
 import com.SortifyTeam.Sortify.service.LogAktivitasService;
@@ -20,12 +22,17 @@ public class AuthController {
     private final WargaRepository wargaRepo;
     private final PasswordEncoder passwordEncoder;
     private final LogAktivitasService logAktivitasService;
+    private final DropPointRepository dropPointRepo;
 
-    public AuthController(UserRepository userRepo, WargaRepository wargaRepo, PasswordEncoder passwordEncoder, LogAktivitasService logAktivitasService) {
+    public AuthController(UserRepository userRepo, WargaRepository wargaRepo,
+                          PasswordEncoder passwordEncoder,
+                          LogAktivitasService logAktivitasService,
+                          DropPointRepository dropPointRepo) {
         this.userRepo = userRepo;
         this.wargaRepo = wargaRepo;
         this.passwordEncoder = passwordEncoder;
         this.logAktivitasService = logAktivitasService;
+        this.dropPointRepo = dropPointRepo;
     }
 
     @GetMapping("/")
@@ -58,6 +65,7 @@ public class AuthController {
     public String registerPage(Model model, HttpServletRequest request) {
         request.getSession();
         model.addAttribute("formData", new RegisterDTO());
+        model.addAttribute("dropPointList", dropPointRepo.findByAktifTrueOrderByNamaAsc());
         return "register";
     }
 
@@ -89,6 +97,9 @@ public class AuthController {
         warga.setAlamat(dto.getAlamat() != null && !dto.getAlamat().isBlank() ? dto.getAlamat() : "-");
         warga.setNoHp(dto.getNoTelepon() != null && !dto.getNoTelepon().isBlank() ? dto.getNoTelepon() : "-");
         warga.setUser(user);
+        if (dto.getDropPointId() != null) {
+            dropPointRepo.findById(dto.getDropPointId()).ifPresent(warga::setDropPoint);
+        }
         wargaRepo.save(warga);
 
         logAktivitasService.catatAktivitas(
