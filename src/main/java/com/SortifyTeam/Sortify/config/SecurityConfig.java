@@ -42,7 +42,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/login", "/login/**").permitAll()
                 .requestMatchers("/register", "/register/**").permitAll()
-                .requestMatchers("/", "/kamus-sampah").permitAll()
+                .requestMatchers("/", "/kamus-sampah", "/manual-guide").permitAll()
                 .requestMatchers("/error").permitAll()
                 .requestMatchers("/css/**").permitAll()
                 .requestMatchers("/js/**").permitAll()
