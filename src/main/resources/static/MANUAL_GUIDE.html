@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Sortify — Manual Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0d0f0c;--surface:#141710;--surface-raised:#1a1e16;--border:rgba(134,187,76,0.12);--border-hover:rgba(134,187,76,0.28);--accent:#86bb4c;--accent-dim:rgba(134,187,76,0.08);--text-primary:#e8ede2;--text-secondary:#8a9480;--text-muted:#4e5749;--amber:#c8891a;--teal:#2a9c7a;--danger:#c84a4a;--mono:'Space Mono',monospace;--sans:'DM Sans',sans-serif}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text-primary);font-family:var(--sans);font-size:15px;line-height:1.7;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(134,187,76,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(134,187,76,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+.wrapper{position:relative;z-index:1;max-width:820px;margin:0 auto;padding:0 2rem}
+header{padding:3rem 0 2rem;text-align:center}
+header h1{font-size:2.2rem;font-weight:300;letter-spacing:-1px}
+header h1 strong{font-weight:500;color:var(--accent)}
+header p{color:var(--text-secondary);font-size:14px;margin-top:6px;font-weight:300}
+.toc{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem 2rem;margin-bottom:3rem}
+.toc h2{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:1rem}
+.toc a{display:block;padding:6px 0;color:var(--text-secondary);text-decoration:none;font-size:14px;transition:color 0.15s;border-bottom:1px solid var(--border)}
+.toc a:last-child{border-bottom:none}
+.toc a:hover{color:var(--accent)}
+.toc .num{color:var(--text-muted);font-family:var(--mono);font-size:11px;margin-right:8px}
+.section{margin-bottom:3rem}
+.section h2{font-family:var(--mono);font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);margin-bottom:1.5rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.section h2::before{content:'';display:block;width:20px;height:1px;background:var(--accent)}
+.section h3{font-size:1.05rem;font-weight:500;color:var(--text-primary);margin:1.5rem 0 0.75rem;letter-spacing:-0.3px}
+.section h4{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin:1rem 0 0.5rem}
+.section p{color:var(--text-secondary);font-size:14px;margin-bottom:0.75rem;font-weight:300}
+.section ul,.section ol{padding-left:1.5rem;margin-bottom:1rem}
+.section li{color:var(--text-secondary);font-size:14px;margin-bottom:4px;font-weight:300}
+.section li strong{color:var(--text-primary);font-weight:500}
+table{width:100%;border-collapse:collapse;margin:1rem 0 1.5rem;font-size:13px}
+thead{background:var(--surface-raised)}
+th{padding:10px 14px;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);font-weight:400;text-align:left;border-bottom:1px solid var(--border)}
+td{padding:10px 14px;color:var(--text-secondary);border-bottom:1px solid var(--border)}
+tr:hover td{background:var(--surface)}
+code{font-family:var(--mono);font-size:12px;background:var(--surface-raised);padding:2px 7px;border-radius:4px;color:var(--accent);border:1px solid var(--border)}
+pre{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;margin:0.75rem 0 1.25rem;overflow-x:auto;font-size:13px;line-height:1.6}
+pre code{background:none;border:none;padding:0;color:var(--text-primary);font-size:13px}
+hr{border:none;border-top:1px solid var(--border);margin:2.5rem 0}
+.tag{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;letter-spacing:0.5px;padding:2px 8px;border-radius:4px}
+.tag-green{background:var(--accent-dim);color:var(--accent);border:1px solid rgba(134,187,76,0.2)}
+.tag-amber{background:rgba(200,137,26,0.08);color:var(--amber);border:1px solid rgba(200,137,26,0.2)}
+.tag-teal{background:rgba(42,156,122,0.08);color:var(--teal);border:1px solid rgba(42,156,122,0.2)}
+.tag-red{background:rgba(200,74,74,0.08);color:var(--danger);border:1px solid rgba(200,74,74,0.2)}
+.badge{display:inline-block;padding:1px 10px;border-radius:20px;font-family:var(--mono);font-size:9px;letter-spacing:0.5px}
+.badge-publik{background:var(--accent-dim);color:var(--accent);border:1px solid rgba(134,187,76,0.2)}
+.badge-warga{background:rgba(42,156,122,0.1);color:var(--teal);border:1px solid rgba(42,156,122,0.2)}
+.badge-petugas{background:rgba(200,137,26,0.1);color:var(--amber);border:1px solid rgba(200,137,26,0.2)}
+.badge-admin{background:rgba(200,74,74,0.08);color:var(--danger);border:1px solid rgba(200,74,74,0.2)}
+footer{border-top:1px solid var(--border);padding:2rem 0;margin-top:3rem;text-align:center;font-family:var(--mono);font-size:10px;color:var(--text-muted);letter-spacing:1px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.animate{animation:fadeUp 0.45s ease both}
+@media(max-width:640px){.wrapper{padding:0 1.25rem}header h1{font-size:1.6rem}}
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+<header class="animate">
+  <h1>Sortify — <strong>Manual Guide</strong></h1>
+  <p>Aplikasi Bank Sampah Digital &bullet; Spring Boot + Thymeleaf</p>
+</header>
+
+<div class="toc animate">
+  <h2>Daftar Isi</h2>
+  <a href="#s1"><span class="num">01</span> Panduan Deploy</a>
+  <a href="#s2"><span class="num">02</span> Akses &amp; Login</a>
+  <a href="#s3"><span class="num">03</span> Panduan Warga</a>
+  <a href="#s4"><span class="num">04</span> Panduan Petugas</a>
+  <a href="#s5"><span class="num">05</span> Panduan Admin</a>
+  <a href="#s6"><span class="num">06</span> Fitur Real-time WebSocket</a>
+  <a href="#s7"><span class="num">07</span> Landing Page</a>
+  <a href="#s8"><span class="num">08</span> Struktur Database</a>
+</div>
+
+<!-- 1 -->
+<div class="section animate" id="s1">
+<h2>Panduan Deploy</h2>
+
+<h3>Prasyarat Server</h3>
+<table>
+<thead><tr><th>Komponen</th><th>Versi Min</th></tr></thead>
+<tbody>
+<tr><td>Java</td><td>21</td></tr>
+<tr><td>MySQL</td><td>8.0</td></tr>
+<tr><td>Nginx</td><td>1.18+</td></tr>
+<tr><td>RAM</td><td>1 GB (min 512 MB)</td></tr>
+</tbody>
+</table>
+
+<h3>Build Aplikasi</h3>
+<pre><code>cd /home/user/sortify
+chmod +x mvnw
+./mvnw clean package -DskipTests
+# Hasil: target/Sortify-0.0.1-SNAPSHOT.jar</code></pre>
+
+<h3>Siapkan Database</h3>
+<pre><code>CREATE DATABASE IF NOT EXISTS db_sortify CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'ardhan_user'@'localhost' IDENTIFIED BY 'Admin123';
+GRANT ALL PRIVILEGES ON db_sortify.* TO 'ardhan_user'@'localhost';
+FLUSH PRIVILEGES;</code></pre>
+
+<h3>Jalankan Aplikasi</h3>
+<pre><code>java -jar target/Sortify-0.0.1-SNAPSHOT.jar \
+  --spring.datasource.username=ardhan_user \
+  --spring.datasource.password=Admin123 \
+  --spring.datasource.url='jdbc:mysql://localhost:3306/db_sortify?createDatabaseIfNotExist=true&serverTimezone=UTC'</code></pre>
+<p>Verifikasi: <code>curl -v http://localhost:8081/</code> &rarr; harus balik HTML landing page.</p>
+
+<h3>Konfigurasi Nginx (Wajib untuk WebSocket)</h3>
+<p>File <code>/etc/nginx/sites-available/sortify.ardhan-dev.com</code>:</p>
+<pre><code>server {
+    listen 80;
+    server_name sortify.ardhan-dev.com;
+    client_max_body_size 10M;
+
+    location / {
+        proxy_pass http://127.0.0.1:8081;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # WAJIB: WebSocket / SockJS
+    location /ws {
+        proxy_pass http://127.0.0.1:8081;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location /uploads/ {
+        proxy_pass http://127.0.0.1:8081;
+        proxy_set_header Host $host;
+    }
+}</code></pre>
+<pre><code>sudo ln -s /etc/nginx/sites-available/sortify.ardhan-dev.com /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx</code></pre>
+
+<h3>Troubleshooting 502 Bad Gateway</h3>
+<table>
+<thead><tr><th>Problem</th><th>Penyebab</th><th>Solusi</th></tr></thead>
+<tbody>
+<tr><td><code>connect() failed (111)</code></td><td>Spring Boot tidak jalan</td><td><code>ps aux | grep java</code></td></tr>
+<tr><td>Port 8081 tidak ada</td><td>App crash startup</td><td><code>java -jar ... 2&gt;&amp;1 | tail -60</code></td></tr>
+<tr><td><code>Access denied</code></td><td>Kredensial MySQL salah</td><td><code>mysql -u ardan_user -p</code> test manual</td></tr>
+<tr><td><code>Unknown database</code></td><td>DB belum dibuat</td><td><code>CREATE DATABASE db_sortify;</code></td></tr>
+<tr><td><code>ClassNotFoundException</code></td><td>JAR corrupt</td><td>Ulangi <code>mvn clean package</code></td></tr>
+</tbody>
+</table>
+
+<h3>Systemd Service (Opsional)</h3>
+<p>File <code>/etc/systemd/system/sortify.service</code>:</p>
+<pre><code>[Unit]
+Description=Sortify Spring Boot App
+After=network.target mysql.service
+
+[Service]
+User=root
+WorkingDirectory=/root/sortify
+ExecStart=/usr/bin/java -jar /root/sortify/target/Sortify-0.0.1-SNAPSHOT.jar \
+  --spring.datasource.username=ardhan_user \
+  --spring.datasource.password=Admin123 \
+  --spring.datasource.url='jdbc:mysql://localhost:3306/db_sortify?createDatabaseIfNotExist=true&serverTimezone=UTC'
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+<pre><code>sudo systemctl daemon-reload
+sudo systemctl enable sortify
+sudo systemctl start sortify
+sudo systemctl status sortify</code></pre>
+</div>
+
+<hr>
+
+<!-- 2 -->
+<div class="section" id="s2">
+<h2>Akses &amp; Login</h2>
+
+<h3>Akun Default (Seeder)</h3>
+<table>
+<thead><tr><th>Role</th><th>Username</th><th>Password</th></tr></thead>
+<tbody>
+<tr><td><span class="badge badge-admin">ADMIN</span></td><td><code>admin</code></td><td><code>12345</code></td></tr>
+<tr><td><span class="badge badge-petugas">PETUGAS</span></td><td><code>petugas</code></td><td><code>12345</code></td></tr>
+<tr><td><span class="badge badge-warga">WARGA</span></td><td><code>warga</code></td><td><code>12345</code></td></tr>
+</tbody>
+</table>
+
+<h3>URL Routes</h3>
+<table>
+<thead><tr><th>URL</th><th>Deskripsi</th><th>Akses</th></tr></thead>
+<tbody>
+<tr><td><code>/</code></td><td>Landing page</td><td><span class="badge badge-publik">PUBLIK</span></td></tr>
+<tr><td><code>/kamus-sampah</code></td><td>Kamus sampah + poin</td><td><span class="badge badge-publik">PUBLIK</span></td></tr>
+<tr><td><code>/login</code></td><td>Login</td><td><span class="badge badge-publik">PUBLIK</span></td></tr>
+<tr><td><code>/register</code></td><td>Registrasi warga</td><td><span class="badge badge-publik">PUBLIK</span></td></tr>
+<tr><td><code>/warga/dashboard</code></td><td>Dashboard warga</td><td><span class="badge badge-warga">WARGA</span></td></tr>
+<tr><td><code>/warga/transaksi/tambah</code></td><td>Form setor sampah</td><td><span class="badge badge-warga">WARGA</span></td></tr>
+<tr><td><code>/warga/reward</code></td><td>Tukar reward</td><td><span class="badge badge-warga">WARGA</span></td></tr>
+<tr><td><code>/petugas/dashboard</code></td><td>Dashboard petugas</td><td><span class="badge badge-petugas">PETUGAS</span></td></tr>
+<tr><td><code>/admin/dashboard</code></td><td>Dashboard admin</td><td><span class="badge badge-admin">ADMIN</span></td></tr>
+</tbody>
+</table>
+</div>
+
+<hr>
+
+<!-- 3 -->
+<div class="section" id="s3">
+<h2>Panduan Warga</h2>
+
+<h3>Registrasi</h3>
+<ol>
+<li>Buka <code>/register</code></li>
+<li>Isi: Nama, Username, Password, Alamat, No HP</li>
+<li>Pilih <strong>Drop Point</strong> terdekat</li>
+<li>Klik <strong>Daftar</strong> &rarr; redirect ke login</li>
+</ol>
+
+<h3>Landing Page &amp; Kamus Sampah (Tanpa Login)</h3>
+<ul>
+<li><strong>Landing page</strong> (<code>/</code>): info aplikasi, drop point aktif, jam operasional</li>
+<li><strong>Kamus Sampah</strong> (<code>/kamus-sampah</code>): jenis sampah, poin per kg, instruksi penanganan</li>
+</ul>
+
+<h3>Dashboard Warga</h3>
+<p>Setelah login di <code>/warga/dashboard</code>:</p>
+<ul>
+<li><strong>Profil</strong>: foto, nama, poin, pangkat (Bronze/Silver/Gold/Platinum)</li>
+<li><strong>Notifikasi real-time</strong> &mdash; muncul otomatis tanpa refresh</li>
+<li><strong>Poin update real-time</strong> &mdash; angka berubah langsung</li>
+<li><strong>Riwayat transaksi</strong>: filter by status, klik lihat detail, unduh PDF struk</li>
+<li>Tombol <strong>Lapor Sampah</strong> &rarr; setor baru</li>
+<li>Tombol <strong>Reward</strong> &rarr; tukar poin</li>
+</ul>
+
+<h3>Setor Sampah</h3>
+<ol>
+<li>Klik <strong>Lapor Sampah</strong></li>
+<li>Upload foto sampah</li>
+<li>Pilih kategori sampah + masukkan estimasi berat</li>
+<li>Pilih lokasi drop point</li>
+<li>Klik Kirim &rarr; notifikasi real-time ke petugas</li>
+<li>Status: <span class="tag tag-amber">PENDING</span> &rarr; <span class="tag tag-teal">DIPROSES</span> &rarr; <span class="tag tag-green">SELESAI</span></li>
+</ol>
+
+<h3>Tukar Reward</h3>
+<ol>
+<li>Buka <code>/warga/reward</code></li>
+<li>Lihat daftar reward + harga poin + stok</li>
+<li>Klik <strong>Tukar</strong> &rarr; dapat kode AMDAL 6 digit</li>
+<li>Ambil reward di Kantor Sortify dengan menunjukkan kode</li>
+</ol>
+
+<h3>Fitur Real-time untuk Warga</h3>
+<ul>
+<li><strong>Notifikasi</strong> muncul sebagai snackbar (pojok kanan bawah)</li>
+<li><strong>Poin</strong> langsung update di profil tanpa refresh halaman</li>
+<li>Saat transaksi selesai &rarr; notifikasi + poin bertambah otomatis</li>
+</ul>
+</div>
+
+<hr>
+
+<!-- 4 -->
+<div class="section" id="s4">
+<h2>Panduan Petugas</h2>
+
+<h3>Dashboard Petugas</h3>
+<p><code>/petugas/dashboard</code> menampilkan:</p>
+<ul>
+<li><strong>Statistik</strong>: jumlah pending, diproses, reward pending</li>
+<li><strong>Transaksi Pending</strong>: daftar laporan warga menunggu diproses</li>
+<li><strong>Transaksi Diproses</strong>: yang sedang ditimbang</li>
+<li><strong>Penukaran Reward Pending</strong>: klaim reward dari warga</li>
+<li><strong>Riwayat</strong>: transaksi selesai/ditolak + reward selesai/dibatalkan</li>
+</ul>
+
+<h3>Proses Transaksi</h3>
+<h4>Menerima laporan:</h4>
+<ol>
+<li>Klik <strong>Proses</strong> pada transaksi PENDING</li>
+<li>Status berubah &rarr; DIPROSES</li>
+<li>Warga dapat notifikasi real-time</li>
+</ol>
+
+<h4>Menimbang &amp; menyelesaikan:</h4>
+<ol>
+<li>Klik <strong>Selesai</strong> pada transaksi DIPROSES</li>
+<li>Input <strong>berat final</strong> untuk setiap kategori</li>
+<li>Upload <strong>foto bukti timbangan</strong></li>
+<li>Klik Konfirmasi &rarr; poin otomatis ditambahkan ke warga</li>
+</ol>
+
+<h4>Menolak laporan:</h4>
+<ol>
+<li>Klik <strong>Tolak</strong></li>
+<li>Isi alasan penolakan</li>
+<li>Warga dapat notifikasi real-time</li>
+</ol>
+
+<h3>Konfirmasi Reward</h3>
+<ol>
+<li>Klik <strong>Konfirmasi</strong> pada penukaran reward</li>
+<li>Scan / ketik <strong>Kode AMDAL</strong> dari warga</li>
+<li>Upload foto bukti serah terima</li>
+<li>Klik Konfirmasi</li>
+</ol>
+
+<h3>Fitur Real-time untuk Petugas</h3>
+<ul>
+<li><strong>Transaksi baru</strong> muncul otomatis (tanpa refresh)</li>
+<li><strong>Notifikasi</strong> muncul sebagai snackbar</li>
+<li><strong>Data pending/diproses</strong> update real-time</li>
+</ul>
+</div>
+
+<hr>
+
+<!-- 5 -->
+<div class="section" id="s5">
+<h2>Panduan Admin</h2>
+
+<h3>Dashboard Admin</h3>
+<p><code>/admin/dashboard</code>:</p>
+<ul>
+<li><strong>Statistik real-time</strong>: total warga, petugas, transaksi, berat, reward</li>
+<li><strong>Chart real-time</strong>: grafik berat per bulan + komposisi per kategori</li>
+<li><strong>Filter chart</strong>: by warga dan kategori sampah</li>
+<li><strong>Navigasi Cepat</strong> ke semua menu manajemen</li>
+</ul>
+
+<h3>Menu Admin</h3>
+<table>
+<thead><tr><th>Menu</th><th>Fungsi</th></tr></thead>
+<tbody>
+<tr><td><strong>Data Warga</strong></td><td>CRUD warga</td></tr>
+<tr><td><strong>Sektor Staff</strong></td><td>Manajemen petugas</td></tr>
+<tr><td><strong>Transaksi Setoran</strong></td><td>Lihat semua transaksi</td></tr>
+<tr><td><strong>Kamus Sampah</strong></td><td>Kelola kategori + item sampah</td></tr>
+<tr><td><strong>Monitoring</strong></td><td>Rekap transaksi + filter</td></tr>
+<tr><td><strong>Pengumuman</strong></td><td>Billboard di landing page</td></tr>
+<tr><td><strong>Reward Item</strong></td><td>CRUD reward</td></tr>
+<tr><td><strong>Drop Point</strong></td><td>Kelola lokasi + peta</td></tr>
+<tr><td><strong>Log Aktivitas</strong></td><td>Audit trail sistem</td></tr>
+<tr><td><strong>Leaderboard</strong></td><td>Peringkat warga</td></tr>
+<tr><td><strong>Warnings</strong></td><td>Suspend/ban akun</td></tr>
+</tbody>
+</table>
+
+<h3>Fitur Real-time untuk Admin</h3>
+<ul>
+<li><strong>Statistik</strong> (angka) update otomatis tanpa refresh</li>
+<li><strong>Chart</strong> otomatis re-fetch data saat ada perubahan</li>
+</ul>
+</div>
+
+<hr>
+
+<!-- 6 -->
+<div class="section" id="s6">
+<h2>Fitur Real-time WebSocket</h2>
+
+<h3>Cara Kerja</h3>
+<ul>
+<li><strong>Teknologi</strong>: STOMP over SockJS (WebSocket + fallback HTTP)</li>
+<li><strong>Endpoint</strong>: <code>/ws</code> (SockJS)</li>
+<li><strong>Broker</strong>: Simple broker untuk <code>/topic</code> dan <code>/queue</code></li>
+</ul>
+
+<h3>Topik WebSocket</h3>
+<table>
+<thead><tr><th>Topik</th><th>Pengirim</th><th>Penerima</th><th>Trigger</th></tr></thead>
+<tbody>
+<tr><td><code>/topic/admin/dashboard</code></td><td>Backend</td><td>Admin</td><td>Data berubah</td></tr>
+<tr><td><code>/topic/petugas/transaksi</code></td><td>Backend</td><td>Petugas</td><td>Transaksi baru/berubah</td></tr>
+<tr><td><code>/topic/petugas/notifikasi</code></td><td>NotifikasiService</td><td>Petugas</td><td>Notifikasi baru</td></tr>
+<tr><td><code>/user/{user}/queue/notifikasi</code></td><td>NotifikasiService</td><td>User spesifik</td><td>Notifikasi personal</td></tr>
+<tr><td><code>/user/{user}/queue/poin</code></td><td>PointService</td><td>Warga</td><td>Poin berubah</td></tr>
+</tbody>
+</table>
+
+<h3>Event Real-time</h3>
+<table>
+<thead><tr><th>Aksi</th><th>Event</th></tr></thead>
+<tbody>
+<tr><td>Warga submit laporan</td><td>Petugas dapat notif + refresh pending</td></tr>
+<tr><td>Petugas proses transaksi</td><td>Warga dapat notif</td></tr>
+<tr><td>Petugas tolak transaksi</td><td>Warga dapat notif</td></tr>
+<tr><td>Petugas selesaikan transaksi</td><td>Warga dapat notif + poin update + admin refresh</td></tr>
+<tr><td>Petugas konfirmasi reward</td><td>Warga dapat notif</td></tr>
+<tr><td>Warga tukar reward</td><td>Petugas dapat notif + admin refresh</td></tr>
+</tbody>
+</table>
+
+<h3>Nginx Config untuk WebSocket</h3>
+<p>Tanpa konfigurasi ini, WebSocket <strong>tidak akan bekerja</strong>:</p>
+<pre><code>location /ws {
+    proxy_pass http://127.0.0.1:8081;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}</code></pre>
+</div>
+
+<hr>
+
+<!-- 7 -->
+<div class="section" id="s7">
+<h2>Landing Page</h2>
+<p>Halaman <code>/</code> (publik) menampilkan:</p>
+<table>
+<thead><tr><th>Section</th><th>Konten</th></tr></thead>
+<tbody>
+<tr><td><strong>Header</strong></td><td>Logo + tombol Masuk / Daftar</td></tr>
+<tr><td><strong>Hero</strong></td><td>"Setor sampah, dapatkan poin &amp; reward" + CTA</td></tr>
+<tr><td><strong>Statistik</strong></td><td>Total warga, petugas, transaksi, berat</td></tr>
+<tr><td><strong>Drop Point</strong></td><td>Kartu lokasi aktif (hanya <code>aktif = true</code>)</td></tr>
+<tr><td><strong>Jam Operasional</strong></td><td>Senin&ndash;Sabtu 08:00&ndash;16:00, Minggu libur</td></tr>
+<tr><td><strong>CTA</strong></td><td>Daftar / Masuk</td></tr>
+<tr><td><strong>Footer</strong></td><td>Copyright</td></tr>
+</tbody>
+</table>
+</div>
+
+<hr>
+
+<!-- 8 -->
+<div class="section" id="s8">
+<h2>Struktur Database</h2>
+
+<h3>Tabel Utama</h3>
+<table>
+<thead><tr><th>Tabel</th><th>Fungsi</th></tr></thead>
+<tbody>
+<tr><td><code>users</code></td><td>Akun semua role (admin, petugas, warga)</td></tr>
+<tr><td><code>warga</code></td><td>Data detail warga (1-1 ke users)</td></tr>
+<tr><td><code>staff</code></td><td>Data detail petugas (1-1 ke users)</td></tr>
+<tr><td><code>kategori_sampah</code></td><td>Kategori sampah + poin per kg</td></tr>
+<tr><td><code>item_sampah</code></td><td>Item dalam kategori</td></tr>
+<tr><td><code>transaksi</code></td><td>Laporan setoran sampah</td></tr>
+<tr><td><code>transaksi_detail</code></td><td>Detail kategori per transaksi</td></tr>
+<tr><td><code>drop_point</code></td><td>Lokasi drop point</td></tr>
+<tr><td><code>reward_item</code></td><td>Daftar reward</td></tr>
+<tr><td><code>penukaran_reward</code></td><td>Riwayat penukaran reward</td></tr>
+<tr><td><code>point_history</code></td><td>Riwayat mutasi poin</td></tr>
+<tr><td><code>notifikasi</code></td><td>Notifikasi per user</td></tr>
+<tr><td><code>log_aktivitas</code></td><td>Audit trail</td></tr>
+<tr><td><code>pengumuman</code></td><td>Billboard landing page</td></tr>
+<tr><td><code>warning</code></td><td>Pelanggaran/suspend/ban</td></tr>
+</tbody>
+</table>
+
+<h3>State Machine Transaksi</h3>
+<pre><code>PENDING  -->  DIPROSES  -->  SELESAI
+  |              |
+  v              v
+DITOLAK       PENDING (cancel)
+DIBATALKAN</code></pre>
+
+<h3>Role User</h3>
+<table>
+<thead><tr><th>Role</th><th>Hak Akses</th></tr></thead>
+<tbody>
+<tr><td><span class="badge badge-warga">WARGA</span></td><td>Dashboard, setor sampah, tukar reward, histori</td></tr>
+<tr><td><span class="badge badge-petugas">PETUGAS</span></td><td>Verifikasi transaksi, timbang, konfirmasi reward</td></tr>
+<tr><td><span class="badge badge-admin">ADMIN</span></td><td>Semua CRUD, monitoring, leaderboard, warnings</td></tr>
+</tbody>
+</table>
+</div>
+
+<footer>Sortify v1.0 &bullet; Object-Oriented Programming &bullet; Bank Sampah Digital</footer>
+
+</div>
+</body>
+</html>
