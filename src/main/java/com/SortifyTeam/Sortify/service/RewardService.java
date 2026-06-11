@@ -21,19 +21,22 @@ public class RewardService {
     private final UserRepository userRepo;
     private final LogAktivitasService logAktivitasService;
     private final NotifikasiService notifikasiService;
+    private final RealtimeService realtimeService;
 
     public RewardService(RewardItemRepository rewardItemRepo,
                          PenukaranRewardRepository penukaranRepo,
                          PointService pointService,
                          UserRepository userRepo,
                          LogAktivitasService logAktivitasService,
-                         NotifikasiService notifikasiService) {
+                         NotifikasiService notifikasiService,
+                         RealtimeService realtimeService) {
         this.rewardItemRepo = rewardItemRepo;
         this.penukaranRepo = penukaranRepo;
         this.pointService = pointService;
         this.userRepo = userRepo;
         this.logAktivitasService = logAktivitasService;
         this.notifikasiService = notifikasiService;
+        this.realtimeService = realtimeService;
     }
 
     public List<RewardItem> getRewardTersedia() {
@@ -88,6 +91,10 @@ public class RewardService {
                     "Penukaran reward " + item.getNamaBarang() + " oleh " + lockedWarga.getFullName()
                     + " (" + item.getPointNeeded() + " poin) — segera konfirmasi serah terima.");
         }
+
+        realtimeService.kirimPoinUpdate(lockedWarga.getUsername(), lockedWarga.getTotalPoints());
+        realtimeService.kirimKePetugas("transaksi", java.util.Map.of("type", "REFRESH_REWARD"));
+        realtimeService.refreshAdminDashboard();
         return penukaran;
     }
 
@@ -233,6 +240,9 @@ public class RewardService {
                 "Penukaran " + item.getNamaBarang() + " dibatalkan oleh petugas. " + item.getPointNeeded() + " poin telah dikembalikan."
                 + (alasan != null && !alasan.isBlank() ? " Alasan: " + alasan : ""));
 
+        realtimeService.kirimPoinUpdate(warga.getUsername(), warga.getTotalPoints());
+        realtimeService.kirimKePetugas("transaksi", java.util.Map.of("type", "REFRESH_REWARD"));
+        realtimeService.refreshAdminDashboard();
         return penukaran;
     }
 }

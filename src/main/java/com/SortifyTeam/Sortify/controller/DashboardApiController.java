@@ -1,8 +1,12 @@
 package com.SortifyTeam.Sortify.controller;
 
 import com.SortifyTeam.Sortify.dto.DashboardChartData;
+import com.SortifyTeam.Sortify.model.Transaksi;
+import com.SortifyTeam.Sortify.model.User;
 import com.SortifyTeam.Sortify.repository.TransaksiDetailRepository;
 import com.SortifyTeam.Sortify.repository.TransaksiRepository;
+import com.SortifyTeam.Sortify.repository.UserRepository;
+import com.SortifyTeam.Sortify.service.RewardService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,6 +17,7 @@ import java.time.Year;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -21,11 +26,29 @@ public class DashboardApiController {
 
     private final TransaksiRepository transaksiRepo;
     private final TransaksiDetailRepository transaksiDetailRepo;
+    private final UserRepository userRepo;
+    private final RewardService rewardService;
 
     public DashboardApiController(TransaksiRepository transaksiRepo,
-                                   TransaksiDetailRepository transaksiDetailRepo) {
+                                   TransaksiDetailRepository transaksiDetailRepo,
+                                   UserRepository userRepo,
+                                   RewardService rewardService) {
         this.transaksiRepo = transaksiRepo;
         this.transaksiDetailRepo = transaksiDetailRepo;
+        this.userRepo = userRepo;
+        this.rewardService = rewardService;
+    }
+
+    @GetMapping("/stats")
+    public Map<String, Object> getStats() {
+        return Map.of(
+            "totalWarga", userRepo.countByRole(User.Role.WARGA),
+            "totalPetugas", userRepo.countByRole(User.Role.PETUGAS),
+            "transaksiSelesai", transaksiRepo.countByStatus(Transaksi.StatusTransaksi.SELESAI),
+            "transaksiPending", transaksiRepo.countByStatus(Transaksi.StatusTransaksi.PENDING),
+            "totalBerat", transaksiRepo.sumTotalBerat(),
+            "rewardDitukar", rewardService.countTotalPenukaran()
+        );
     }
 
     @GetMapping("/chart-data")

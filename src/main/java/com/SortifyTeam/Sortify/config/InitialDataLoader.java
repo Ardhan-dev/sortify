@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
-//@Component
+@Component
 public class InitialDataLoader implements CommandLineRunner {
 
     private final UserRepository userRepo;
@@ -61,6 +61,14 @@ public class InitialDataLoader implements CommandLineRunner {
         user.setRole(role);
         user.setTotalPoints(points);
         return userRepo.save(user);
+    }
+
+    private void updatePassword(String username, String rawPassword) {
+        userRepo.findByUsername(username).ifPresent(user -> {
+            user.setPassword(passwordEncoder.encode(rawPassword));
+            userRepo.save(user);
+            log.info("===== PASSWORD UPDATED: username={}, password={} =====", username, rawPassword);
+        });
     }
 
     @Override
@@ -113,6 +121,13 @@ public class InitialDataLoader implements CommandLineRunner {
         if (!userRepo.existsByUsername("warga")) {
             buatUser("warga", "Warga Biasa", User.Role.WARGA, 5000);
         }
+
+        // Force update all seed passwords to "12345"
+        updatePassword("admin", "12345");
+        updatePassword("adminku", "12345");
+        updatePassword("petugas", "12345");
+        updatePassword("petugas0", "12345");
+        updatePassword("warga", "12345");
 
         if (!wargaRepo.findByUsername("warga").isPresent()) {
             Warga warga = new Warga();

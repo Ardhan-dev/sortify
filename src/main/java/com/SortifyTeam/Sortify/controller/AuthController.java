@@ -2,12 +2,15 @@ package com.SortifyTeam.Sortify.controller;
 
 import com.SortifyTeam.Sortify.dto.RegisterDTO;
 import com.SortifyTeam.Sortify.model.DropPoint;
+import com.SortifyTeam.Sortify.model.Transaksi;
 import com.SortifyTeam.Sortify.model.User;
 import com.SortifyTeam.Sortify.model.Warga;
 import com.SortifyTeam.Sortify.repository.DropPointRepository;
+import com.SortifyTeam.Sortify.repository.TransaksiRepository;
 import com.SortifyTeam.Sortify.repository.UserRepository;
 import com.SortifyTeam.Sortify.repository.WargaRepository;
 import com.SortifyTeam.Sortify.service.LogAktivitasService;
+import com.SortifyTeam.Sortify.service.RewardService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,20 +26,26 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final LogAktivitasService logAktivitasService;
     private final DropPointRepository dropPointRepo;
+    private final TransaksiRepository transaksiRepo;
+    private final RewardService rewardService;
 
     public AuthController(UserRepository userRepo, WargaRepository wargaRepo,
                           PasswordEncoder passwordEncoder,
                           LogAktivitasService logAktivitasService,
-                          DropPointRepository dropPointRepo) {
+                          DropPointRepository dropPointRepo,
+                          TransaksiRepository transaksiRepo,
+                          RewardService rewardService) {
         this.userRepo = userRepo;
         this.wargaRepo = wargaRepo;
         this.passwordEncoder = passwordEncoder;
         this.logAktivitasService = logAktivitasService;
         this.dropPointRepo = dropPointRepo;
+        this.transaksiRepo = transaksiRepo;
+        this.rewardService = rewardService;
     }
 
     @GetMapping("/")
-    public String root(Authentication authentication) {
+    public String root(Authentication authentication, Model model) {
         if (authentication != null && authentication.isAuthenticated()) {
             String role = authentication.getAuthorities().stream()
                     .findFirst().map(a -> a.getAuthority()).orElse("");
@@ -44,7 +53,13 @@ public class AuthController {
             if (role.contains("PETUGAS")) return "redirect:/petugas/dashboard";
             if (role.contains("WARGA")) return "redirect:/warga/dashboard";
         }
-        return "redirect:/kamus-sampah";
+        model.addAttribute("dropPointList", dropPointRepo.findByAktifTrueOrderByNamaAsc());
+        model.addAttribute("totalWarga", userRepo.countByRole(User.Role.WARGA));
+        model.addAttribute("totalPetugas", userRepo.countByRole(User.Role.PETUGAS));
+        model.addAttribute("transaksiSelesai", transaksiRepo.countByStatus(Transaksi.StatusTransaksi.SELESAI));
+        model.addAttribute("totalBerat", transaksiRepo.sumTotalBerat());
+        model.addAttribute("rewardDitukar", rewardService.countTotalPenukaran());
+        return "index";
     }
 
     @GetMapping("/login")

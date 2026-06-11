@@ -14,10 +14,12 @@ public class PointService {
 
     private final PointHistoryRepository pointHistoryRepo;
     private final UserRepository userRepo;
+    private final RealtimeService realtimeService;
 
-    public PointService(PointHistoryRepository pointHistoryRepo, UserRepository userRepo) {
+    public PointService(PointHistoryRepository pointHistoryRepo, UserRepository userRepo, RealtimeService realtimeService) {
         this.pointHistoryRepo = pointHistoryRepo;
         this.userRepo = userRepo;
+        this.realtimeService = realtimeService;
     }
 
     @Transactional
@@ -27,6 +29,7 @@ public class PointService {
         lockedWarga.setTotalPoints(lockedWarga.getTotalPoints() + amount);
         userRepo.save(lockedWarga);
         tambahPointHistory(lockedWarga, amount, PointHistory.PointType.EARN, description);
+        realtimeService.kirimPoinUpdate(warga.getUsername(), lockedWarga.getTotalPoints());
     }
 
     public void tambahPointHistory(User user, int amount, PointHistory.PointType type, String description) {

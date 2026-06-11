@@ -22,19 +22,22 @@ public class TransaksiService {
     private final NotifikasiService notifikasiService;
     private final UserRepository userRepo;
     private final LogAktivitasService logAktivitasService;
+    private final RealtimeService realtimeService;
 
     public TransaksiService(TransaksiRepository transaksiRepo,
                             PointService pointService,
                             KategoriSampahRepository kategoriRepo,
                             NotifikasiService notifikasiService,
                             UserRepository userRepo,
-                            LogAktivitasService logAktivitasService) {
+                            LogAktivitasService logAktivitasService,
+                            RealtimeService realtimeService) {
         this.transaksiRepo = transaksiRepo;
         this.pointService = pointService;
         this.kategoriRepo = kategoriRepo;
         this.notifikasiService = notifikasiService;
         this.userRepo = userRepo;
         this.logAktivitasService = logAktivitasService;
+        this.realtimeService = realtimeService;
     }
 
     public List<Transaksi> getTransaksiByStatus(Transaksi.StatusTransaksi status) {
@@ -105,6 +108,9 @@ public class TransaksiService {
             notifikasiService.buatNotifikasi(petugas,
                     "Laporan baru dari " + wargaNama + " (" + String.format("%.1f", totalBerat) + " kg) — segera proses.");
         }
+
+        realtimeService.refreshAdminDashboard();
+        realtimeService.refreshTransaksiPetugas();
     }
 
     @Transactional
@@ -115,7 +121,16 @@ public class TransaksiService {
         }
         transaksi.setStaff(staff);
         transaksi.setStatus(Transaksi.StatusTransaksi.DIPROSES);
-        return transaksiRepo.save(transaksi);
+        Transaksi saved = transaksiRepo.save(transaksi);
+
+        Warga w = transaksi.getWarga();
+        if (w != null && w.getUser() != null) {
+            realtimeService.kirimNotifikasi(w.getUser().getUsername(),
+                    "Laporan #" + transaksiId + " sedang diproses oleh petugas.");
+        }
+        realtimeService.refreshTransaksiPetugas();
+        realtimeService.refreshAdminDashboard();
+        return saved;
     }
 
     @Transactional
@@ -138,6 +153,9 @@ public class TransaksiService {
         }
         logAktivitasService.catatAktivitas(warga.getUsername(), warga.getRole().name(),
                 "BATAL_TRANSAKSI", "Warga membatalkan laporan #" + transaksiId);
+
+        realtimeService.refreshTransaksiPetugas();
+        realtimeService.refreshAdminDashboard();
         return transaksi;
     }
 
@@ -157,6 +175,9 @@ public class TransaksiService {
             notifikasiService.buatNotifikasi(warga.getUser(),
                 "Laporan #" + transaksiId + " ditolak. Alasan: " + alasan);
         }
+
+        realtimeService.refreshTransaksiPetugas();
+        realtimeService.refreshAdminDashboard();
         return transaksi;
     }
 
@@ -214,6 +235,10 @@ public class TransaksiService {
                     + poinBulat + " Poin telah ditambahkan ke saldo Anda!");
         }
 
+        realtimeService.refreshAdminDashboard();
+        if (entitasWarga != null && entitasWarga.getUser() != null) {
+            realtimeService.kirimPoinUpdate(entitasWarga.getUser().getUsername(), (int) Math.round(totalPoin));
+        }
         return transaksi;
     }
 }

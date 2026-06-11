@@ -12,9 +12,11 @@ import java.util.List;
 public class NotifikasiService {
 
     private final NotifikasiRepository notifRepo;
+    private final RealtimeService realtimeService;
 
-    public NotifikasiService(NotifikasiRepository notifRepo) {
+    public NotifikasiService(NotifikasiRepository notifRepo, RealtimeService realtimeService) {
         this.notifRepo = notifRepo;
+        this.realtimeService = realtimeService;
     }
 
     @Transactional
@@ -24,6 +26,11 @@ public class NotifikasiService {
         notif.setPesan(pesan);
         notif.setRead(false);
         notifRepo.save(notif);
+
+        realtimeService.kirimNotifikasi(user.getUsername(), pesan);
+        if (user.getRole() == User.Role.PETUGAS) {
+            realtimeService.notifikasiPetugasBaru(pesan);
+        }
     }
 
     public List<Notifikasi> getNotifikasiBelumDibaca(User user) {

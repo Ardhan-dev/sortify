@@ -666,7 +666,47 @@
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
 <script>
+let stompClient = null;
+
+function connectWebSocket() {
+  const socket = new SockJS('/ws');
+  stompClient = Stomp.over(socket);
+  stompClient.connect({}, function() {
+    stompClient.subscribe('/topic/admin/dashboard', function(msg) {
+      try {
+        const data = JSON.parse(msg.body);
+        if (data.type === 'REFRESH') {
+          refreshAdminDashboard();
+        }
+      } catch(e) {}
+    });
+  }, function() {
+    setTimeout(connectWebSocket, 5000);
+  });
+}
+
+function refreshAdminDashboard() {
+  fetch('/api/dashboard/stats')
+    .then(res => res.json())
+    .then(data => {
+      document.querySelectorAll('.stats-row')[0].querySelectorAll('.stat-val')[0].textContent = data.totalWarga || '—';
+      document.querySelectorAll('.stats-row')[0].querySelectorAll('.stat-val')[1].textContent = data.totalPetugas || '—';
+      document.querySelectorAll('.stats-row')[0].querySelectorAll('.stat-val')[2].textContent = data.transaksiSelesai || '—';
+      document.querySelectorAll('.stats-row')[0].querySelectorAll('.stat-val')[3].textContent = data.transaksiPending || '—';
+      document.querySelectorAll('.stats-row')[1].querySelectorAll('.stat-val')[0].textContent = (data.totalBerat ? Number(data.totalBerat).toFixed(1) : '0') + ' kg';
+      document.querySelectorAll('.stats-row')[1].querySelectorAll('.stat-val')[1].textContent = data.rewardDitukar || '—';
+    })
+    .catch(err => console.error('Gagal refresh stat:', err));
+  fetchChartData();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(connectWebSocket, 500);
+});
+
 Chart.defaults.color = '#8a9480';
 Chart.defaults.borderColor = 'rgba(134,187,76,0.08)';
 Chart.defaults.font.family = "'DM Sans', sans-serif";
