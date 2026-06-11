@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
@@ -67,18 +67,17 @@ footer{border-top:1px solid var(--border);padding:2rem 0;margin-top:3rem;text-al
 
 <div class="toc animate">
   <h2>Daftar Isi</h2>
-  <a href="#s1"><span class="num">01</span> Panduan Deploy</a>
-  <a href="#s2"><span class="num">02</span> Akses &amp; Login</a>
-  <a href="#s3"><span class="num">03</span> Panduan Warga</a>
-  <a href="#s4"><span class="num">04</span> Panduan Petugas</a>
-  <a href="#s5"><span class="num">05</span> Panduan Admin</a>
-  <a href="#s6"><span class="num">06</span> Fitur Real-time WebSocket</a>
-  <a href="#s7"><span class="num">07</span> Landing Page</a>
-  <a href="#s8"><span class="num">08</span> Struktur Database</a>
+  <a href="#s0"><span class="num">00</span> Panduan Deploy</a>
+  <a href="#s1"><span class="num">01</span> Akses &amp; Login</a>
+  <a href="#s2"><span class="num">02</span> Panduan Warga</a>
+  <a href="#s3"><span class="num">03</span> Panduan Petugas</a>
+  <a href="#s4"><span class="num">04</span> Panduan Admin</a>
+  <a href="#s5"><span class="num">05</span> Fitur Real-time WebSocket</a>
+  <a href="#s6"><span class="num">06</span> Landing Page</a>
+  <a href="#s7"><span class="num">07</span> Struktur Database</a>
 </div>
 
-<!-- 1 -->
-<div class="section animate" id="s1">
+<div class="section animate" id="s0">
 <h2>Panduan Deploy</h2>
 
 <h3>Prasyarat Server</h3>
@@ -100,14 +99,14 @@ chmod +x mvnw
 
 <h3>Siapkan Database</h3>
 <pre><code>CREATE DATABASE IF NOT EXISTS db_sortify CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'ardhan_user'@'localhost' IDENTIFIED BY 'Admin123';
-GRANT ALL PRIVILEGES ON db_sortify.* TO 'ardhan_user'@'localhost';
+CREATE USER 'sortify_user'@'localhost' IDENTIFIED BY '********';
+GRANT ALL PRIVILEGES ON db_sortify.* TO 'sortify_user'@'localhost';
 FLUSH PRIVILEGES;</code></pre>
 
 <h3>Jalankan Aplikasi</h3>
 <pre><code>java -jar target/Sortify-0.0.1-SNAPSHOT.jar \
-  --spring.datasource.username=ardhan_user \
-  --spring.datasource.password=Admin123 \
+  --spring.datasource.username=sortify_user \
+  --spring.datasource.password=******** \
   --spring.datasource.url='jdbc:mysql://localhost:3306/db_sortify?createDatabaseIfNotExist=true&serverTimezone=UTC'</code></pre>
 <p>Verifikasi: <code>curl -v http://localhost:8081/</code> &rarr; harus balik HTML landing page.</p>
 
@@ -151,7 +150,7 @@ sudo nginx -t && sudo systemctl reload nginx</code></pre>
 <tbody>
 <tr><td><code>connect() failed (111)</code></td><td>Spring Boot tidak jalan</td><td><code>ps aux | grep java</code></td></tr>
 <tr><td>Port 8081 tidak ada</td><td>App crash startup</td><td><code>java -jar ... 2&gt;&amp;1 | tail -60</code></td></tr>
-<tr><td><code>Access denied</code></td><td>Kredensial MySQL salah</td><td><code>mysql -u ardan_user -p</code> test manual</td></tr>
+<tr><td><code>Access denied</code></td><td>Kredensial MySQL salah</td><td><code>mysql -u sortify_user -p</code> test manual</td></tr>
 <tr><td><code>Unknown database</code></td><td>DB belum dibuat</td><td><code>CREATE DATABASE db_sortify;</code></td></tr>
 <tr><td><code>ClassNotFoundException</code></td><td>JAR corrupt</td><td>Ulangi <code>mvn clean package</code></td></tr>
 </tbody>
@@ -167,8 +166,8 @@ After=network.target mysql.service
 User=root
 WorkingDirectory=/root/sortify
 ExecStart=/usr/bin/java -jar /root/sortify/target/Sortify-0.0.1-SNAPSHOT.jar \
-  --spring.datasource.username=ardhan_user \
-  --spring.datasource.password=Admin123 \
+  --spring.datasource.username=sortify_user \
+  --spring.datasource.password=******** \
   --spring.datasource.url='jdbc:mysql://localhost:3306/db_sortify?createDatabaseIfNotExist=true&serverTimezone=UTC'
 Restart=always
 RestartSec=10
@@ -183,17 +182,16 @@ sudo systemctl status sortify</code></pre>
 
 <hr>
 
-<!-- 2 -->
-<div class="section" id="s2">
+<div class="section animate" id="s1">
 <h2>Akses &amp; Login</h2>
 
 <h3>Akun Default (Seeder)</h3>
 <table>
 <thead><tr><th>Role</th><th>Username</th><th>Password</th></tr></thead>
 <tbody>
-<tr><td><span class="badge badge-admin">ADMIN</span></td><td><code>admin</code></td><td><code>12345</code></td></tr>
-<tr><td><span class="badge badge-petugas">PETUGAS</span></td><td><code>petugas</code></td><td><code>12345</code></td></tr>
-<tr><td><span class="badge badge-warga">WARGA</span></td><td><code>warga</code></td><td><code>12345</code></td></tr>
+<tr><td><span class="badge badge-admin">ADMIN</span></td><td><code>admin</code></td><td><code>*****</code></td></tr>
+<tr><td><span class="badge badge-petugas">PETUGAS</span></td><td><code>petugas</code></td><td><code>*****</code></td></tr>
+<tr><td><span class="badge badge-warga">WARGA</span></td><td><code>warga</code></td><td><code>*****</code></td></tr>
 </tbody>
 </table>
 
@@ -216,8 +214,7 @@ sudo systemctl status sortify</code></pre>
 
 <hr>
 
-<!-- 3 -->
-<div class="section" id="s3">
+<div class="section" id="s2">
 <h2>Panduan Warga</h2>
 
 <h3>Registrasi</h3>
@@ -273,8 +270,7 @@ sudo systemctl status sortify</code></pre>
 
 <hr>
 
-<!-- 4 -->
-<div class="section" id="s4">
+<div class="section" id="s3">
 <h2>Panduan Petugas</h2>
 
 <h3>Dashboard Petugas</h3>
@@ -328,8 +324,7 @@ sudo systemctl status sortify</code></pre>
 
 <hr>
 
-<!-- 5 -->
-<div class="section" id="s5">
+<div class="section" id="s4">
 <h2>Panduan Admin</h2>
 
 <h3>Dashboard Admin</h3>
@@ -368,8 +363,7 @@ sudo systemctl status sortify</code></pre>
 
 <hr>
 
-<!-- 6 -->
-<div class="section" id="s6">
+<div class="section" id="s5">
 <h2>Fitur Real-time WebSocket</h2>
 
 <h3>Cara Kerja</h3>
@@ -403,24 +397,11 @@ sudo systemctl status sortify</code></pre>
 <tr><td>Warga tukar reward</td><td>Petugas dapat notif + admin refresh</td></tr>
 </tbody>
 </table>
-
-<h3>Nginx Config untuk WebSocket</h3>
-<p>Tanpa konfigurasi ini, WebSocket <strong>tidak akan bekerja</strong>:</p>
-<pre><code>location /ws {
-    proxy_pass http://127.0.0.1:8081;
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-}</code></pre>
 </div>
 
 <hr>
 
-<!-- 7 -->
-<div class="section" id="s7">
+<div class="section" id="s6">
 <h2>Landing Page</h2>
 <p>Halaman <code>/</code> (publik) menampilkan:</p>
 <table>
@@ -439,8 +420,7 @@ sudo systemctl status sortify</code></pre>
 
 <hr>
 
-<!-- 8 -->
-<div class="section" id="s8">
+<div class="section" id="s7">
 <h2>Struktur Database</h2>
 
 <h3>Tabel Utama</h3>

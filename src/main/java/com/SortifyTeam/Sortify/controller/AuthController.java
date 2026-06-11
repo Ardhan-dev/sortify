@@ -76,6 +76,11 @@ public class AuthController {
         return "login";
     }
 
+    @GetMapping("/manual-guide")
+    public String manualGuide() {
+        return "manual-guide";
+    }
+
     @GetMapping("/register")
     public String registerPage(Model model, HttpServletRequest request) {
         request.getSession();

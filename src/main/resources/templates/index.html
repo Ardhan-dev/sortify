@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="id">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="id">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -146,7 +146,7 @@
         <a href="/login" class="btn-nav btn-nav-outline">Masuk</a>
         <a href="/register" class="btn-nav btn-nav-solid">Daftar</a>
         <div class="topbar-sep"></div>
-        <a href="/MANUAL_GUIDE.html" class="btn-nav btn-nav-outline">Panduan</a>
+        <a sec:authorize="isAuthenticated()" href="/manual-guide" class="btn-nav btn-nav-outline">Panduan</a>
       </div>
     </div>
   </header>
